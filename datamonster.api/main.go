@@ -1,6 +1,7 @@
 package main
 
 import (
+	"datamonster/settlement"
 	"net/http"
 	"time"
 
@@ -23,38 +24,19 @@ func main() {
 		MaxAge:             3599, // Maximum value not ignored by any of major browsers
 	})
 	r.Use(c.Handler)
-	contentType := render.SetContentType(render.ContentTypeJSON)
-	timeout := middleware.Timeout(20 * time.Second)
+
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Logger)
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.URLFormat)
+
+	contentType := render.SetContentType(render.ContentTypeJSON)
 	r.Use(contentType)
+
+	timeout := middleware.Timeout(20 * time.Second)
 	r.Use(timeout)
-	r.Get("/settlement", GetSettlement)
-	http.ListenAndServe(":8888", r)
-}
 
-type SettlementResponse struct {
-	SettlementName    string `json:"name"`
-	SettlementType    string `json:"type"`
-	SurvivalLimit     int    `json:"limit"`
-	DepartingSurvival int    `json:"departing"`
-	Elapsed           int64  `json:"elapsed"`
-}
-
-func (rd *SettlementResponse) Render(w http.ResponseWriter, r *http.Request) error {
-	rd.Elapsed = 10
-	return nil
-}
-
-func GetSettlement(w http.ResponseWriter, r *http.Request) {
-	resp := &SettlementResponse{
-		SettlementName:    "Rad Dreamers",
-		SettlementType:    "PotDK",
-		SurvivalLimit:     1,
-		DepartingSurvival: 1,
-	}
-	render.Render(w, r, resp)
+	r.Route(settlement.BaseRoute, settlement.RegisterRoutes)
+	http.ListenAndServe(":8000", r)
 }
