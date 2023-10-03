@@ -1,4 +1,4 @@
-name: DataMonster.Records
+name: records
 on:
   workflow_dispatch:
   push:
@@ -11,7 +11,7 @@ jobs:
       - uses: actions/checkout@v4
 
       - name: Build image
-        run: docker build -t datamonster.records:build --build-arg password=${{ secrets.RECORDS_PASS }} --build-arg user=${{ secrets.RECORDS_USER }} ./DataMonster.Records/
+        run: docker build -t datamonster.records:build --build-arg password=${{ secrets.RECORDS_PASS }} --build-arg user=${{ secrets.RECORDS_USER }} ./datamonster.records/
 
       - name: Run container
         run: docker run --name=datamonster.records -d datamonster.records:build
