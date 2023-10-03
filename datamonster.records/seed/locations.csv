@@ -1,20 +1,20 @@
-basu,Barber Surgeon
-blsm,Blacksmith
-bosm,Bone Smith
+surgeon,Barber Surgeon
+black,Blacksmith
+bone,Bone Smith
 cat,Catarium
-drar,Dragon Armory
+dragon,Dragon Armory
 elh,Exhausted Lantern Hoard
-goch,Gormchymist
-gory,Gormery
-ivca,Ivory Carver
-lewo,Leather Worker
+gorm2,Gormchymist
+gorm1,Gormery
+ivory,Ivory Carver
+leather,Leather Worker
 mask,Mask Maker
-orgr,Organ Grinder
-plry,Plumery
-sapo,Sacred Pool
-simi,Silk Mill
-skry,Skinnery
-srs,Sky Reef Sanctuary
-stci,Stone Circle
-wecr,Weapon Crafter
-wrc,Wet Resin Crafter
+organ,Organ Grinder
+plumery,Plumery
+pool,Sacred Pool
+silk,Silk Mill
+skin,Skinnery
+sky,Sky Reef Sanctuary
+stone,Stone Circle
+weapon,Weapon Crafter
+resin,Wet Resin Crafter
