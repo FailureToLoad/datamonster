@@ -17,10 +17,10 @@ jobs:
         run: docker run --name=datamonster.records -d datamonster.records:build
 
       - name: Commit seeded image as latest
-        run: docker commit datamonster.records ghcr.io/failuretoload/datamonster/datamonster.records:latest
+        run: docker commit datamonster.records ghcr.io/failuretoload/datamonster.records:latest
 
       - name: Log in to GHCR
         run: echo ${{ secrets.CR_PAT }} | docker login ghcr.io -u ${{ secrets.CR_USER }} --password-stdin
 
       - name: Push latest image
-        run: docker push ghcr.io/failuretoload/datamonster/datamonster.records:latest
+        run: docker push ghcr.io/failuretoload/datamonster.records:latest
