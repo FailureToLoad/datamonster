@@ -1,71 +1,103 @@
-import { ChangeEvent, FormEvent, useState } from "react";
 import { signInUser } from "../auth/firebase";
 import { useNavigate } from "react-router-dom";
 import ".././App.css";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import * as z from "zod";
+import { useForm } from "react-hook-form";
+import { zodResolver } from "@hookform/resolvers/zod";
+import {
+  Form,
+  FormControl,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 
-const defaultFormFields = {
-  email: "",
-  password: "",
-};
+const formSchema = z.object({
+  email: z.string().email(),
+  password: z.string().min(6),
+});
 
 function Login() {
-  const [formFields, setFormFields] = useState(defaultFormFields);
-  const { email, password } = formFields;
   const navigate = useNavigate();
 
-  const resetFormFields = () => {
-    return setFormFields(defaultFormFields);
-  };
+  const form = useForm<z.infer<typeof formSchema>>({
+    resolver: zodResolver(formSchema),
+    defaultValues: {
+      email: "",
+      password: "",
+    },
+  });
 
-  const handleSubmit = async (event: FormEvent<HTMLFormElement>) => {
-    event.preventDefault();
-
+  async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      // Send the email and password to firebase
-      const userCredential = await signInUser(email, password);
-
+      const userCredential = await signInUser(values.email, values.password);
       if (userCredential) {
-        resetFormFields();
         navigate("/profile");
       }
     } catch (error: any) {
       console.log("User Sign In Failed", error.message);
     }
-  };
-
-  const handleChange = (event: ChangeEvent<HTMLInputElement>) => {
-    const { name, value } = event.target;
-    setFormFields({ ...formFields, [name]: value });
-  };
+  }
 
   return (
     <div className="App">
-      <div className="card">
-        <form onSubmit={handleSubmit}>
-          <div>
-            <input
-              type="email"
-              name="email"
-              value={email}
-              onChange={handleChange}
-              placeholder="Email"
-              required
-            />
-          </div>
-          <div>
-            <input
-              type="password"
-              name="password"
-              value={password}
-              onChange={handleChange}
-              placeholder="Password"
-              required
-            />
-          </div>
-          <div>
-            <input id="recaptcha" type="submit" />
-          </div>
-        </form>
+      <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden">
+        <div className="m-auto w-full bg-white lg:max-w-lg">
+          <Card>
+            <CardHeader className="space-y-1">
+              <CardTitle className="text-center text-2xl">Sign in</CardTitle>
+              <CardDescription className="text-center">
+                Enter your email and password to login
+              </CardDescription>
+            </CardHeader>
+            <CardContent className="grid gap-4">
+              <Form {...form}>
+                <form
+                  onSubmit={form.handleSubmit(onSubmit)}
+                  className="space-y-8"
+                >
+                  <FormField
+                    control={form.control}
+                    name="email"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Email</FormLabel>
+                        <FormControl>
+                          <Input type="email" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <FormField
+                    control={form.control}
+                    name="password"
+                    render={({ field }) => (
+                      <FormItem>
+                        <FormLabel>Password</FormLabel>
+                        <FormControl>
+                          <Input type="password" {...field} />
+                        </FormControl>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                  <Button type="submit">Submit</Button>
+                </form>
+              </Form>
+            </CardContent>
+          </Card>
+        </div>
       </div>
     </div>
   );
