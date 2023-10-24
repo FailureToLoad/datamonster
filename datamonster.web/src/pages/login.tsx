@@ -42,7 +42,7 @@ function Login() {
     try {
       const userCredential = await signInUser(values.email, values.password);
       if (userCredential) {
-        navigate("/profile");
+        navigate("/");
       }
     } catch (error: any) {
       console.log("User Sign In Failed", error.message);

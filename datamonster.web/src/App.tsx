@@ -3,7 +3,7 @@ import { Routes, Route, useNavigate } from "react-router-dom";
 import { AuthContext } from "./auth/auth-context";
 import "./App.css";
 import Login from "./pages/login";
-import Home from "./pages/home";
+import Settlements from "./pages/settlements";
 import RequireAuth from "./components/requireAuth";
 
 function App() {
@@ -16,20 +16,20 @@ function App() {
   // Check if the current user exists on the initial render.
   useEffect(() => {
     if (currentUser) {
-      navigate("/home");
+      navigate("/");
     }
   }, [currentUser]);
   return (
     <Routes>
-      <Route index element={<Login />} />
       <Route
-        path="home"
+        index
         element={
           <RequireAuth>
-            <Home />
+            <Settlements />
           </RequireAuth>
         }
       />
+      <Route path="login" element={<Login />} />
     </Routes>
   );
 }
