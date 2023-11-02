@@ -8,7 +8,8 @@ interface Props {
 }
 
 export const AuthContext = createContext({
-  // "User" comes from firebase auth-public.d.ts
+  isLoading: true,
+  isLoggedIn: false,
   currentUser: {} as User | null,
   setCurrentUser: (_user: User) => {},
   signOut: () => {},
@@ -16,13 +17,20 @@ export const AuthContext = createContext({
 
 export const AuthProvider = ({ children }: Props) => {
   const [currentUser, setCurrentUser] = useState<User | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
+  const [isLoggedIn, setIsLoggedIn] = useState(false);
   const navigate = useNavigate();
 
   useEffect(() => {
     const unsubscribe = userStateListener((user) => {
+      console.log("user state change");
       if (user) {
         setCurrentUser(user);
+        setIsLoggedIn(true);
+      } else {
+        setIsLoggedIn(false);
       }
+      setIsLoading(false);
     });
     return unsubscribe;
   }, [setCurrentUser]);
@@ -36,6 +44,8 @@ export const AuthProvider = ({ children }: Props) => {
   };
 
   const value = {
+    isLoading,
+    isLoggedIn,
     currentUser,
     setCurrentUser,
     signOut,

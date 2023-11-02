@@ -2,9 +2,10 @@ import { useContext, useEffect } from "react";
 import { Routes, Route, useNavigate } from "react-router-dom";
 import { AuthContext } from "./auth/auth-context";
 import "./App.css";
-import Login from "./pages/login";
-import Settlements from "./pages/settlements";
-import RequireAuth from "./components/requireAuth";
+import Login from "./routes/login";
+import Settlements from "./routes/settlements";
+import PublicLayout from "./routes/publiclayout";
+import PrivateLayout from "./routes/privatelayout";
 
 function App() {
   const { currentUser } = useContext(AuthContext);
@@ -21,15 +22,12 @@ function App() {
   }, [currentUser]);
   return (
     <Routes>
-      <Route
-        index
-        element={
-          <RequireAuth>
-            <Settlements />
-          </RequireAuth>
-        }
-      />
-      <Route path="login" element={<Login />} />
+      <Route element={<PrivateLayout />}>
+        <Route path="/" element={<Settlements />} />
+      </Route>
+      <Route element={<PublicLayout />}>
+        <Route path="login" element={<Login />} />
+      </Route>
     </Routes>
   );
 }
