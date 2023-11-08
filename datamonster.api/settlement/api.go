@@ -1,37 +1,77 @@
 package settlement
 
 import (
+	"datamonster/web"
+	"encoding/json"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/render"
+	"github.com/gofrs/uuid/v5"
 )
 
 const BaseRoute = "/settlement"
 
-func RegisterRoutes(r chi.Router) {
-	r.Get("/", getSettlement)
+type Controller struct {
+	repo *Repo
 }
 
-type SettlementResponse struct {
-	SettlementName    string `json:"name"`
-	SettlementType    string `json:"type"`
-	SurvivalLimit     int    `json:"limit"`
-	DepartingSurvival int    `json:"departing"`
-	Elapsed           int64  `json:"elapsed"`
+func NewController(repo *Repo) *Controller {
+	return &Controller{repo: repo}
 }
 
-func (rd *SettlementResponse) Render(w http.ResponseWriter, r *http.Request) error {
-	rd.Elapsed = 10
-	return nil
+type SettlementDTO struct {
+	Id                  uuid.UUID `json:"id"`
+	Name                string    `json:"name"`
+	SurvivalLimit       int       `json:"limit"`
+	DepartingSurvival   int       `json:"departing"`
+	CollectiveCognition int       `json:"cc"`
+	Year                int       `json:"year"`
 }
 
-func getSettlement(w http.ResponseWriter, r *http.Request) {
-	resp := &SettlementResponse{
-		SettlementName:    "Rad Dreamers",
-		SettlementType:    "PotDK",
-		SurvivalLimit:     1,
-		DepartingSurvival: 1,
+type SettlementsDTO struct {
+	Settlements []SettlementDTO `json:"settlements"`
+	Count       int             `json:"count"`
+}
+
+type SettlementsRequest struct {
+	Owner string `json:"owner"`
+}
+
+func (c Controller) RegisterRoutes(r chi.Router) {
+	r.Get("/", c.getSettlements)
+}
+
+func (c Controller) getSettlements(w http.ResponseWriter, r *http.Request) {
+	userId := r.Context().Value(web.UserIdKey).(string)
+	settlements, repoErr := c.repo.GetAllForUser(r.Context(), userId)
+	if repoErr != nil {
+		makeResponse(w, http.StatusInternalServerError, "Error retrieving settlements")
+		return
 	}
-	render.Render(w, r, resp)
+	data := domainListToDto(settlements)
+	makeResponse(w, http.StatusOK, data)
+}
+
+func makeResponse(w http.ResponseWriter, status int, data interface{}) {
+	body, _ := json.Marshal(data)
+	w.Header().Set("Content-Type", "application/json")
+	w.WriteHeader(status)
+	w.Write(body)
+}
+
+func domainListToDto(settlements []Settlement) SettlementsDTO {
+	dtos := SettlementsDTO{}
+	for _, s := range settlements {
+		dto := SettlementDTO{
+			Id:                  s.Id,
+			Name:                s.Name,
+			SurvivalLimit:       s.SurvivalLimit,
+			DepartingSurvival:   s.DepartingSurvival,
+			CollectiveCognition: s.CollectiveCognition,
+			Year:                s.CurrentYear,
+		}
+		dtos.Settlements = append(dtos.Settlements, dto)
+		dtos.Count++
+	}
+	return dtos
 }

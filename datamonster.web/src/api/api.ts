@@ -6,10 +6,12 @@ const ax = axios.create({
   });
 
 export type Settlement = {
+    id: string
     name: string
-    type: string
     limit: number
     departing: number
+    cc: number
+    year: number
 }
 
 export type CreateSettlementRequest = {
@@ -25,16 +27,16 @@ type api = {
 }
 
 const requester:api = {
-  getSettlementsForUser: async function (userId: string): Promise<Settlement[]> {
-      const response = await ax.get<Settlement[]>(`http://localhost:8000/settlement`,{headers: {Authorization: userId}})
+  getSettlementsForUser: async function (token: string): Promise<Settlement[]> {
+      const response = await ax.get<Settlement[]>(`http://localhost:8080/settlement`,{headers: {'Authorization': `${token}`}})
       return response.data
   },
   getSettlement: async function (): Promise<Settlement> {
-      const response = await ax.get<Settlement>('http://localhost:8000/settlement')
+      const response = await ax.get<Settlement>('http://localhost:8080/settlement')
       return response.data
   },
   createSettlement: async function (request: CreateSettlementRequest): Promise<Settlement> {
-    const response = await ax.post<Settlement>('http://localhost:8000/settlement', request)
+    const response = await ax.post<Settlement>('http://localhost:8080/settlement', request)
     return response.data
   }
 }
