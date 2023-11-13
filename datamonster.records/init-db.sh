@@ -4,7 +4,7 @@ set -e
 psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-EOSQL
     CREATE TABLE IF NOT EXISTS settlement
     (
-        id uuid DEFAULT gen_random_uuid(),
+        id SERIAL,
         owner uuid NOT NULL,
         name character varying(50) COLLATE pg_catalog."default" NOT NULL,
         survival_limit smallint DEFAULT 0,
@@ -16,8 +16,8 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
 
     CREATE TABLE IF NOT EXISTS survivor
     (
-        id uuid DEFAULT gen_random_uuid(),
-        settlement uuid NOT NULL,
+        id SERIAL,
+        settlement integer NOT NULL,
         name character varying(50) COLLATE pg_catalog."default" NOT NULL,
         birth smallint NOT NULL DEFAULT 0,
         huntxp smallint NOT NULL DEFAULT 0,
