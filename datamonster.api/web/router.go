@@ -2,7 +2,6 @@ package web
 
 import (
 	"context"
-	"encoding/json"
 	"log"
 	"net/http"
 	"time"
@@ -65,7 +64,7 @@ func authHandler(next http.Handler) http.Handler {
 		authHeader := r.Header.Get("Authorization")
 		validToken, verifyErr := client.VerifyIDTokenAndCheckRevoked(ctx, authHeader)
 		if verifyErr != nil {
-			makeResponse(w, http.StatusUnauthorized, "Unauthorized")
+			MakeJsonResponse(w, http.StatusUnauthorized, "Unauthorized")
 			return
 		} else {
 			ctx = context.WithValue(ctx, UserIdKey, validToken.UID)
@@ -73,11 +72,4 @@ func authHandler(next http.Handler) http.Handler {
 		next.ServeHTTP(w, r.WithContext(ctx))
 	}
 	return http.HandlerFunc(fn)
-}
-
-func makeResponse(w http.ResponseWriter, status int, data interface{}) {
-	body, _ := json.Marshal(data)
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(status)
-	w.Write(body)
 }

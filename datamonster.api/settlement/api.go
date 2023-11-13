@@ -2,7 +2,6 @@ package settlement
 
 import (
 	"datamonster/web"
-	"encoding/json"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -45,18 +44,11 @@ func (c Controller) getSettlements(w http.ResponseWriter, r *http.Request) {
 	userId := r.Context().Value(web.UserIdKey).(string)
 	settlements, repoErr := c.repo.GetAllForUser(r.Context(), userId)
 	if repoErr != nil {
-		makeResponse(w, http.StatusInternalServerError, "Error retrieving settlements")
+		web.MakeJsonResponse(w, http.StatusInternalServerError, "Error retrieving settlements")
 		return
 	}
 	data := domainListToDto(settlements)
-	makeResponse(w, http.StatusOK, data)
-}
-
-func makeResponse(w http.ResponseWriter, status int, data interface{}) {
-	body, _ := json.Marshal(data)
-	w.Header().Set("Content-Type", "application/json")
-	w.WriteHeader(status)
-	w.Write(body)
+	web.MakeJsonResponse(w, http.StatusOK, data)
 }
 
 func domainListToDto(settlements []Settlement) SettlementsDTO {
