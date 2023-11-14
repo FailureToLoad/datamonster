@@ -5,7 +5,7 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     CREATE TABLE IF NOT EXISTS settlement
     (
         id SERIAL,
-        owner uuid NOT NULL,
+        owner character varying(128) NOT NULL,
         name character varying(50) COLLATE pg_catalog."default" NOT NULL,
         survival_limit smallint DEFAULT 0,
         departing_survival smallint DEFAULT 0,
@@ -43,4 +43,5 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     CREATE USER appuser WITH PASSWORD '$APPUSER_PASS';
     GRANT USAGE ON SCHEMA public TO appuser;
     GRANT SELECT, INSERT, UPDATE, DELETE ON ALL TABLES IN SCHEMA public TO appuser;
+    GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO appuser;
 EOSQL

@@ -4,8 +4,6 @@ import (
 	"context"
 	"fmt"
 
-	"github.com/gofrs/uuid/v5"
-	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -14,8 +12,8 @@ type Repo struct {
 }
 
 type Settlement struct {
-	Id                  uuid.UUID
-	Owner               uuid.UUID
+	Id                  int
+	Owner               string
 	Name                string
 	SurvivalLimit       int
 	DepartingSurvival   int
@@ -46,16 +44,19 @@ func (r Repo) GetAllForUser(ctx context.Context, userId string) ([]Settlement, e
 	return settlements, nil
 }
 
-func (r Repo) Insert(ctx context.Context, s Settlement) error {
-	cmd := `INSERT INTO settlement (owner, name, survival_limit, departing_survival, collective_cognition, year) VALUES (@owner, @name, @limit, @departing, @cc, @year)`
-	args := pgx.NamedArgs{
-		"owner":     s.Owner,
-		"name":      s.Name,
-		"limit":     s.SurvivalLimit,
-		"departing": s.DepartingSurvival,
-		"cc":        s.CollectiveCognition,
-		"year":      s.CurrentYear,
-	}
-	_, err := r.conn.Exec(ctx, cmd, args)
-	return err
+func (r Repo) GetOneByName(ctx context.Context, name string) (Settlement, error) {
+	query := `SELECT * FROM settlement WHERE name = $1 LIMIT 1`
+	var s Settlement
+	err := r.conn.QueryRow(ctx, query, name).Scan(&s.Id, &s.Owner, &s.Name, &s.SurvivalLimit, &s.DepartingSurvival, &s.CollectiveCognition, &s.CurrentYear)
+	return s, err
+}
+
+func (r Repo) Insert(ctx context.Context, s Settlement) (int, error) {
+	insert := "INSERT INTO settlement (owner, name, survival_limit, departing_survival, collective_cognition, year) "
+	values := fmt.Sprintf("VALUES ('%s', '%s', %d, %d, %d, %d) ", s.Owner, s.Name, s.SurvivalLimit, s.DepartingSurvival, s.CollectiveCognition, s.CurrentYear)
+	returning := "RETURNING id"
+	query := insert + values + returning
+	id := 0
+	err := r.conn.QueryRow(ctx, query).Scan(&id)
+	return id, err
 }

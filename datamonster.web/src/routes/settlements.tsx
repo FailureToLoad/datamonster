@@ -17,27 +17,33 @@ import {
   Form,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import api from "@/api/api";
+import api, { CreateSettlementRequest, Settlement } from "@/api/api";
 import { useContext, useEffect, useState } from "react";
 import { AuthContext } from "@/auth/auth-context";
 import Spinner from "@/components/spinner";
 
 const formSchema = z.object({
   settlementName: z.string().min(2).max(100),
-  userId: z.string().min(6),
 });
 
-function CreateSettlementCard() {
+interface CreateSettlementProps {
+  token: string;
+  settlements: Array<Settlement>;
+}
+
+function CreateSettlementModal(props: CreateSettlementProps) {
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
     defaultValues: {
       settlementName: "",
-      userId: "",
     },
   });
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      const response = await api.createSettlement(values);
+      const request: CreateSettlementRequest = {
+        name: values.settlementName,
+      };
+      const response = await api.createSettlement(request, props.token);
       console.log(response.name);
     } catch (error) {
       console.log(error);
@@ -75,26 +81,56 @@ function CreateSettlementCard() {
   );
 }
 
+function SettlementList({ settlements, token }: CreateSettlementProps) {
+  if (settlements.length < 1) {
+    return <CreateSettlementModal token={token} settlements={settlements} />;
+  }
+
+  const cards = settlements.map((settlement) => (
+    <Card key={settlement.id}>
+      <CardHeader>
+        <CardTitle>{settlement.name}</CardTitle>
+        <CardDescription>
+          Settlement ID: {settlement.id} | Settlement Key: {settlement.name}
+        </CardDescription>
+      </CardHeader>
+    </Card>
+  ));
+  //cards.push(<CreateSettlementModal token={token} settlements={settlements} />);
+  return cards;
+}
+
 function Settlements() {
-  const [isLoading, setIsLoading] = useState(true);
+  const [settlements, setSettlements] = useState<Array<Settlement>>(
+    Array<Settlement>(),
+  );
+  const [isLoading, setIsLoading] = useState(settlements.length < 1);
+  const [token, setToken] = useState("");
   const { currentUser } = useContext(AuthContext);
 
   useEffect(() => {
-    async function getSettlements() {
-      if (!currentUser) {
-        return;
-      }
-      const token = await currentUser?.getIdToken();
-      const settlements = await api.getSettlementsForUser(token);
-      console.log(settlements);
-      setIsLoading(false);
+    if (!currentUser) {
+      return;
     }
-    getSettlements();
-  }, []);
+    if (!token) {
+      currentUser.getIdToken().then((idToken) => {
+        setToken(idToken);
+      });
+    } else {
+      api.getSettlementsForUser(token).then((val) => {
+        setSettlements(val);
+        setIsLoading(false);
+      });
+    }
+  }, [currentUser, token]);
 
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden">
-      {isLoading ? <Spinner /> : <CreateSettlementCard />}
+      {isLoading ? (
+        <Spinner />
+      ) : (
+        <SettlementList token={token} settlements={settlements} />
+      )}
     </div>
   );
 }

@@ -60,13 +60,16 @@ const UserIdKey ctxUserIdKey = "userId"
 
 func authHandler(next http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
+		log.Default().Println("Authenticating request")
 		ctx := r.Context()
 		authHeader := r.Header.Get("Authorization")
 		validToken, verifyErr := client.VerifyIDTokenAndCheckRevoked(ctx, authHeader)
 		if verifyErr != nil {
+			log.Default().Printf("Error verifying token %s", verifyErr.Error())
 			MakeJsonResponse(w, http.StatusUnauthorized, "Unauthorized")
 			return
 		} else {
+			log.Default().Println("Auth successful")
 			ctx = context.WithValue(ctx, UserIdKey, validToken.UID)
 		}
 		next.ServeHTTP(w, r.WithContext(ctx))
