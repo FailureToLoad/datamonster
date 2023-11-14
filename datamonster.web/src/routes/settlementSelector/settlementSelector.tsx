@@ -40,7 +40,7 @@ function SettlementList({ token, update, settlements }: SettlementListProps) {
   return [dialogueListItem, ...cards];
 }
 
-function Settlements() {
+function SettlementSelector() {
   const [settlements, setSettlements] = useState<Array<Settlement>>(
     Array<Settlement>(),
   );
@@ -87,4 +87,4 @@ function Settlements() {
   );
 }
 
-export default Settlements;
+export default SettlementSelector;
