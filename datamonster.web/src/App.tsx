@@ -3,7 +3,7 @@ import { Routes, Route, useNavigate } from "react-router-dom";
 import { AuthContext } from "./auth/auth-context";
 import "./App.css";
 import Login from "./routes/login";
-import Settlements from "./routes/settlements";
+import Settlements from "./routes/settlements/settlements";
 import PublicLayout from "./routes/publiclayout";
 import PrivateLayout from "./routes/privatelayout";
 
@@ -11,10 +11,6 @@ function App() {
   const { currentUser } = useContext(AuthContext);
   const navigate = useNavigate();
 
-  // NOTE: console log for testing purposes
-  console.log("User:", !!currentUser);
-
-  // Check if the current user exists on the initial render.
   useEffect(() => {
     if (currentUser) {
       navigate("/");
