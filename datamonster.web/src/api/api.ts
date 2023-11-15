@@ -1,9 +1,22 @@
+import { signOutUser } from "@/auth/firebase";
 import axios from "axios";
 const ax = axios.create({
     headers: {
       "Accept-Language": "en-US,en;q=0.5",
     },
   });
+ax.defaults.withCredentials = true;
+ax.interceptors.response.use(
+    (response) => {
+      return response;
+    },
+    (error) => {
+      if (error.response.status === 401) {
+        signOutUser();
+      }
+      return Promise.reject(error);
+    }
+)
 
 export type Settlement = {
     id: string
@@ -24,23 +37,27 @@ type AllSettlementsResponse = {
 }
 
 type api = {
-  getSettlementsForUser: (userId: string) => Promise<Array<Settlement>>
+  authorize: (token:string) => Promise<number>
+  getSettlementsForUser: () => Promise<Array<Settlement>>
   getSettlement: () => Promise<Settlement>
-  createSettlement: (requesr: CreateSettlementRequest, token: string) => Promise<Settlement>
-    
+  createSettlement: (request: CreateSettlementRequest) => Promise<Settlement>
 }
 
 const requester: api = {
-  getSettlementsForUser: async function (token: string): Promise<Settlement[]> {
-      const response = await ax.get<AllSettlementsResponse>(`http://localhost:8080/settlement`,{headers: {'Authorization': `${token}`}})
+  authorize: async function (token: string): Promise<number> {
+    const response = await ax.post('http://localhost:8080/authorize', {token: token})
+    return response.status
+  },
+  getSettlementsForUser: async function (): Promise<Settlement[]> {
+      const response = await ax.get<AllSettlementsResponse>(`http://localhost:8080/settlement`)
       return response.data.settlements
   },
   getSettlement: async function (): Promise<Settlement> {
       const response = await ax.get<Settlement>('http://localhost:8080/settlement')
       return response.data
   },
-  createSettlement: async function (request: CreateSettlementRequest, token: string): Promise<Settlement> {
-    const response = await ax.post<Settlement>('http://localhost:8080/settlement', request, {headers: {'Authorization': `${token}`}})
+  createSettlement: async function (request: CreateSettlementRequest): Promise<Settlement> {
+    const response = await ax.post<Settlement>('http://localhost:8080/settlement', request)
     return response.data
   }
 }

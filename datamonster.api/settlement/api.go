@@ -8,8 +8,6 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-const BaseRoute = "/settlement"
-
 type Controller struct {
 	repo *Repo
 }
@@ -37,8 +35,14 @@ type CreateSettlementRequest struct {
 }
 
 func (c Controller) RegisterRoutes(r chi.Router) {
-	r.Get("/", c.getSettlements)
-	r.Post("/", c.createSettlement)
+	r.Group(func(r chi.Router) {
+		web.SetDefaultMiddleware(r)
+		web.SetCorsHandler(r)
+		web.SetAuthHandler(r)
+		r.Get("/settlement", c.getSettlements)
+		r.Post("/settlement", c.createSettlement)
+	})
+
 }
 
 func (c Controller) getSettlements(w http.ResponseWriter, r *http.Request) {

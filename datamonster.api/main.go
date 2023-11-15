@@ -27,12 +27,10 @@ func init() {
 }
 
 func main() {
-
 	defer pool.Close()
 
 	settlementController := settlement.NewController(settlement.NewRepo(pool))
 	settlementController.RegisterRoutes(router)
-	router.Route(settlement.BaseRoute, settlementController.RegisterRoutes)
 	log.Default().Println("Starting server on port 8080")
 	http.ListenAndServe(":8080", router)
 }

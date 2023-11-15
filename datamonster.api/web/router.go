@@ -31,27 +31,76 @@ func init() {
 }
 
 func NewRouter() *chi.Mux {
+	router := chi.NewRouter()
+	SetDefaultMiddleware(router)
+	SetCorsHandler(router)
+	router.Get("/verify", verify)
+	router.Post("/authorize", authorize)
+	return router
+}
+
+func SetCorsHandler(r chi.Router) {
 	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{"*"},
+		AllowedOrigins:   []string{"http://localhost:8090"},
 		AllowedMethods:   []string{"HEAD", "GET", "POST", "PATCH", "PUT", "DELETE"},
-		AllowedHeaders:   []string{"Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
+		AllowedHeaders:   []string{"Origin", "X-Requested-With", "Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 		ExposedHeaders:   []string{"Link"},
-		AllowCredentials: false,
+		AllowCredentials: true,
 		MaxAge:           3599, // Maximum value not ignored by any of major browsers
 	})
-	router := chi.NewRouter()
-	router.Use(c.Handler)
+	r.Use(c.Handler)
+}
 
-	router.Use(middleware.RequestID)
-	router.Use(middleware.RealIP)
-	router.Use(middleware.Logger)
-	router.Use(middleware.Recoverer)
-	router.Use(middleware.URLFormat)
+func SetAuthHandler(r chi.Router) {
+	r.Use(authHandler)
+}
 
+func SetDefaultMiddleware(r chi.Router) {
+	r.Use(middleware.RequestID)
+	r.Use(middleware.RealIP)
+	r.Use(middleware.Logger)
+	r.Use(middleware.Recoverer)
+	r.Use(middleware.URLFormat)
 	timeout := middleware.Timeout(20 * time.Second)
-	router.Use(timeout)
-	router.Use(authHandler)
-	return router
+	r.Use(timeout)
+}
+
+func verify(w http.ResponseWriter, r *http.Request) {
+	log.Default().Println("Verification successful")
+	MakeJsonResponse(w, http.StatusOK, "Success")
+}
+
+type AuthorizationRequest struct {
+	Token string `json:"token"`
+}
+
+func authorize(w http.ResponseWriter, r *http.Request) {
+	defer r.Body.Close()
+	var body AuthorizationRequest
+	err := DecodeJson(r.Body, &body)
+	if err != nil {
+		MakeJsonResponse(w, http.StatusBadRequest, "Invalid verification request body")
+		return
+	}
+
+	// 5 day expiration
+	expiresIn := time.Hour * 24 * 5
+	cookie, err := client.SessionCookie(r.Context(), body.Token, expiresIn)
+	if err != nil {
+		log.Default().Printf("Error creating session cookie %s", err.Error())
+		MakeJsonResponse(w, http.StatusBadRequest, "Unable to create session cookie")
+		return
+	}
+	http.SetCookie(w, &http.Cookie{
+		Name:     "session",
+		Value:    cookie,
+		MaxAge:   int(expiresIn.Seconds()),
+		HttpOnly: true,
+		SameSite: http.SameSiteNoneMode,
+		//SSL required for this guy
+		//Secure:   true,
+	})
+	MakeJsonResponse(w, http.StatusOK, "Success")
 }
 
 type ctxUserIdKey string
@@ -61,17 +110,20 @@ const UserIdKey ctxUserIdKey = "userId"
 func authHandler(next http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		log.Default().Println("Authenticating request")
-		ctx := r.Context()
-		authHeader := r.Header.Get("Authorization")
-		validToken, verifyErr := client.VerifyIDTokenAndCheckRevoked(ctx, authHeader)
-		if verifyErr != nil {
-			log.Default().Printf("Error verifying token %s", verifyErr.Error())
-			MakeJsonResponse(w, http.StatusUnauthorized, "Unauthorized")
+		cookie, err := r.Cookie("session")
+		if err != nil {
+			log.Default().Printf("Error retrieving session cookie %s", err.Error())
+			MakeJsonResponse(w, http.StatusUnauthorized, "Unable to retrieve session cookie")
 			return
-		} else {
-			log.Default().Println("Auth successful")
-			ctx = context.WithValue(ctx, UserIdKey, validToken.UID)
 		}
+		ctx := r.Context()
+		decoded, err := client.VerifySessionCookieAndCheckRevoked(r.Context(), cookie.Value)
+		if err != nil {
+			log.Default().Printf("Error verifying session cookie %s", err.Error())
+			MakeJsonResponse(w, http.StatusUnauthorized, "Unable to verify session cookie")
+			return
+		}
+		ctx = context.WithValue(ctx, UserIdKey, decoded.UID)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	}
 	return http.HandlerFunc(fn)

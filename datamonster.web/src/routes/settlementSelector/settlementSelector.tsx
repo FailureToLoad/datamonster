@@ -6,21 +6,19 @@ import {
 } from "@/components/ui/card";
 
 import api, { Settlement } from "@/api/api";
-import { useCallback, useContext, useEffect, useState } from "react";
-import { AuthContext } from "@/auth/auth-context";
+import { useCallback, useEffect, useState } from "react";
 import Spinner from "@/components/spinner";
 import { CreateSettlementDialogue } from "./createSettlementDialogue";
 
 interface SettlementListProps {
-  token: string;
   update: (s: Settlement) => void;
   settlements: Array<Settlement>;
 }
 
-function SettlementList({ token, update, settlements }: SettlementListProps) {
+function SettlementList({ update, settlements }: SettlementListProps) {
   const dialogueListItem = (
     <li key={-1}>
-      <CreateSettlementDialogue token={token} update={update} />
+      <CreateSettlementDialogue update={update} />
     </li>
   );
   if (settlements.length < 1) {
@@ -45,8 +43,6 @@ function SettlementSelector() {
     Array<Settlement>(),
   );
   const [isLoading, setIsLoading] = useState(true);
-  const [token, setToken] = useState("");
-  const { currentUser } = useContext(AuthContext);
   const updateSettlementList = useCallback(
     (s: Settlement) => {
       setSettlements([s, ...settlements]);
@@ -55,20 +51,11 @@ function SettlementSelector() {
   );
 
   useEffect(() => {
-    if (!currentUser) {
-      return;
-    }
-    if (!token) {
-      currentUser.getIdToken().then((idToken) => {
-        setToken(idToken);
-      });
-    } else {
-      api.getSettlementsForUser(token).then((val) => {
-        setSettlements(val);
-        setIsLoading(false);
-      });
-    }
-  }, [currentUser, token]);
+    api.getSettlementsForUser().then((val) => {
+      setSettlements(val);
+      setIsLoading(false);
+    });
+  }, []);
 
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden">
@@ -77,7 +64,6 @@ function SettlementSelector() {
       ) : (
         <ul className="w-1/4 space-y-4 ">
           <SettlementList
-            token={token}
             update={updateSettlementList}
             settlements={settlements}
           />

@@ -21,6 +21,7 @@ import {
   FormLabel,
   FormMessage,
 } from "@/components/ui/form";
+import api from "@/api/api";
 
 const formSchema = z.object({
   email: z.string().email(),
@@ -42,6 +43,11 @@ function Login() {
     try {
       const userCredential = await signInUser(values.email, values.password);
       if (userCredential) {
+        userCredential.user.getIdToken().then((idToken) => {
+          api.authorize(idToken).then((response) => {
+            console.log("login status code:", response);
+          });
+        });
         navigate("/");
       }
     } catch (error: any) {
