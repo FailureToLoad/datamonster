@@ -41,8 +41,8 @@ func (c Controller) RegisterRoutes(r chi.Router) {
 		web.SetAuthHandler(r)
 		r.Get("/settlement", c.getSettlements)
 		r.Post("/settlement", c.createSettlement)
+		r.Get("/settlement/{id}", c.getSettlement)
 	})
-
 }
 
 func (c Controller) getSettlements(w http.ResponseWriter, r *http.Request) {
@@ -87,6 +87,25 @@ func (c Controller) createSettlement(w http.ResponseWriter, r *http.Request) {
 	}
 
 	settlement.Id = newId
+	dto := domainToDto(settlement)
+	web.MakeJsonResponse(w, http.StatusOK, dto)
+}
+
+func (c Controller) getSettlement(w http.ResponseWriter, r *http.Request) {
+	userId := r.Context().Value(web.UserIdKey).(string)
+	settlementId := chi.URLParam(r, "id")
+	log.Default().Printf("Retrieving settlement %s for user %s", settlementId, userId)
+	settlement, repoErr := c.repo.Get(r.Context(), settlementId)
+	if repoErr != nil {
+		log.Default().Printf("Error retrieving settlement %s", repoErr.Error())
+		web.MakeJsonResponse(w, http.StatusInternalServerError, "Error retrieving settlement")
+		return
+	}
+	if settlement.Owner != userId {
+		log.Default().Printf("User %s does not own settlement %s", userId, settlementId)
+		web.MakeJsonResponse(w, http.StatusForbidden, "You do not own this settlement")
+		return
+	}
 	dto := domainToDto(settlement)
 	web.MakeJsonResponse(w, http.StatusOK, dto)
 }

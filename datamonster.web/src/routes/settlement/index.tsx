@@ -1,12 +1,21 @@
-import { useParams } from "react-router-dom";
-import { SettlementProvider } from "./context";
+import { useLocation } from "react-router-dom";
+import { SettlementContext } from "./context";
+import { useContext, useEffect } from "react";
+import Spinner from "@/components/spinner";
 
 function Settlement() {
-  const { settlementId } = useParams();
+  const { settlement, setSettlement, loading, setLoading } =
+    useContext(SettlementContext);
+  const passedSettlement = useLocation().state.settlement;
+
+  useEffect(() => {
+    setSettlement(passedSettlement);
+    setLoading(false);
+  }, [setSettlement, setLoading]);
   return (
-    <SettlementProvider>
-      <h1>Settlement Id: {settlementId}</h1>
-    </SettlementProvider>
+    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden">
+      {loading ? <Spinner /> : <h1>Settlement Id: {settlement?.id}</h1>}
+    </div>
   );
 }
 

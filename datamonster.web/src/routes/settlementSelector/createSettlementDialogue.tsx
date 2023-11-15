@@ -21,6 +21,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import api, { CreateSettlementRequest, Settlement } from "@/api/api";
 import { useState } from "react";
+import { Plus } from "lucide-react";
 
 const formSchema = z.object({
   settlementName: z.string().min(2).max(100),
@@ -53,7 +54,7 @@ export function CreateSettlementDialogue({ update }: CreateSettlementProps) {
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
         <Button variant="outline" className="w-full">
-          Add
+          <Plus className="h-6 w-6" />
         </Button>
       </DialogTrigger>
       <DialogContent className="sm:max-w-[425px]">

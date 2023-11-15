@@ -39,7 +39,7 @@ type AllSettlementsResponse = {
 type api = {
   authorize: (token:string) => Promise<number>
   getSettlementsForUser: () => Promise<Array<Settlement>>
-  getSettlement: () => Promise<Settlement>
+  getSettlement: (id:string) => Promise<Settlement>
   createSettlement: (request: CreateSettlementRequest) => Promise<Settlement>
 }
 
@@ -52,8 +52,8 @@ const requester: api = {
       const response = await ax.get<AllSettlementsResponse>(`http://localhost:8080/settlement`)
       return response.data.settlements
   },
-  getSettlement: async function (): Promise<Settlement> {
-      const response = await ax.get<Settlement>('http://localhost:8080/settlement')
+  getSettlement: async function (id:string): Promise<Settlement> {
+      const response = await ax.get<Settlement>('http://localhost:8080/settlement/' + id)
       return response.data
   },
   createSettlement: async function (request: CreateSettlementRequest): Promise<Settlement> {

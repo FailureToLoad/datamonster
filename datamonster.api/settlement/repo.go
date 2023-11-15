@@ -44,10 +44,10 @@ func (r Repo) GetAllForUser(ctx context.Context, userId string) ([]Settlement, e
 	return settlements, nil
 }
 
-func (r Repo) GetOneByName(ctx context.Context, name string) (Settlement, error) {
-	query := `SELECT * FROM settlement WHERE name = $1 LIMIT 1`
+func (r Repo) Get(ctx context.Context, id string) (Settlement, error) {
+	query := `SELECT * FROM settlement WHERE id = $1 LIMIT 1`
 	var s Settlement
-	err := r.conn.QueryRow(ctx, query, name).Scan(&s.Id, &s.Owner, &s.Name, &s.SurvivalLimit, &s.DepartingSurvival, &s.CollectiveCognition, &s.CurrentYear)
+	err := r.conn.QueryRow(ctx, query, id).Scan(&s.Id, &s.Owner, &s.Name, &s.SurvivalLimit, &s.DepartingSurvival, &s.CollectiveCognition, &s.CurrentYear)
 	return s, err
 }
 
