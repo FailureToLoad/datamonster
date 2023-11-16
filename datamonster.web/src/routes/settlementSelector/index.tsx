@@ -11,9 +11,8 @@ import { useNavigate } from "react-router-dom";
 function SettlementCard({ settlement }: { settlement: Settlement }) {
   const navigate = useNavigate();
   const navigateOnClick = () => {
-    navigate(`/settlement/${settlement.id}`, {
-      state: { settlement: settlement },
-    });
+    localStorage.setItem("settlement", JSON.stringify(settlement));
+    navigate(`..`);
   };
 
   // copilot write me an onClick handler that navigates to the settlement page

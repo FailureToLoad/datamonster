@@ -4,7 +4,7 @@ import { Navigate, Outlet } from "react-router-dom";
 
 function PublicLayout() {
   const { isLoggedIn } = useContext(AuthContext);
-  if (isLoggedIn) return <Navigate to="/" />;
+  if (isLoggedIn) return <Navigate to="/select" />;
   return <Outlet />;
 }
 
