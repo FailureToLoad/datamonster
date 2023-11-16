@@ -35,7 +35,7 @@ import {
   ContextMenuItem,
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
-import { Survivor } from "./columns";
+import { Survivor } from "./types";
 
 interface DataTableProps<Survivor> {
   columns: ColumnDef<Survivor>[];
