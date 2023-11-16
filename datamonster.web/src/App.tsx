@@ -5,7 +5,7 @@ import SettlementSelector from "./routes/settlementSelector";
 import PublicLayout from "./routes/publiclayout";
 import PrivateLayout from "./routes/privatelayout";
 import Settlement from "./routes/settlement";
-import Population from "./routes/settlement/population";
+import Population from "./routes/settlement/population/";
 import Timeline from "./routes/settlement/timeline";
 import SettlementStorage from "./routes/settlement/settlementStorage";
 
