@@ -1,10 +1,5 @@
 import { Link, Navigate, Outlet } from "react-router-dom";
-import { Separator } from "@/components/ui/separator";
-import {
-  NavigationMenu,
-  NavigationMenuList,
-  navigationMenuTriggerStyle,
-} from "@/components/ui/navigation-menu";
+import { navigationMenuTriggerStyle } from "@/components/ui/navigation-menu";
 import { Settlement } from "@/api/api";
 
 interface HeaderProps {
