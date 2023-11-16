@@ -1,4 +1,4 @@
-import { Link, Navigate, Outlet, useLocation } from "react-router-dom";
+import { Link, Navigate, Outlet } from "react-router-dom";
 import { Separator } from "@/components/ui/separator";
 import {
   NavigationMenu,

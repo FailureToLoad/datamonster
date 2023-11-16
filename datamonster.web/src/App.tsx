@@ -5,6 +5,9 @@ import SettlementSelector from "./routes/settlementSelector";
 import PublicLayout from "./routes/publiclayout";
 import PrivateLayout from "./routes/privatelayout";
 import Settlement from "./routes/settlement";
+import Population from "./routes/settlement/population";
+import Timeline from "./routes/settlement/timeline";
+import SettlementStorage from "./routes/settlement/settlementStorage";
 
 function App() {
   return (
@@ -12,9 +15,9 @@ function App() {
       <Route element={<PrivateLayout />}>
         <Route path="/select" element={<SettlementSelector />} />
         <Route path="/" element={<Settlement />}>
-          <Route path="timeline" element={<div>timeline</div>} />
-          <Route path="population" element={<div>population</div>} />
-          <Route path="storage" element={<div>storage</div>} />
+          <Route path="timeline" element={<Timeline />} />
+          <Route path="population" element={<Population />} />
+          <Route path="storage" element={<SettlementStorage />} />
         </Route>
       </Route>
       <Route element={<PublicLayout />}>
