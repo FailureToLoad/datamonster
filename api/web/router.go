@@ -35,7 +35,7 @@ func NewRouter() *chi.Mux {
 	SetDefaultMiddleware(router)
 	SetCorsHandler(router)
 	router.Get("/verify", verify)
-	router.Post("/authorize", authorize)
+	router.Post("/auth", authorize)
 	return router
 }
 

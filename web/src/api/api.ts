@@ -45,7 +45,7 @@ type api = {
 
 const requester: api = {
   authorize: async function (token: string): Promise<number> {
-    const response = await ax.post('http://localhost:8080/authorize', {token: token})
+    const response = await ax.post('http://localhost:8080/auth', {token: token})
     return response.status
   },
   getSettlementsForUser: async function (): Promise<Settlement[]> {
