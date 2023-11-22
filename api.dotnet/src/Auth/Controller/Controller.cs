@@ -4,25 +4,22 @@ using Microsoft.AspNetCore.Mvc;
 namespace Auth;
 public class AuthController
 {
-    public async Task<IResult> Validate([FromBody] ValidateRequest request,
-    [FromServices] FirebaseAuthService service,
+    public async Task<IResult> Authenticate([FromBody] ValidateRequest request,
+    [FromServices] IValidatable service,
     [FromServices] ILogger<AuthController> logger,
     HttpContext context)
     {
         ValidateTokenResult result;
-        try
+        if (string.IsNullOrEmpty(request.Token))
         {
-            if (request.Token == null)
-            {
-                logger.LogWarning("Token is null.");
-                return Results.Unauthorized();
-            }
-
-            result = await service.ValidateToken(request.Token);
+            logger.LogWarning("Token is empty.");
+            return Results.Unauthorized();
         }
-        catch
+
+        result = await service.ValidateToken(request.Token);
+        if (!result.Success)
         {
-            logger.LogWarning("Unable to get cookie from token.");
+            logger.LogWarning("Token is invalid.");
             return Results.Unauthorized();
         }
 

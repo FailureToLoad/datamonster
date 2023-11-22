@@ -1,17 +1,15 @@
 using System.Security.Claims;
 using System.Text.Encodings.Web;
-using Auth.Service;
 using Microsoft.AspNetCore.Authentication;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.Extensions.Options;
 
 namespace Auth.Handler;
 
 public class FirebaseAuthHandler : AuthenticationHandler<AuthenticationSchemeOptions>
 {
-    private readonly FirebaseAuthService authService;
+    private readonly IValidatable authService;
     private readonly string sessionCookieName = "session";
-    public FirebaseAuthHandler(IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder, FirebaseAuthService service) : base(options, logger, encoder)
+    public FirebaseAuthHandler(IOptionsMonitor<AuthenticationSchemeOptions> options, ILoggerFactory logger, UrlEncoder encoder, IValidatable service) : base(options, logger, encoder)
     {
         authService = service;
     }
@@ -33,8 +31,8 @@ public class FirebaseAuthHandler : AuthenticationHandler<AuthenticationSchemeOpt
 
             return AuthenticateResult.Fail("No session cookie provided.", props);
         }
-        string? sessionCookie = Request.Cookies[sessionCookieName];
-        ValidateCookieResult result = await authService.ValidateCookie(sessionCookie);
+        var sessionCookie = Request.Cookies[sessionCookieName];
+        var result = await authService.ValidateCookie(sessionCookie);
         if (!result.Success)
         {
             Logger.LogError("Error verifying session cookie");

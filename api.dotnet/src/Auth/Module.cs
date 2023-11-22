@@ -1,11 +1,13 @@
 using Auth.Handler;
 using Auth.Service;
+using Auth.Service.Firebase;
 using Microsoft.AspNetCore.Authentication;
 
 namespace Auth;
 public static class AuthModule
 {
     private static readonly AuthController controller = new();
+
     public static IServiceCollection RegisterAuthModule(this IServiceCollection services)
     {
         services.AddCors(options =>
@@ -20,7 +22,7 @@ public static class AuthModule
                 builder.SetPreflightMaxAge(TimeSpan.FromSeconds(2520));
             });
         });
-        services.AddSingleton<FirebaseAuthService>();
+        services.AddSingleton<IValidatable>(new FirebaseAuthService(new FirebaseWrapper()));
         services.AddAuthentication("firebase").AddScheme<AuthenticationSchemeOptions, FirebaseAuthHandler>("firebase", null);
         services.AddAuthorizationBuilder().AddPolicy("default", policy =>
         {
@@ -31,7 +33,7 @@ public static class AuthModule
 
     public static IEndpointRouteBuilder MapAuthEndpoints(this IEndpointRouteBuilder endpoints)
     {
-        endpoints.MapPost("/auth", controller.Validate);
+        endpoints.MapPost("/auth", controller.Authenticate);
         return endpoints;
     }
 
