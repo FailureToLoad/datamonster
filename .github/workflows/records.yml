@@ -3,7 +3,7 @@ on:
   workflow_dispatch:
   push:
     paths:
-      - "datamonster.records/**"
+      - "records/**"
 jobs:
   build:
     runs-on: ubuntu-latest
