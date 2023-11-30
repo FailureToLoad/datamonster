@@ -1,5 +1,7 @@
 using Auth;
+using Context;
 using Microsoft.AspNetCore.HttpLogging;
+using Settlement;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -15,7 +17,9 @@ builder.Services.AddHttpLogging(logging =>
     logging.ResponseBodyLogLimit = 4096;
     logging.CombineLogs = true;
 });
+builder.Services.AddDbContext<RecordsContext>();
 builder.Services.RegisterAuthModule();
+builder.Services.RegisterSettlementModule();
 
 var app = builder.Build();
 app.UseCors();
@@ -32,4 +36,5 @@ app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
 app.MapAuthEndpoints();
+app.MapSettlementEndpoints();
 app.Run();

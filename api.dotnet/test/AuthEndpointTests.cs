@@ -1,4 +1,3 @@
-using System.Runtime.CompilerServices;
 using Auth;
 using Auth.Service;
 using Auth.Service.Firebase;
