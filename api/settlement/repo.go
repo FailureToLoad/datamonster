@@ -2,13 +2,12 @@ package settlement
 
 import (
 	"context"
+	"datamonster/dao"
 	"fmt"
-
-	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type Repo struct {
-	conn *pgxpool.Pool
+	dao dao.Connection
 }
 
 type Settlement struct {
@@ -21,13 +20,13 @@ type Settlement struct {
 	CurrentYear         int
 }
 
-func NewRepo(conn *pgxpool.Pool) *Repo {
-	return &Repo{conn: conn}
+func NewRepo(d dao.Connection) *Repo {
+	return &Repo{dao: d}
 }
 
 func (r Repo) GetAllForUser(ctx context.Context, userId string) ([]Settlement, error) {
 	query := `SELECT * FROM settlement WHERE owner = $1`
-	rows, err := r.conn.Query(ctx, query, userId)
+	rows, err := r.dao.Query(ctx, query, userId)
 	if err != nil {
 		fmt.Println(err)
 	}
@@ -47,7 +46,7 @@ func (r Repo) GetAllForUser(ctx context.Context, userId string) ([]Settlement, e
 func (r Repo) Get(ctx context.Context, id string) (Settlement, error) {
 	query := `SELECT * FROM settlement WHERE id = $1 LIMIT 1`
 	var s Settlement
-	err := r.conn.QueryRow(ctx, query, id).Scan(&s.Id, &s.Owner, &s.Name, &s.SurvivalLimit, &s.DepartingSurvival, &s.CollectiveCognition, &s.CurrentYear)
+	err := r.dao.QueryRow(ctx, query, id).Scan(&s.Id, &s.Owner, &s.Name, &s.SurvivalLimit, &s.DepartingSurvival, &s.CollectiveCognition, &s.CurrentYear)
 	return s, err
 }
 
@@ -57,6 +56,6 @@ func (r Repo) Insert(ctx context.Context, s Settlement) (int, error) {
 	returning := "RETURNING id"
 	query := insert + values + returning
 	id := 0
-	err := r.conn.QueryRow(ctx, query).Scan(&id)
+	err := r.dao.QueryRow(ctx, query).Scan(&id)
 	return id, err
 }
