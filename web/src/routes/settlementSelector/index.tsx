@@ -65,13 +65,15 @@ function SettlementList({ update, settlements }: SettlementListProps) {
 }
 
 function SettlementSelector() {
-  const [settlements, setSettlements] = useState<Array<Settlement>>(
-    Array<Settlement>(),
-  );
+  const [settlements, setSettlements] =
+    useState<Array<Settlement>>(Array<Settlement>());
   const [isLoading, setIsLoading] = useState(true);
   const updateSettlementList = useCallback(
     (s: Settlement) => {
-      console.log("update settlement list");
+      if (settlements.length === 0) {
+        setSettlements([s]);
+        return;
+      }
       setSettlements([s, ...settlements]);
     },
     [settlements],
