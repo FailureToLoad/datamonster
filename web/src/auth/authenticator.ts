@@ -1,5 +1,6 @@
 import { setInterceptor } from "@/api/api";
 import userApi, { User } from "@/api/user";
+import { LoaderFunctionArgs, redirect } from "react-router-dom";
 
 export interface AuthProvider {
   isAuthenticated: boolean;
@@ -22,6 +23,16 @@ function validateUser(user: User | null): user is User {
     return false;
   }
   return true;
+}
+
+export async function AuthLoader({ request }: LoaderFunctionArgs) {
+  const user = await Authenticator.authorize();
+  if (!Authenticator.isAuthenticated) {
+    let params = new URLSearchParams();
+    params.set("from", new URL(request.url).pathname);
+    return redirect("/login?" + params.toString());
+  }
+  return user;
 }
 
 export const Authenticator: AuthProvider = {

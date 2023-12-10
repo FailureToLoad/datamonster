@@ -1,6 +1,5 @@
 import "./App.css";
-import type { LoaderFunctionArgs } from "react-router-dom";
-import { Authenticator } from "./auth/authenticator.ts";
+import { Authenticator, AuthLoader } from "./auth/authenticator.ts";
 import {
   Outlet,
   RouterProvider,
@@ -8,7 +7,7 @@ import {
   redirect,
 } from "react-router-dom";
 import Spinner from "./components/spinner.tsx";
-import Login, { LoginAction } from "./routes/login/login.tsx";
+import Login, { LoginAction, LoginLoader } from "./routes/login/login.tsx";
 import SettlementSelector, {
   settlementListLoader,
 } from "./routes/settlementSelector/index.tsx";
@@ -18,20 +17,10 @@ import Timeline from "./routes/settlement/timeline.tsx";
 import Population from "./routes/settlement/population/index.tsx";
 import SettlementStorage from "./routes/settlement/settlementStorage.tsx";
 
-const rootLoader = async ({ request }: LoaderFunctionArgs) => {
-  const user = await Authenticator.authorize();
-  if (!Authenticator.isAuthenticated) {
-    let params = new URLSearchParams();
-    params.set("from", new URL(request.url).pathname);
-    return redirect("/login?" + params.toString());
-  }
-  return user;
-};
-
 const router = createBrowserRouter([
   {
     id: "root",
-    loader: rootLoader,
+    loader: AuthLoader,
     Component: Outlet,
     children: [
       {
@@ -70,14 +59,10 @@ const router = createBrowserRouter([
   {
     path: "/login",
     action: LoginAction,
-    loader: loginLoader,
+    loader: LoginLoader,
     Component: Login,
   },
 ]);
-
-async function loginLoader() {
-  return Authenticator.isAuthenticated;
-}
 
 export default function App() {
   return <RouterProvider router={router} fallbackElement={<Spinner />} />;

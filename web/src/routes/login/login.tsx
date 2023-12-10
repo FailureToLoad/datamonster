@@ -29,6 +29,10 @@ const validator = z.object({
 
 type FormData = z.infer<typeof validator>;
 
+export async function LoginLoader() {
+  return Authenticator.isAuthenticated;
+}
+
 export async function LoginAction({ request }: ActionFunctionArgs) {
   const formData = Object.fromEntries(await request.formData()) as FormData;
   await Authenticator.signin(formData.username, formData.password);
