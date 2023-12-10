@@ -3,6 +3,7 @@ package main
 import (
 	"context"
 	"datamonster/settlement"
+	settlementRepo "datamonster/settlement/repo/postgres"
 	"datamonster/user"
 	userApi "datamonster/user/api"
 	userRepo "datamonster/user/repo"
@@ -34,7 +35,7 @@ func init() {
 func main() {
 	defer appPool.Close()
 
-	settlementController := settlement.NewController(settlement.NewRepo(appPool))
+	settlementController := settlement.NewController(settlementRepo.NewRepo(appPool))
 	settlementController.RegisterRoutes(router)
 	userController := userApi.NewController(user.NewService(userRepo.New(piiPool)))
 	userController.RegisterRoutes(router)

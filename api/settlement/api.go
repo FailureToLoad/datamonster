@@ -1,6 +1,7 @@
 package settlement
 
 import (
+	postgres "datamonster/settlement/repo/postgres"
 	"datamonster/web"
 	"log"
 	"net/http"
@@ -9,10 +10,10 @@ import (
 )
 
 type Controller struct {
-	repo *Repo
+	repo *postgres.Repo
 }
 
-func NewController(repo *Repo) *Controller {
+func NewController(repo *postgres.Repo) *Controller {
 	return &Controller{repo: repo}
 }
 
@@ -71,7 +72,7 @@ func (c Controller) createSettlement(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	log.Default().Printf("Creating settlement: %s", body)
-	settlement := Settlement{
+	settlement := postgres.Settlement{
 		Owner:               userId,
 		Name:                body.Name,
 		SurvivalLimit:       1,
@@ -110,7 +111,7 @@ func (c Controller) getSettlement(w http.ResponseWriter, r *http.Request) {
 	web.MakeJsonResponse(w, http.StatusOK, dto)
 }
 
-func domainListToDto(settlements []Settlement) SettlementsDTO {
+func domainListToDto(settlements []postgres.Settlement) SettlementsDTO {
 	dtos := SettlementsDTO{}
 	for _, s := range settlements {
 		dto := SettlementDTO{
@@ -127,7 +128,7 @@ func domainListToDto(settlements []Settlement) SettlementsDTO {
 	return dtos
 }
 
-func domainToDto(s Settlement) SettlementDTO {
+func domainToDto(s postgres.Settlement) SettlementDTO {
 	return SettlementDTO{
 		Id:                  s.Id,
 		Name:                s.Name,
