@@ -2,12 +2,12 @@ package settlement
 
 import (
 	"context"
-	"datamonster/dao"
+	dao "datamonster/connection"
 	"fmt"
 )
 
 type Repo struct {
-	dao dao.Connection
+	dao dao.Database
 }
 
 type Settlement struct {
@@ -20,7 +20,7 @@ type Settlement struct {
 	CurrentYear         int
 }
 
-func NewRepo(d dao.Connection) *Repo {
+func NewRepo(d dao.Database) *Repo {
 	return &Repo{dao: d}
 }
 

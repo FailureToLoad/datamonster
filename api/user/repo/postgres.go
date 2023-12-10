@@ -2,7 +2,7 @@ package repo
 
 import (
 	"context"
-	"datamonster/dao"
+	dao "datamonster/connection"
 
 	"github.com/jackc/pgx/v5"
 )
@@ -14,10 +14,10 @@ type User struct {
 }
 
 type PostGres struct {
-	dao dao.Connection
+	dao dao.Database
 }
 
-func New(d dao.Connection) *PostGres {
+func New(d dao.Database) *PostGres {
 	return &PostGres{dao: d}
 }
 
