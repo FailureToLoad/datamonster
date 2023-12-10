@@ -46,8 +46,8 @@ func (c Controller) RegisterRoutes(r chi.Router) {
 }
 
 func (c Controller) getSettlements(w http.ResponseWriter, r *http.Request) {
-	userId := r.Context().Value(web.UserIdKey).(string)
-	log.Default().Printf("Retrieving settlements for user %s", userId)
+	userId := r.Context().Value(web.UserIdKey).(int)
+	log.Default().Printf("Retrieving settlements for user %d", userId)
 	settlements, repoErr := c.repo.GetAllForUser(r.Context(), userId)
 	if repoErr != nil {
 		log.Default().Printf("Error retrieving settlements %s", repoErr.Error())
@@ -59,7 +59,7 @@ func (c Controller) getSettlements(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c Controller) createSettlement(w http.ResponseWriter, r *http.Request) {
-	userId := r.Context().Value(web.UserIdKey).(string)
+	userId := r.Context().Value(web.UserIdKey).(int)
 	var body CreateSettlementRequest
 	err := web.DecodeJson(r.Body, &body)
 	if err != nil {
@@ -92,9 +92,9 @@ func (c Controller) createSettlement(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c Controller) getSettlement(w http.ResponseWriter, r *http.Request) {
-	userId := r.Context().Value(web.UserIdKey).(string)
+	userId := r.Context().Value(web.UserIdKey).(int)
 	settlementId := chi.URLParam(r, "id")
-	log.Default().Printf("Retrieving settlement %s for user %s", settlementId, userId)
+	log.Default().Printf("Retrieving settlement %s for user %d", settlementId, userId)
 	settlement, repoErr := c.repo.Get(r.Context(), settlementId)
 	if repoErr != nil {
 		log.Default().Printf("Error retrieving settlement %s", repoErr.Error())
@@ -102,7 +102,7 @@ func (c Controller) getSettlement(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	if settlement.Owner != userId {
-		log.Default().Printf("User %s does not own settlement %s", userId, settlementId)
+		log.Default().Printf("User %d does not own settlement %s", userId, settlementId)
 		web.MakeJsonResponse(w, http.StatusForbidden, "You do not own this settlement")
 		return
 	}
