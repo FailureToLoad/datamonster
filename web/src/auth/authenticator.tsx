@@ -35,11 +35,14 @@ export const Authenticator: AuthProvider = {
         case user === undefined:
         case user.token === undefined:
         case user.token === "":
+          console.log("User Sign In Failed", user);
           Authenticator.isAuthenticated = false;
           return null;
         default:
+          console.log("User Sign In Success", user);
           Authenticator.isAuthenticated = true;
           Authenticator.user = user;
+          console.log("Authenticator.iid", Authenticator.iid);
           if (Authenticator.iid === 0) {
             Authenticator.iid = setInterceptor(user.token);
           }

@@ -43,7 +43,7 @@ func MakeAuthorizedResponse(w http.ResponseWriter, userId int) {
 	})
 	response := TokenResponse{
 		UserId:      userId,
-		BearerToken: fmt.Sprintf("Bearer %s", signedAuthTokenString),
+		BearerToken: signedAuthTokenString,
 	}
 	MakeJsonResponse(w, http.StatusOK, response)
 }
