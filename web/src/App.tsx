@@ -1,6 +1,6 @@
 import "./App.css";
 import type { LoaderFunctionArgs } from "react-router-dom";
-import { Authenticator } from "./auth/authenticator.tsx";
+import { Authenticator } from "./auth/authenticator.ts";
 import {
   Outlet,
   RouterProvider,
