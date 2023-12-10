@@ -1,6 +1,6 @@
 import { Link, Navigate, Outlet } from "react-router-dom";
 import { navigationMenuTriggerStyle } from "@/components/ui/navigation-menu";
-import { Settlement } from "@/api/api";
+import { Settlement } from "@/api/settlement";
 
 interface HeaderProps {
   settlement: Settlement;
@@ -30,6 +30,17 @@ function Header({ settlement }: HeaderProps) {
       </div>
     </div>
   );
+}
+
+export function SettlementLoader() {
+  const settlementJson = localStorage.getItem("settlement");
+  const settlement = settlementJson
+    ? (JSON.parse(settlementJson) as Settlement)
+    : null;
+  if (!settlement) {
+    return <Navigate to="/select" />;
+  }
+  return settlement;
 }
 
 function Settlement() {

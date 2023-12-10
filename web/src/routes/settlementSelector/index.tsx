@@ -1,12 +1,11 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 
-import api, { Settlement } from "@/api/api";
-import { useCallback, useEffect, useState } from "react";
-import Spinner from "@/components/spinner";
+import api, { Settlement } from "@/api/settlement";
+import { useCallback, useState } from "react";
 import { CreateSettlementDialogue } from "./createSettlementDialogue";
 import { Button } from "@/components/ui/button";
 import { Play } from "lucide-react";
-import { useNavigate } from "react-router-dom";
+import { useLoaderData, useNavigate } from "react-router-dom";
 
 function SettlementCard({ settlement }: { settlement: Settlement }) {
   const navigate = useNavigate();
@@ -14,9 +13,6 @@ function SettlementCard({ settlement }: { settlement: Settlement }) {
     localStorage.setItem("settlement", JSON.stringify(settlement));
     navigate(`..`);
   };
-
-  // copilot write me an onClick handler that navigates to the settlement page
-  //and passes the settlement object as state
 
   return (
     <Card>
@@ -64,10 +60,15 @@ function SettlementList({ update, settlements }: SettlementListProps) {
   return [dialogueListItem, ...cards];
 }
 
+export async function settlementListLoader() {
+  console.log("settlement select loader");
+  return await api.getSettlementsForUser();
+}
+
 function SettlementSelector() {
+  const loadedSettlements = useLoaderData() as Array<Settlement>;
   const [settlements, setSettlements] =
-    useState<Array<Settlement>>(Array<Settlement>());
-  const [isLoading, setIsLoading] = useState(true);
+    useState<Array<Settlement>>(loadedSettlements);
   const updateSettlementList = useCallback(
     (s: Settlement) => {
       if (settlements.length === 0) {
@@ -79,26 +80,14 @@ function SettlementSelector() {
     [settlements],
   );
 
-  useEffect(() => {
-    console.log("use effect");
-    api.getSettlementsForUser().then((val) => {
-      setSettlements(val);
-      setIsLoading(false);
-    });
-  }, [setSettlements, setIsLoading]);
-
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden">
-      {isLoading ? (
-        <Spinner />
-      ) : (
-        <ul className="w-1/4 space-y-4 ">
-          <SettlementList
-            update={updateSettlementList}
-            settlements={settlements}
-          />
-        </ul>
-      )}
+      <ul className="w-1/4 space-y-4 ">
+        <SettlementList
+          update={updateSettlementList}
+          settlements={settlements}
+        />
+      </ul>
     </div>
   );
 }
