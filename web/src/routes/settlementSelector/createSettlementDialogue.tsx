@@ -19,7 +19,7 @@ import {
 import * as z from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import api, { CreateSettlementRequest, Settlement } from "@/api/api";
+import api, { CreateSettlementRequest, Settlement } from "@/api/settlement";
 import { useState } from "react";
 import { Plus } from "lucide-react";
 

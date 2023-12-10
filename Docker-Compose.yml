@@ -1,47 +1,9 @@
-version: '3.7'
+version: "3.7"
 
 services:
-  # Refer to https://github.com/alexhyett/traefik-vs-nginx-docker
-  traefik:
-    image: 'traefik:2.3'
-    container_name: 'traefik'
-    restart: 'unless-stopped'
+  records:
+    container_name: records
+    image: "ghcr.io/failuretoload/datamonster.records:latest"
+    restart: always
     ports:
-      - '80:80'
-      - '8080:8080'
-    volumes:
-      - '/var/run/docker.sock:/var/run/docker.sock:ro'
-      - ./traefik/traefik.toml:/traefik.toml
-    networks:
-      - front-end
-
-  dm-db:
-    container_name: dm-db
-    image: 'ghcr.io/failuretoload/datamonster.records:latest'
-    #expose:  uncomment this if the API can't reach the DB
-    #  - "5432"
-    networks:
-      - back-end
-    depends_on:
-      - traefik
-
-  dm-api:
-    container_name: dm-api
-    image: 'ghcr.io/failuretoload/datamonster.api:latest'
-    environment:
-      - DBSERVER=dm-db
-      - DBUSER=your-user
-      - DBPASS=your-pass
-    labels:
-      - 'traefik.enable=true'
-      - 'traefik.http.routers.whoami.rule=PathPrefix(`/datamonster{regex:$$|/.*}`)'
-      - 'traefik.http.services.whoami.loadbalancer.server.port=8085'
-    networks:
-      - front-end
-      - back-end
-    depends_on:
-      - dm-db
-
-networks:
-  front-end:
-  back-end:
+      - "5432:5432"
