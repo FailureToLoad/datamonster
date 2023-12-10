@@ -14,6 +14,9 @@ import SettlementSelector, {
 } from "./routes/settlementSelector/index.tsx";
 
 import Settlement, { SettlementLoader } from "./routes/settlement";
+import Timeline from "./routes/settlement/timeline.tsx";
+import Population from "./routes/settlement/population/index.tsx";
+import SettlementStorage from "./routes/settlement/settlementStorage.tsx";
 
 const rootLoader = async ({ request }: LoaderFunctionArgs) => {
   const user = await Authenticator.authorize();
@@ -28,17 +31,30 @@ const rootLoader = async ({ request }: LoaderFunctionArgs) => {
 const router = createBrowserRouter([
   {
     id: "root",
-    path: "/",
     loader: rootLoader,
     Component: Outlet,
     children: [
       {
-        index: true,
+        path: "/",
         Component: Settlement,
         loader: SettlementLoader,
+        children: [
+          {
+            path: "timeline",
+            Component: Timeline,
+          },
+          {
+            path: "population",
+            Component: Population,
+          },
+          {
+            path: "storage",
+            Component: SettlementStorage,
+          },
+        ],
       },
       {
-        path: "/select",
+        path: "select",
         loader: settlementListLoader,
         Component: SettlementSelector,
       },
