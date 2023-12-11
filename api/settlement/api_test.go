@@ -56,7 +56,7 @@ func (suite *SettlementApiTestSuite) Test_GetSettlements_ReturnsSettmentsList() 
 	req = req.WithContext(ctx)
 	w := httptest.NewRecorder()
 
-	suite.target.GetSettlements(w, req)
+	suite.target.getSettlements(w, req)
 	resp := w.Result()
 
 	suite.Equal(200, resp.StatusCode, "200 response should be returned")

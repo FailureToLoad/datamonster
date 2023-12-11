@@ -41,13 +41,13 @@ func (c Controller) RegisterRoutes(r chi.Router) {
 		web.SetDefaultMiddleware(r)
 		web.SetCorsHandler(r)
 		web.SetAuthHandler(r)
-		r.Get("/settlement", c.GetSettlements)
+		r.Get("/settlement", c.getSettlements)
 		r.Post("/settlement", c.createSettlement)
 		r.Get("/settlement/{id}", c.getSettlement)
 	})
 }
 
-func (c Controller) GetSettlements(w http.ResponseWriter, r *http.Request) {
+func (c Controller) getSettlements(w http.ResponseWriter, r *http.Request) {
 	userId := r.Context().Value(web.UserIdKey).(int)
 	log.Default().Printf("Retrieving settlements for user %d", userId)
 	query := fmt.Sprintf("SELECT * FROM campaign.settlement WHERE owner = %d", userId)
