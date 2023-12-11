@@ -2,12 +2,12 @@ package repo
 
 import (
 	"context"
-	"datamonster/connection"
+	"datamonster/store"
 	"fmt"
 )
 
 type PostgresRepo struct {
-	pool connection.Database
+	pool store.Connection
 }
 
 type Settlement struct {
@@ -20,7 +20,7 @@ type Settlement struct {
 	CurrentYear         int
 }
 
-func New(d connection.Database) *PostgresRepo {
+func New(d store.Connection) *PostgresRepo {
 	return &PostgresRepo{pool: d}
 }
 

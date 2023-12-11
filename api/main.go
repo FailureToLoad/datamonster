@@ -2,9 +2,9 @@ package main
 
 import (
 	"context"
-	postgres "datamonster/connection/postgres"
 	"datamonster/settlement"
 	settlementRepo "datamonster/settlement/repo"
+	postgres "datamonster/store/postgres"
 	"datamonster/user"
 	userApi "datamonster/user/api"
 	userRepo "datamonster/user/repo"
