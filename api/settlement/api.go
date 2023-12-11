@@ -1,8 +1,9 @@
 package settlement
 
 import (
-	postgres "datamonster/settlement/repo/postgres"
+	postgres "datamonster/settlement/repo"
 	"datamonster/web"
+	"fmt"
 	"log"
 	"net/http"
 
@@ -10,10 +11,10 @@ import (
 )
 
 type Controller struct {
-	repo *postgres.Repo
+	repo *postgres.PostgresRepo
 }
 
-func NewController(repo *postgres.Repo) *Controller {
+func NewController(repo *postgres.PostgresRepo) *Controller {
 	return &Controller{repo: repo}
 }
 
@@ -40,16 +41,17 @@ func (c Controller) RegisterRoutes(r chi.Router) {
 		web.SetDefaultMiddleware(r)
 		web.SetCorsHandler(r)
 		web.SetAuthHandler(r)
-		r.Get("/settlement", c.getSettlements)
+		r.Get("/settlement", c.GetSettlements)
 		r.Post("/settlement", c.createSettlement)
 		r.Get("/settlement/{id}", c.getSettlement)
 	})
 }
 
-func (c Controller) getSettlements(w http.ResponseWriter, r *http.Request) {
+func (c Controller) GetSettlements(w http.ResponseWriter, r *http.Request) {
 	userId := r.Context().Value(web.UserIdKey).(int)
 	log.Default().Printf("Retrieving settlements for user %d", userId)
-	settlements, repoErr := c.repo.GetAllForUser(r.Context(), userId)
+	query := fmt.Sprintf("SELECT * FROM campaign.settlement WHERE owner = %d", userId)
+	settlements, repoErr := c.repo.Select(r.Context(), query)
 	if repoErr != nil {
 		log.Default().Printf("Error retrieving settlements %s", repoErr.Error())
 		web.MakeJsonResponse(w, http.StatusInternalServerError, "Error retrieving settlements")
