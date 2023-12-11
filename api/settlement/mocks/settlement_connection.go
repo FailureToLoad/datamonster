@@ -8,38 +8,46 @@ import (
 	"github.com/jackc/pgx/v5/pgconn"
 )
 
-type MockDatabase struct {
-	Rows *MockRows
-	Row  *SettlementRow
+type MockConnection struct {
+	Rows pgx.Rows
+	Row  pgx.Row
+	err  error
 }
 
-func (sd MockDatabase) Close() {
+func (c MockConnection) Close() {
 	fmt.Println("Close called")
 }
-func (sd MockDatabase) Begin(ctx context.Context) (pgx.Tx, error) {
+func (c MockConnection) Begin(ctx context.Context) (pgx.Tx, error) {
 	panic("not implemented")
 }
-func (sd MockDatabase) Exec(ctx context.Context, sql string, arguments ...interface{}) (pgconn.CommandTag, error) {
+func (c MockConnection) Exec(ctx context.Context, sql string, arguments ...interface{}) (pgconn.CommandTag, error) {
 	panic("not implemented")
 }
-func (sd MockDatabase) Query(ctx context.Context, sql string, optionsAndArgs ...interface{}) (pgx.Rows, error) {
-	if sd.Rows == nil {
+func (c MockConnection) Query(ctx context.Context, sql string, optionsAndArgs ...interface{}) (pgx.Rows, error) {
+	if c.err != nil {
+		return nil, c.err
+	}
+	if c.Rows == nil {
 		panic("rows field not set")
 	}
-	return sd.Rows, nil
+	return c.Rows, nil
 }
-func (sd MockDatabase) QueryRow(ctx context.Context, sql string, optionsAndArgs ...interface{}) pgx.Row {
-	if sd.Row == nil {
+func (c MockConnection) QueryRow(ctx context.Context, sql string, optionsAndArgs ...interface{}) pgx.Row {
+	if c.Row == nil {
 		panic("row field not set")
 	}
 
-	return sd.Row
+	return c.Row
 }
 
-func (sd *MockDatabase) SetRows(rows *MockRows) {
-	sd.Rows = rows
+func (c *MockConnection) SetRows(rows pgx.Rows) {
+	c.Rows = rows
 }
 
-func (sd *MockDatabase) SetRow(row *SettlementRow) {
-	sd.Row = row
+func (c *MockConnection) SetRow(row pgx.Row) {
+	c.Row = row
+}
+
+func (c *MockConnection) SetError(err error) {
+	c.err = err
 }

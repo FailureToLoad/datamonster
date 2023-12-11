@@ -1,12 +1,14 @@
 package mocks
 
 import (
+	"fmt"
+
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 )
 
 type MockRows struct {
-	Rows    []SettlementRow
+	Rows    []pgx.Row
 	cusrsor int
 }
 
@@ -26,7 +28,10 @@ func (sr *MockRows) Next() bool {
 	return sr.cusrsor < len(sr.Rows)
 }
 func (sr *MockRows) Scan(dest ...any) error {
-	sr.Rows[sr.cusrsor].Scan(dest...)
+	err := sr.Rows[sr.cusrsor].Scan(dest...)
+	if err != nil {
+		return err
+	}
 	sr.cusrsor++
 	return nil
 }
@@ -68,4 +73,10 @@ func (s *SettlementRow) Scan(dest ...any) error {
 	*currentYear = s.CurrentYear
 
 	return nil
+}
+
+type ErrorRow struct{}
+
+func (er *ErrorRow) Scan(dest ...any) error {
+	return fmt.Errorf("error scanning row")
 }

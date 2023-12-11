@@ -27,7 +27,7 @@ func New(d store.Connection) *PostgresRepo {
 func (r PostgresRepo) Select(ctx context.Context, query string) ([]Settlement, error) {
 	rows, err := r.pool.Query(ctx, query)
 	if err != nil {
-		fmt.Println(err)
+		return []Settlement{}, err
 	}
 	defer rows.Close()
 	settlements := []Settlement{}
