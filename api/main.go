@@ -34,7 +34,7 @@ func main() {
 	defer appPool.Close()
 
 	settlementController := settlement.NewController(settlementRepo.New(appPool))
-	settlementController.RegisterRoutes(router)
+	settlementController.RegisterRoutes(router, web.AuthHandler)
 	userController := userApi.NewController(user.NewService(userRepo.New(piiPool)))
 	userController.RegisterRoutes(router)
 	log.Default().Println("Starting server on port 8080")

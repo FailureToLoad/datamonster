@@ -42,7 +42,7 @@ func (r PostgresRepo) Select(ctx context.Context, query string) ([]Settlement, e
 	return settlements, nil
 }
 
-func (r PostgresRepo) Get(ctx context.Context, id string) (Settlement, error) {
+func (r PostgresRepo) Get(ctx context.Context, id string, owner int) (Settlement, error) {
 	query := `SELECT * FROM campaign.settlement WHERE id = $1 LIMIT 1`
 	var s Settlement
 	err := r.pool.QueryRow(ctx, query, id).Scan(&s.Id, &s.Owner, &s.Name, &s.SurvivalLimit, &s.DepartingSurvival, &s.CollectiveCognition, &s.CurrentYear)
