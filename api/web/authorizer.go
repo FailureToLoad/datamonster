@@ -24,7 +24,7 @@ type TokenResponse struct {
 const UserIdKey ctxUserIdKey = "userId"
 
 func SetAuthHandler(r chi.Router) {
-	r.Use(authHandler)
+	r.Use(AuthHandler)
 }
 
 func MakeAuthorizedResponse(w http.ResponseWriter, userId int) {
@@ -110,7 +110,7 @@ func handleExpiredAuthToken(w http.ResponseWriter, r *http.Request, cookieValue 
 	return token, nil
 }
 
-func authHandler(next http.Handler) http.Handler {
+func AuthHandler(next http.Handler) http.Handler {
 	fn := func(w http.ResponseWriter, r *http.Request) {
 		tokenResponse, err := authorizeRequest(w, r)
 		if err != nil {

@@ -2,7 +2,7 @@ package repo
 
 import (
 	"context"
-	"datamonster/dao"
+	"datamonster/store"
 
 	"github.com/jackc/pgx/v5"
 )
@@ -14,15 +14,15 @@ type User struct {
 }
 
 type PostGres struct {
-	dao dao.Connection
+	conn store.Connection
 }
 
-func New(d dao.Connection) *PostGres {
-	return &PostGres{dao: d}
+func New(d store.Connection) *PostGres {
+	return &PostGres{conn: d}
 }
 
 func (pg PostGres) Insert(ctx context.Context, user User) (userId int, err error) {
-	tx, err := pg.dao.Begin(ctx)
+	tx, err := pg.conn.Begin(ctx)
 	if err != nil {
 		return 0, err
 	}
@@ -45,6 +45,6 @@ func (pg PostGres) Insert(ctx context.Context, user User) (userId int, err error
 func (pg PostGres) Get(ctx context.Context, username string) (User, error) {
 	query := `SELECT * FROM private.user WHERE username = $1`
 	var u User
-	err := pg.dao.QueryRow(ctx, query, username).Scan(&u.Id, &u.Username, &u.Hash)
+	err := pg.conn.QueryRow(ctx, query, username).Scan(&u.Id, &u.Username, &u.Hash)
 	return u, err
 }

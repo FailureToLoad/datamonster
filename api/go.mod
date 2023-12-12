@@ -6,7 +6,6 @@ require (
 	github.com/go-chi/chi/v5 v5.0.10
 	github.com/go-chi/cors v1.2.1
 	github.com/golang-jwt/jwt/v4 v4.5.0
-	github.com/stretchr/testify v1.8.4
 )
 
 require (
@@ -14,6 +13,7 @@ require (
 	github.com/kr/text v0.2.0 // indirect
 	github.com/pmezard/go-difflib v1.0.0 // indirect
 	github.com/rogpeppe/go-internal v1.11.0 // indirect
+	github.com/stretchr/testify v1.8.4
 	gopkg.in/yaml.v3 v3.0.1 // indirect
 )
 
