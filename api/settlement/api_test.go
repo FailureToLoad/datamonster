@@ -130,7 +130,7 @@ func (suite *SettlementApiTestSuite) Test_GetSettlements_ReportsConnectionErrors
 	suite.router.ServeHTTP(w, req)
 	resp := w.Result()
 
-	suite.Equal(500, resp.StatusCode, "connection issues should result in server error")
+	suite.Equal(500, resp.StatusCode, "deserialization issues should result in server error")
 }
 
 func (suite *SettlementApiTestSuite) Test_CreateSettlement_ReturnsASettlement() {

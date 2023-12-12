@@ -10,7 +10,6 @@ import (
 	"strings"
 	"time"
 
-	"github.com/go-chi/chi/v5"
 	"github.com/golang-jwt/jwt/v4"
 )
 
@@ -22,10 +21,6 @@ type TokenResponse struct {
 }
 
 const UserIdKey ctxUserIdKey = "userId"
-
-func SetAuthHandler(r chi.Router) {
-	r.Use(AuthHandler)
-}
 
 func MakeAuthorizedResponse(w http.ResponseWriter, userId int) {
 	signedAuthTokenString, signedRefreshTokenString, err := token.GetSignedTokenStrings(userId)
