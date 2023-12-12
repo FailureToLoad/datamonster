@@ -49,7 +49,8 @@ func (c Controller) RegisterRoutes(r chi.Router) {
 
 func (c Controller) getSettlements(w http.ResponseWriter, r *http.Request) {
 	userId := r.Context().Value(web.UserIdKey).(int)
-	log.Default().Printf("Retrieving settlements for user %d", userId)
+	log.Default().Println("---")
+	log.Default().Printf("Requesting settlements for user %d", userId)
 	query := fmt.Sprintf("SELECT * FROM campaign.settlement WHERE owner = %d", userId)
 	settlements, repoErr := c.repo.Select(r.Context(), query)
 	if repoErr != nil {
@@ -58,6 +59,8 @@ func (c Controller) getSettlements(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	data := domainListToDto(settlements)
+	log.Default().Printf("Returning settlements for user %d", userId)
+	log.Default().Println("---")
 	web.MakeJsonResponse(w, http.StatusOK, data)
 }
 

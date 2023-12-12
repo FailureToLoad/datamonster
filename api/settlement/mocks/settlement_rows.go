@@ -1,8 +1,6 @@
 package mocks
 
 import (
-	"fmt"
-
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgconn"
 )
@@ -75,8 +73,20 @@ func (s *SettlementRow) Scan(dest ...any) error {
 	return nil
 }
 
-type ErrorRow struct{}
+type ErrorRow struct {
+	Error error
+}
 
 func (er *ErrorRow) Scan(dest ...any) error {
-	return fmt.Errorf("error scanning row")
+	return er.Error
+}
+
+type InsertRow struct {
+	Id int
+}
+
+func (ir *InsertRow) Scan(dest ...any) error {
+	id := dest[0].(*int)
+	*id = ir.Id
+	return nil
 }
