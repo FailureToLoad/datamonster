@@ -61,7 +61,6 @@ function SettlementList({ update, settlements }: SettlementListProps) {
 }
 
 export async function settlementListLoader() {
-  console.log("settlement select loader");
   return await api.getSettlementsForUser();
 }
 
