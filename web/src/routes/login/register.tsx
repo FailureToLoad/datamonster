@@ -49,7 +49,7 @@ export function RegisterDialogue() {
   });
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
-      Authenticator.register(values.username, values.password);
+      await Authenticator.register(values.username, values.password);
       setOpen(false);
     } catch (error) {
       console.log(error);
@@ -60,7 +60,7 @@ export function RegisterDialogue() {
       <DialogTrigger asChild>
         <Button variant="outline">Register</Button>
       </DialogTrigger>
-      <DialogContent className="sm:max-w-[425px]">
+      <DialogContent className="sm:max-w-[425px]" id="register">
         <Form {...form}>
           <form className="space-y-8" onSubmit={form.handleSubmit(onSubmit)}>
             <DialogHeader>
@@ -73,7 +73,7 @@ export function RegisterDialogue() {
               name="username"
               render={({ field }) => (
                 <FormItem>
-                  <FormLabel>username</FormLabel>
+                  <FormLabel>Username</FormLabel>
                   <FormControl>
                     <Input type="username" {...field} />
                   </FormControl>
@@ -105,7 +105,7 @@ export function RegisterDialogue() {
               )}
             />
             <DialogFooter>
-              <Button type="submit">Add</Button>
+              <Button type="submit">Submit</Button>
             </DialogFooter>
           </form>
         </Form>

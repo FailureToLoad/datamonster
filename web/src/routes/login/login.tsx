@@ -30,13 +30,13 @@ const validator = z.object({
 type FormData = z.infer<typeof validator>;
 
 export async function LoginLoader() {
-  return Authenticator.isAuthenticated;
+  return Authenticator.isAuthenticated();
 }
 
 export async function LoginAction({ request }: ActionFunctionArgs) {
   const formData = Object.fromEntries(await request.formData()) as FormData;
   await Authenticator.signin(formData.username, formData.password);
-  if (!Authenticator.isAuthenticated) {
+  if (!Authenticator.isAuthenticated()) {
     return null;
   }
 
@@ -95,7 +95,7 @@ function Login() {
 
                       <div className="flex justify-between">
                         <Button type="submit" disabled={state === "submitting"}>
-                          Submit
+                          Sign In
                         </Button>
                         <RegisterDialogue />
                       </div>
@@ -103,40 +103,6 @@ function Login() {
                   </>
                 )}
               </Form>
-              {/* <Form {...form}>
-                <form
-                  onSubmit={form.handleSubmit(loginAction)}
-                  className="space-y-8"
-                >
-                  <FormField
-                    control={form.control}
-                    name="username"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Username</FormLabel>
-                        <FormControl>
-                          <Input type="text" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <FormField
-                    control={form.control}
-                    name="password"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel>Password</FormLabel>
-                        <FormControl>
-                          <Input type="password" {...field} />
-                        </FormControl>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                  <Button type="submit">Submit</Button>
-                </form>
-              </Form> */}
             </CardContent>
           </Card>
         </div>

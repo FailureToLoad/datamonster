@@ -3,9 +3,10 @@ import userApi, { User } from "@/api/user";
 import { LoaderFunctionArgs, redirect } from "react-router-dom";
 
 export interface AuthProvider {
-  isAuthenticated: boolean;
+  authenticated: boolean;
   user: null | User;
   iid: number;
+  isAuthenticated(): boolean;
   signin(username: string, password: string): Promise<User | null>;
   register: (username: string, password: string) => Promise<User>;
   authorize: () => Promise<User>;
@@ -27,7 +28,7 @@ function validateUser(user: User | null): user is User {
 
 export async function AuthLoader({ request }: LoaderFunctionArgs) {
   const user = await Authenticator.authorize();
-  if (!Authenticator.isAuthenticated) {
+  if (!Authenticator.authenticated) {
     let params = new URLSearchParams();
     params.set("from", new URL(request.url).pathname);
     return redirect("/login?" + params.toString());
@@ -36,9 +37,12 @@ export async function AuthLoader({ request }: LoaderFunctionArgs) {
 }
 
 export const Authenticator: AuthProvider = {
-  isAuthenticated: false,
+  authenticated: false,
   user: null,
   iid: 0,
+  isAuthenticated() {
+    return Authenticator.authenticated;
+  },
   async signin(username: string, password: string) {
     try {
       const user = await userApi.login(username, password);
@@ -47,11 +51,11 @@ export const Authenticator: AuthProvider = {
         case user.token === undefined:
         case user.token === "":
           console.log("User Sign In Failed", user);
-          Authenticator.isAuthenticated = false;
+          Authenticator.authenticated = false;
           return null;
         default:
           console.log("User Sign In Success", user);
-          Authenticator.isAuthenticated = true;
+          Authenticator.authenticated = true;
           Authenticator.user = user;
           console.log("Authenticator.iid", Authenticator.iid);
           if (Authenticator.iid === 0) {
@@ -67,7 +71,7 @@ export const Authenticator: AuthProvider = {
   },
   async signout() {
     await userApi.logout();
-    Authenticator.isAuthenticated = false;
+    Authenticator.authenticated = false;
     Authenticator.user = null;
   },
   async register(username: string, password: string) {
@@ -76,7 +80,7 @@ export const Authenticator: AuthProvider = {
       if (Authenticator.iid === 0) {
         Authenticator.iid = setInterceptor(user.token);
       }
-      Authenticator.isAuthenticated = true;
+      Authenticator.authenticated = true;
     }
     return user;
   },
@@ -91,17 +95,17 @@ export const Authenticator: AuthProvider = {
 
       if (validateUser(user)) {
         Authenticator.user = user;
-        Authenticator.isAuthenticated = true;
+        Authenticator.authenticated = true;
         if (Authenticator.iid === 0) {
           Authenticator.iid = setInterceptor(user.token);
         }
       } else {
         Authenticator.user = null;
-        Authenticator.isAuthenticated = false;
+        Authenticator.authenticated = false;
       }
     } catch (error) {
       console.error("Authorization failed:", error);
-      Authenticator.isAuthenticated = false;
+      Authenticator.authenticated = false;
     } finally {
       return user;
     }
