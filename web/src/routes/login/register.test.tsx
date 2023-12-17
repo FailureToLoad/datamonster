@@ -1,10 +1,10 @@
 import { expect, it, describe, vi, beforeEach } from "vitest";
 import { RegisterDialogue } from "./register";
-import { fireEvent, render, screen, waitFor } from "@testing-library/react";
+import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import userApi from "@/api/user";
 import { setInterceptor } from "@/api/api";
-import { act } from "react-dom/test-utils";
+
 const user = {
   userId: 1,
   token: "token",
