@@ -4,7 +4,6 @@ import (
 	postgres "datamonster/settlement/repo"
 	"datamonster/web"
 	"fmt"
-	"log"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -49,18 +48,13 @@ func (c Controller) RegisterRoutes(r chi.Router, authHandler func(http.Handler) 
 
 func (c Controller) getSettlements(w http.ResponseWriter, r *http.Request) {
 	userId := r.Context().Value(web.UserIdKey).(int)
-	log.Default().Println("---")
-	log.Default().Printf("Requesting settlements for user %d", userId)
 	query := fmt.Sprintf("SELECT * FROM campaign.settlement WHERE owner = %d", userId)
 	settlements, repoErr := c.repo.Select(r.Context(), query)
 	if repoErr != nil {
-		log.Default().Printf("Error retrieving settlements %s", repoErr.Error())
 		web.MakeJsonResponse(w, http.StatusInternalServerError, "Error retrieving settlements")
 		return
 	}
 	data := domainListToDto(settlements)
-	log.Default().Printf("Returning settlements for user %d", userId)
-	log.Default().Println("---")
 	web.MakeJsonResponse(w, http.StatusOK, data)
 }
 
@@ -76,7 +70,6 @@ func (c Controller) createSettlement(w http.ResponseWriter, r *http.Request) {
 		web.MakeJsonResponse(w, http.StatusBadRequest, "Name is required")
 		return
 	}
-	log.Default().Printf("Creating settlement: %s", body)
 	settlement := postgres.Settlement{
 		Owner:               userId,
 		Name:                body.Name,
@@ -87,7 +80,6 @@ func (c Controller) createSettlement(w http.ResponseWriter, r *http.Request) {
 	}
 	newId, insertErr := c.repo.Insert(r.Context(), settlement)
 	if insertErr != nil {
-		log.Default().Printf("Error inserting settlement %s", insertErr.Error())
 		web.MakeJsonResponse(w, http.StatusInternalServerError, "Unable to create settlement")
 		return
 	}
@@ -100,10 +92,8 @@ func (c Controller) createSettlement(w http.ResponseWriter, r *http.Request) {
 func (c Controller) getSettlement(w http.ResponseWriter, r *http.Request) {
 	userId := r.Context().Value(web.UserIdKey).(int)
 	settlementId := chi.URLParam(r, "id")
-	log.Default().Printf("Retrieving settlement %s for user %d", settlementId, userId)
 	settlement, repoErr := c.repo.Get(r.Context(), settlementId, userId)
 	if repoErr != nil {
-		log.Default().Printf("Error retrieving settlement %s", repoErr.Error())
 		web.MakeJsonResponse(w, http.StatusInternalServerError, "Error retrieving settlement")
 		return
 	}
