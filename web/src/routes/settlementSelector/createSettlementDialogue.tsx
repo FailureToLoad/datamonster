@@ -43,6 +43,7 @@ export function CreateSettlementDialogue({ update }: CreateSettlementProps) {
       const request: CreateSettlementRequest = {
         name: values.settlementName,
       };
+
       const response = await api.createSettlement(request);
       update(response);
       setOpen(false);
@@ -53,7 +54,11 @@ export function CreateSettlementDialogue({ update }: CreateSettlementProps) {
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
-        <Button variant="outline" className="w-full">
+        <Button
+          variant="outline"
+          className="w-full"
+          aria-label="launch add settlement dialogue"
+        >
           <Plus className="h-6 w-6" />
         </Button>
       </DialogTrigger>

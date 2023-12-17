@@ -18,17 +18,19 @@ type AllSettlementsResponse = {
   count: number;
 };
 
-type settlementApi = {
+type settlementRequests = {
   getSettlementsForUser: () => Promise<Array<Settlement>>;
   getSettlement: (id: string) => Promise<Settlement>;
   createSettlement: (request: CreateSettlementRequest) => Promise<Settlement>;
 };
 
-const settlementRequests: settlementApi = {
+const SettlementApi: settlementRequests = {
   getSettlementsForUser: async function (): Promise<Settlement[]> {
+    console.log("settlement request");
     const response = await api.get<AllSettlementsResponse>(
       `http://localhost:8080/settlement`,
     );
+    console.log("settlement reponse", response.data);
     return response.data.settlements;
   },
   getSettlement: async function (id: string): Promise<Settlement> {
@@ -48,4 +50,4 @@ const settlementRequests: settlementApi = {
   },
 };
 
-export default settlementRequests;
+export default SettlementApi;

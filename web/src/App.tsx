@@ -8,9 +8,7 @@ import {
 } from "react-router-dom";
 import Spinner from "./components/spinner.tsx";
 import Login, { LoginAction, LoginLoader } from "./routes/login/login.tsx";
-import SettlementSelector, {
-  settlementListLoader,
-} from "./routes/settlementSelector/index.tsx";
+import { Selector, SettlementListLoader } from "./routes/settlementSelector";
 
 import Settlement, { SettlementLoader } from "./routes/settlement";
 import Timeline from "./routes/settlement/timeline.tsx";
@@ -44,8 +42,8 @@ const router = createBrowserRouter([
       },
       {
         path: "select",
-        loader: settlementListLoader,
-        Component: SettlementSelector,
+        loader: SettlementListLoader,
+        Component: Selector,
       },
     ],
   },
