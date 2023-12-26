@@ -8,7 +8,7 @@ import {
 } from "react-router-dom";
 import Spinner from "./components/spinner.tsx";
 import Login, { LoginAction, LoginLoader } from "./routes/login";
-import { Selector, SettlementListLoader } from "./routes/settlementSelector";
+import Selector, { SettlementListLoader } from "./routes/settlementSelector";
 import { Settlement, SettlementLoader } from "./routes/settlement";
 import Timeline from "./routes/settlement/timeline.tsx";
 import Population from "./routes/settlement/population/index.tsx";
