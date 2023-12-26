@@ -1,6 +1,5 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-
-import api, { Settlement } from "@/api/settlement";
+import { Settlement } from "@/api/settlement";
 import { useCallback, useState } from "react";
 import { CreateSettlementDialogue } from "./createSettlementDialogue";
 import { Button } from "@/components/ui/button";
@@ -58,10 +57,6 @@ function SettlementList({ update, settlements }: SettlementListProps) {
     </li>
   ));
   return [dialogueListItem, ...cards];
-}
-
-export async function SettlementListLoader() {
-  return await api.getSettlementsForUser();
 }
 
 type SelectorProps = {
