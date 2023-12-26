@@ -32,7 +32,7 @@ describe("Selector", () => {
   beforeEach(() => {
     vi.resetAllMocks();
   });
-  it("renders the selector page", async () => {
+  it("renders a list of settlements", async () => {
     vi.mocked(useLoaderData).mockReturnValue(settlements);
     render(build());
     const selector = screen.getByTestId("selector");
