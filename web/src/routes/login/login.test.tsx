@@ -2,7 +2,7 @@ import { describe, it, expect, vi } from "vitest";
 import { render, screen } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { RouterProvider, createMemoryRouter } from "react-router-dom";
-import Login, { LoginAction, LoginLoader } from "./login";
+import Login, { LoginAction, LoginLoader } from "./index";
 import { Authenticator } from "@/auth/authenticator";
 import { beforeEach } from "node:test";
 import userApi from "@/api/user";
