@@ -32,17 +32,6 @@ function Header({ settlement }: HeaderProps) {
   );
 }
 
-export function SettlementLoader() {
-  const settlementJson = localStorage.getItem("settlement");
-  const settlement = settlementJson
-    ? (JSON.parse(settlementJson) as Settlement)
-    : null;
-  if (!settlement) {
-    return <Navigate to="/select" />;
-  }
-  return settlement;
-}
-
 function Settlement() {
   const settlementJson = localStorage.getItem("settlement");
   const settlement = settlementJson
