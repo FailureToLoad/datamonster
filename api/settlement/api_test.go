@@ -6,13 +6,13 @@ import (
 	"encoding/json"
 	"fmt"
 	"io"
-	"net/http"
 	"net/http/httptest"
 	"testing"
 
-	"datamonster/settlement/mocks"
 	"datamonster/settlement/repo"
+	storeMocks "datamonster/store/mocks"
 	"datamonster/web"
+	webMocks "datamonster/web/mocks"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5"
@@ -20,49 +20,41 @@ import (
 )
 
 var (
-	userId = 1
+	userId = webMocks.TestUserId
 )
 
 type SettlementApiTestSuite struct {
 	suite.Suite
 	target *Controller
-	db     *mocks.MockConnection
+	db     *storeMocks.MockConnection
 	repo   *repo.PostgresRepo
 	router *chi.Mux
 }
 
-func noopAuthHandler(next http.Handler) http.Handler {
-	fn := func(w http.ResponseWriter, r *http.Request) {
-		ctx := context.WithValue(r.Context(), web.UserIdKey, userId)
-		next.ServeHTTP(w, r.WithContext(ctx))
-	}
-	return http.HandlerFunc(fn)
-}
-
 func (suite *SettlementApiTestSuite) SetupTest() {
-	suite.db = &mocks.MockConnection{}
+	suite.db = &storeMocks.MockConnection{}
 	suite.repo = repo.New(suite.db)
 	suite.target = NewController(suite.repo)
 	suite.router = chi.NewRouter()
-	suite.target.RegisterRoutes(suite.router, noopAuthHandler)
+	suite.target.RegisterRoutes(suite.router, webMocks.AuthHandlerFake)
 
 }
 
 func (suite *SettlementApiTestSuite) Test_GetSettlements_ReturnsSettmentsList() {
-	rows := mocks.MockRows{
+	rows := storeMocks.MockRows{
 		Rows: []pgx.Row{
-			&mocks.SettlementRow{
+			&SettlementRow{
 				Id:                  1,
-				Owner:               userId,
+				Owner:               webMocks.TestUserId,
 				Name:                "Fun Forever",
 				SurvivalLimit:       1,
 				DepartingSurvival:   0,
 				CollectiveCognition: 0,
 				CurrentYear:         1,
 			},
-			&mocks.SettlementRow{
+			&SettlementRow{
 				Id:                  2,
-				Owner:               userId,
+				Owner:               webMocks.TestUserId,
 				Name:                "Wait, we get insanity for the croc?",
 				SurvivalLimit:       1,
 				DepartingSurvival:   0,
@@ -89,9 +81,9 @@ func (suite *SettlementApiTestSuite) Test_GetSettlements_ReturnsSettmentsList() 
 }
 
 func (suite *SettlementApiTestSuite) Test_GetSettlements_ReportsScanErrors() {
-	errorRows := mocks.MockRows{
+	errorRows := storeMocks.MockRows{
 		Rows: []pgx.Row{
-			&mocks.SettlementRow{
+			&SettlementRow{
 				Id:                  1,
 				Owner:               userId,
 				Name:                "Fun Forever",
@@ -100,7 +92,7 @@ func (suite *SettlementApiTestSuite) Test_GetSettlements_ReportsScanErrors() {
 				CollectiveCognition: 0,
 				CurrentYear:         1,
 			},
-			&mocks.ErrorRow{
+			&storeMocks.ErrorRow{
 				Error: fmt.Errorf("scan error"),
 			},
 		},
@@ -134,7 +126,7 @@ func (suite *SettlementApiTestSuite) Test_GetSettlements_ReportsConnectionErrors
 }
 
 func (suite *SettlementApiTestSuite) Test_CreateSettlement_ReturnsASettlement() {
-	insertRow := mocks.InsertRow{
+	insertRow := storeMocks.InsertRow{
 		Id: 1,
 	}
 	suite.db.SetRow(&insertRow)
@@ -201,7 +193,7 @@ func (suite *SettlementApiTestSuite) Test_CreateSettlement_RequiresAName() {
 }
 
 func (suite *SettlementApiTestSuite) Test_CreateSettlement_ReportsCreationErrors() {
-	insertRow := mocks.ErrorRow{
+	insertRow := storeMocks.ErrorRow{
 		Error: fmt.Errorf("insert error"),
 	}
 	suite.db.SetRow(&insertRow)
@@ -223,7 +215,7 @@ func (suite *SettlementApiTestSuite) Test_CreateSettlement_ReportsCreationErrors
 }
 
 func (suite *SettlementApiTestSuite) Test_GetSettlement_ReturnsOneSettlement() {
-	row := mocks.SettlementRow{
+	row := SettlementRow{
 		Id:                  1,
 		Owner:               userId,
 		Name:                "Fun Forever",
@@ -253,7 +245,7 @@ func (suite *SettlementApiTestSuite) Test_GetSettlement_ReturnsOneSettlement() {
 }
 
 func (suite *SettlementApiTestSuite) Test_GetSettlement_ReportsScanErrors() {
-	row := mocks.ErrorRow{
+	row := storeMocks.ErrorRow{
 		Error: fmt.Errorf("scan error"),
 	}
 	suite.db.SetRow(&row)
@@ -273,4 +265,34 @@ func (suite *SettlementApiTestSuite) Test_GetSettlement_ReportsScanErrors() {
 }
 func TestSettlementApiTestSuite(t *testing.T) {
 	suite.Run(t, new(SettlementApiTestSuite))
+}
+
+type SettlementRow struct {
+	Id                  int
+	Owner               int
+	Name                string
+	SurvivalLimit       int
+	DepartingSurvival   int
+	CollectiveCognition int
+	CurrentYear         int
+}
+
+func (s *SettlementRow) Scan(dest ...any) error {
+	id := dest[0].(*int)
+	owner := dest[1].(*int)
+	name := dest[2].(*string)
+	survivalLimit := dest[3].(*int)
+	departingSurvival := dest[4].(*int)
+	collectiveCognition := dest[5].(*int)
+	currentYear := dest[6].(*int)
+
+	*id = s.Id
+	*owner = s.Owner
+	*name = s.Name
+	*survivalLimit = s.SurvivalLimit
+	*departingSurvival = s.DepartingSurvival
+	*collectiveCognition = s.CollectiveCognition
+	*currentYear = s.CurrentYear
+
+	return nil
 }
