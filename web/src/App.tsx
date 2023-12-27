@@ -50,7 +50,7 @@ const router = createBrowserRouter([
         ],
       },
       {
-        path: "select",
+        path: "/",
         loader: SettlementListLoader,
         Component: Selector,
       },
