@@ -1,4 +1,4 @@
-import { Link, Navigate, Outlet } from "react-router-dom";
+import { Link, Outlet, useLoaderData } from "react-router-dom";
 import { navigationMenuTriggerStyle } from "@/components/ui/navigation-menu";
 import { Settlement } from "@/api/settlement";
 
@@ -32,14 +32,8 @@ function Header({ settlement }: HeaderProps) {
   );
 }
 
-function Settlement() {
-  const settlementJson = localStorage.getItem("settlement");
-  const settlement = settlementJson
-    ? (JSON.parse(settlementJson) as Settlement)
-    : null;
-  if (!settlement) {
-    return <Navigate to="/select" />;
-  }
+function SettlementPage() {
+  const settlement = useLoaderData() as Settlement;
   return (
     <div className="flex h-screen w-full flex-col">
       <Header settlement={settlement as Settlement} />
@@ -50,4 +44,4 @@ function Settlement() {
   );
 }
 
-export default Settlement;
+export default SettlementPage;

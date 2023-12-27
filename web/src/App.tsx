@@ -9,10 +9,12 @@ import {
 import Spinner from "./components/spinner.tsx";
 import Login, { LoginAction, LoginLoader } from "./routes/login";
 import Selector, { SettlementListLoader } from "./routes/settlementSelector";
-import { Settlement, SettlementLoader } from "./routes/settlement";
+import { Settlement } from "./routes/settlement";
 import Timeline from "./routes/settlement/timeline.tsx";
 import Population from "./routes/settlement/population/index.tsx";
 import SettlementStorage from "./routes/settlement/settlementStorage.tsx";
+import settlementApi from "@/api/settlement.ts";
+import survivorApi from "@/api/survivor.ts";
 
 const router = createBrowserRouter([
   {
@@ -21,9 +23,13 @@ const router = createBrowserRouter([
     Component: Outlet,
     children: [
       {
-        path: "/",
+        path: ":settlementId",
+        id: "home",
         Component: Settlement,
-        loader: SettlementLoader,
+        loader: async ({ params }) => {
+          let id = params?.settlementId as string;
+          return await settlementApi.getSettlement(id);
+        },
         children: [
           {
             path: "timeline",
@@ -32,6 +38,10 @@ const router = createBrowserRouter([
           {
             path: "population",
             Component: Population,
+            loader: async ({ params }) => {
+              let id = params?.settlementId as string;
+              return await survivorApi.getSurvivorsForSettlement(id);
+            },
           },
           {
             path: "storage",

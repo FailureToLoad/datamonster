@@ -5,6 +5,7 @@ import (
 	"datamonster/settlement"
 	settlementRepo "datamonster/settlement/repo"
 	postgres "datamonster/store/postgres"
+	"datamonster/survivor"
 	"datamonster/user"
 	userApi "datamonster/user/api"
 	userRepo "datamonster/user/repo"
@@ -37,6 +38,8 @@ func main() {
 	settlementController.RegisterRoutes(router, web.AuthHandler)
 	userController := userApi.NewController(user.NewService(userRepo.New(piiPool)))
 	userController.RegisterRoutes(router)
+	survivorController := survivor.NewController(appPool)
+	survivorController.RegisterRoutes(router, web.AuthHandler)
 	log.Default().Println("Starting server on port 8080")
 	http.ListenAndServe(":8080", router)
 }

@@ -4,15 +4,10 @@ import { useCallback, useState } from "react";
 import { CreateSettlementDialogue } from "./createSettlementDialogue";
 import { Button } from "@/components/ui/button";
 import { Play } from "lucide-react";
-import { useLoaderData, useNavigate } from "react-router-dom";
+import { Link, useLoaderData } from "react-router-dom";
 
 function SettlementCard({ settlement }: { settlement: Settlement }) {
-  const navigate = useNavigate();
-  const navigateOnClick = () => {
-    localStorage.setItem("settlement", JSON.stringify(settlement));
-    navigate(`..`);
-  };
-
+  const link = "/" + settlement.id;
   return (
     <Card>
       <CardHeader>
@@ -22,13 +17,11 @@ function SettlementCard({ settlement }: { settlement: Settlement }) {
         <div className="flex flex-row justify-between">
           <div>Lantern Year: {settlement.year}</div>
           <div>
-            <Button
-              variant="ghost"
-              size="icon"
-              onClick={() => navigateOnClick()}
-            >
-              <Play className="h-6 w-6" onClick={() => navigateOnClick()} />
-            </Button>
+            <Link to={link}>
+              <Button variant="ghost" size="icon">
+                <Play className="h-6 w-6" />
+              </Button>
+            </Link>
           </div>
         </div>
       </CardContent>
