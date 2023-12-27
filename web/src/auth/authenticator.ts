@@ -91,7 +91,6 @@ export const Authenticator: AuthProvider = {
     };
     try {
       user = await userApi.authorize();
-      console.log("authorize response", user);
 
       if (validateUser(user)) {
         Authenticator.user = user;
