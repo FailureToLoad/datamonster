@@ -34,6 +34,7 @@ import {
   ContextMenuTrigger,
 } from "@/components/ui/context-menu";
 import { Survivor } from "./types";
+import { NewSurvivorDialogue } from "./survivorSheet";
 
 interface DataTableProps<Survivor> {
   columns: ColumnDef<Survivor>[];
@@ -68,6 +69,7 @@ export function DataTable<TData extends Survivor>({
   return (
     <div>
       <div className="flex items-center py-4">
+        <NewSurvivorDialogue />
         <DropdownMenu>
           <DropdownMenuTrigger asChild>
             <Button variant="outline" className="ml-auto">
@@ -126,7 +128,7 @@ export function DataTable<TData extends Survivor>({
                       data-state={row.getIsSelected() && "selected"}
                     >
                       {row.getVisibleCells().map((cell) => (
-                        <TableCell key={cell.id}>
+                        <TableCell key={cell.id} className="text-center">
                           {flexRender(
                             cell.column.columnDef.cell,
                             cell.getContext(),

@@ -25,6 +25,10 @@ export type Survivor = {
 
 type survivorRequests = {
   getSurvivorsForSettlement: (settlementId: string) => Promise<Array<Survivor>>;
+  createSurvivor: (
+    settlementId: string,
+    survivor: Survivor,
+  ) => Promise<Survivor>;
 };
 
 const SurvivorApi: survivorRequests = {
@@ -33,6 +37,16 @@ const SurvivorApi: survivorRequests = {
   ): Promise<Survivor[]> {
     const response = await api.get<Array<Survivor>>(
       `http://localhost:8080/settlement/${settlementId}/survivor`,
+    );
+    return response.data;
+  },
+  createSurvivor: async function (
+    settlementId: string,
+    survivor: Survivor,
+  ): Promise<Survivor> {
+    const response = await api.post<Survivor>(
+      `http://localhost:8080/settlement/${settlementId}/survivor`,
+      survivor,
     );
     return response.data;
   },

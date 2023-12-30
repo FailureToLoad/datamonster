@@ -36,7 +36,7 @@ export async function LoginAction({ request }: ActionFunctionArgs) {
     return null;
   }
 
-  return redirect(`../select`);
+  return redirect(`/`);
 }
 
 function Login() {
