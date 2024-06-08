@@ -1,58 +1,52 @@
 package web
 
 import (
+	"github.com/supertokens/supertokens-golang/supertokens"
 	"log"
 	"net/http"
+	"strings"
 	"time"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
-	"github.com/go-chi/cors"
 )
 
-func NewRouter() *chi.Mux {
-	router := chi.NewRouter()
-	SetDefaultMiddleware(router)
-	SetCorsHandler(router)
-	router.Get("/verify", verify)
-	router.Post("/auth", authorize)
-	return router
+type Server struct {
+	Mux *chi.Mux
 }
 
-func SetCorsHandler(r chi.Router) {
-	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{"http://localhost:8090"},
-		AllowedMethods:   []string{"HEAD", "GET", "POST", "PATCH", "PUT", "DELETE", "OPTIONS"},
-		AllowedHeaders:   []string{"Origin", "X-Requested-With", "Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
-		ExposedHeaders:   []string{"Link"},
-		AllowCredentials: true,
-		MaxAge:           3599, // Maximum value not ignored by any of major browsers
-	})
-	r.Use(c.Handler)
-}
-
-func SetDefaultMiddleware(r chi.Router) {
-	r.Use(middleware.RequestID)
-	r.Use(middleware.RealIP)
-	r.Use(middleware.Logger)
-	r.Use(middleware.Recoverer)
-	r.Use(middleware.URLFormat)
-	timeout := middleware.Timeout(10 * time.Second)
-	r.Use(timeout)
-}
-
-func verify(w http.ResponseWriter, r *http.Request) {
-	log.Default().Println("Verification successful")
-	MakeJsonResponse(w, http.StatusOK, "Success")
-}
-
-func authorize(w http.ResponseWriter, r *http.Request) {
-	response, err := authorizeRequest(w, r)
+func (s Server) Start() {
+	log.Default().Println("Starting server on port 8080")
+	err := http.ListenAndServe(":8080", corsMiddleware(supertokens.Middleware(s.Mux)))
 	if err != nil {
-		log.Default().Printf("Authorization failed: %s", err.Error())
-		MakeJsonResponse(w, http.StatusUnauthorized, "authorization failure")
-		return
+		log.Default().Println(err)
 	}
+}
 
-	MakeJsonResponse(w, http.StatusOK, response)
+func NewServer() Server {
+	router := chi.NewRouter()
+	router.Use(middleware.RequestID)
+	router.Use(middleware.RealIP)
+	router.Use(middleware.Logger)
+	router.Use(middleware.Recoverer)
+	router.Use(middleware.URLFormat)
+	router.Use(middleware.Timeout(10 * time.Second))
+	return Server{Mux: router}
+}
+
+func corsMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(response http.ResponseWriter, r *http.Request) {
+		response.Header().Set("Access-Control-Allow-Origin", "http://dev.local:8090")
+		response.Header().Set("Access-Control-Allow-Credentials", "true")
+		if r.Method == "OPTIONS" {
+			// we add content-type + other headers used by SuperTokens
+			response.Header().Set("Access-Control-Allow-Headers",
+				strings.Join(append([]string{"Content-Type"},
+					supertokens.GetAllCORSHeaders()...), ","))
+			response.Header().Set("Access-Control-Allow-Methods", "*")
+			response.Write([]byte(""))
+		} else {
+			next.ServeHTTP(response, r)
+		}
+	})
 }

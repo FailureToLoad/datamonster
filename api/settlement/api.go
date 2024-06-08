@@ -3,7 +3,7 @@ package settlement
 import (
 	postgres "datamonster/settlement/repo"
 	"datamonster/web"
-	"fmt"
+	"github.com/supertokens/supertokens-golang/recipe/session"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -35,21 +35,18 @@ type CreateSettlementRequest struct {
 	Name string `json:"name"`
 }
 
-func (c Controller) RegisterRoutes(r chi.Router, authHandler func(http.Handler) http.Handler) {
-	r.Group(func(r chi.Router) {
-		web.SetDefaultMiddleware(r)
-		web.SetCorsHandler(r)
-		r.Use(authHandler)
-		r.Get("/settlement", c.getSettlements)
-		r.Post("/settlement", c.createSettlement)
-		r.Get("/settlement/{id}", c.getSettlement)
+func (c Controller) RegisterRoutes(r chi.Router) {
+	r.Get("/settlement", session.VerifySession(nil, c.getSettlements))
+	r.Post("/settlement", session.VerifySession(nil, c.createSettlement))
+	r.Route("/settlement/{id}", func(r chi.Router) {
+		r.Get("/", session.VerifySession(nil, c.getSettlement))
 	})
 }
 
 func (c Controller) getSettlements(w http.ResponseWriter, r *http.Request) {
-	userId := r.Context().Value(web.UserIdKey).(int)
-	query := fmt.Sprintf("SELECT * FROM campaign.settlement WHERE owner = %d", userId)
-	settlements, repoErr := c.repo.Select(r.Context(), query)
+	sessionContainer := session.GetSessionFromRequestContext(r.Context())
+	userID := sessionContainer.GetUserID()
+	settlements, repoErr := c.repo.Select(r.Context(), userID)
 	if repoErr != nil {
 		web.MakeJsonResponse(w, http.StatusInternalServerError, "Error retrieving settlements")
 		return
@@ -59,9 +56,10 @@ func (c Controller) getSettlements(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c Controller) createSettlement(w http.ResponseWriter, r *http.Request) {
-	userId := r.Context().Value(web.UserIdKey).(int)
+	sessionContainer := session.GetSessionFromRequestContext(r.Context())
+	userID := sessionContainer.GetUserID()
 	var body CreateSettlementRequest
-	err := web.DecodeJson(r.Body, &body)
+	err := web.DecodeJsonRequest(r.Body, &body)
 	if err != nil {
 		web.MakeJsonResponse(w, http.StatusBadRequest, "Invalid request body")
 		return
@@ -71,7 +69,7 @@ func (c Controller) createSettlement(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	settlement := postgres.Settlement{
-		Owner:               userId,
+		Owner:               userID,
 		Name:                body.Name,
 		SurvivalLimit:       1,
 		DepartingSurvival:   0,
@@ -90,9 +88,8 @@ func (c Controller) createSettlement(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c Controller) getSettlement(w http.ResponseWriter, r *http.Request) {
-	userId := r.Context().Value(web.UserIdKey).(int)
 	settlementId := chi.URLParam(r, "id")
-	settlement, repoErr := c.repo.Get(r.Context(), settlementId, userId)
+	settlement, repoErr := c.repo.Get(r.Context(), settlementId)
 	if repoErr != nil {
 		web.MakeJsonResponse(w, http.StatusInternalServerError, "Error retrieving settlement")
 		return

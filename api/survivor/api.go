@@ -3,7 +3,9 @@ package survivor
 import (
 	"datamonster/store"
 	"datamonster/web"
+	"github.com/supertokens/supertokens-golang/recipe/session"
 	"net/http"
+	"strconv"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -17,19 +19,20 @@ func NewController(conn store.Connection) *Controller {
 	return &Controller{repo: repo}
 }
 
-func (c Controller) RegisterRoutes(r chi.Router, authHandler func(http.Handler) http.Handler) {
-	r.Group(func(r chi.Router) {
-		web.SetDefaultMiddleware(r)
-		web.SetCorsHandler(r)
-		r.Use(web.SettlementIdExtractor)
-		r.Use(authHandler)
-		r.Get("/settlement/{id}/survivor", c.getSurvivors)
-	})
+func (c Controller) RegisterRoutes(r chi.Router) {
+	r.Use(web.SettlementIdExtractor)
+	r.Get("/settlement/{id}/survivor", session.VerifySession(nil, c.getSurvivors))
 }
 
 func (c Controller) getSurvivors(w http.ResponseWriter, r *http.Request) {
-	settlementId := r.Context().Value(web.SettlementIdKey).(int)
+	param := chi.URLParam(r, "id")
+	settlementId, convErr := strconv.Atoi(param)
+	if convErr != nil {
+		web.MakeJsonResponse(w, http.StatusInternalServerError, "unable to convert query param")
+		return
+	}
 	query := getAllSurvivorsForSettlement(settlementId)
+
 	survivors, err := c.repo.Find(r.Context(), query)
 	if err != nil {
 		web.MakeJsonResponse(w, http.StatusInternalServerError, "Error retrieving survivors")

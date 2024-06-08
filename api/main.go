@@ -6,40 +6,32 @@ import (
 	settlementRepo "datamonster/settlement/repo"
 	postgres "datamonster/store/postgres"
 	"datamonster/survivor"
-	"datamonster/user"
-	userApi "datamonster/user/api"
-	userRepo "datamonster/user/repo"
 	"datamonster/web"
-	"log"
-	"net/http"
-
-	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"log"
 )
 
 var (
 	appPool    *pgxpool.Pool
-	piiPool    *pgxpool.Pool
-	router     *chi.Mux
+	server     web.Server
 	appContext context.Context
 )
 
 func init() {
+	stInitErr := web.InitSuperTokens()
+	if stInitErr != nil {
+		log.Fatal(stInitErr)
+	}
 	appContext = context.Background()
 	appPool = postgres.InitAppPool(appContext)
-	piiPool = postgres.InitPrivatePool(appContext)
-	router = web.NewRouter()
+	server = web.NewServer()
 }
 
 func main() {
 	defer appPool.Close()
-
 	settlementController := settlement.NewController(settlementRepo.New(appPool))
-	settlementController.RegisterRoutes(router, web.AuthHandler)
-	userController := userApi.NewController(user.NewService(userRepo.New(piiPool)))
-	userController.RegisterRoutes(router)
 	survivorController := survivor.NewController(appPool)
-	survivorController.RegisterRoutes(router, web.AuthHandler)
-	log.Default().Println("Starting server on port 8080")
-	http.ListenAndServe(":8080", router)
+	survivorController.RegisterRoutes(server.Mux)
+	settlementController.RegisterRoutes(server.Mux)
+	server.Start()
 }
