@@ -10,7 +10,7 @@ import (
 	"github.com/go-chi/chi/v5"
 )
 
-func DecodeJson(rc io.ReadCloser, data interface{}) error {
+func DecodeJsonRequest(rc io.ReadCloser, data interface{}) error {
 	defer rc.Close()
 	decoder := json.NewDecoder(rc)
 	return decoder.Decode(data)

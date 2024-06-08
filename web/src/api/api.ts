@@ -8,24 +8,5 @@ const ax = axios.create({
   },
 });
 ax.defaults.withCredentials = true;
-ax.interceptors.response.use(
-  (response) => {
-    return response;
-  },
-  (error) => {
-    if (error.response.status === 401) {
-      localStorage.removeItem("iid");
-    }
-    return Promise.reject(error);
-  },
-);
-
-export function setInterceptor(token: string) {
-  const id = ax.interceptors.request.use((config) => {
-    config.headers.Authorization = `Bearer ${token}`;
-    return config;
-  });
-  return id;
-}
 
 export default ax;

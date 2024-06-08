@@ -33,7 +33,13 @@ function Header({ settlement }: HeaderProps) {
 }
 
 function SettlementPage() {
-  const settlement = useLoaderData() as Settlement;
+  const settlementJson = localStorage.getItem("settlement");
+  const settlement = settlementJson
+    ? (JSON.parse(settlementJson) as Settlement)
+    : null;
+  if (!settlement) {
+    return <Navigate to="/select" />;
+  }
   return (
     <div className="flex h-screen w-full flex-col">
       <Header settlement={settlement as Settlement} />

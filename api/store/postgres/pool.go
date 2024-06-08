@@ -25,19 +25,3 @@ func InitAppPool(ctx context.Context) *pgxpool.Pool {
 	}
 	return dbpool
 }
-
-func InitPrivatePool(ctx context.Context) *pgxpool.Pool {
-	dbconfig, err := pgxpool.ParseConfig(os.Getenv("PII_STRING"))
-	if err != nil {
-		log.Fatalf("Unable to parse db config: %v\n", err)
-	}
-	dbconfig.AfterConnect = func(ctx context.Context, conn *pgx.Conn) error {
-		pgxuuid.Register(conn.TypeMap())
-		return nil
-	}
-	dbpool, err := pgxpool.NewWithConfig(ctx, dbconfig)
-	if err != nil {
-		log.Fatalf("Unable to create connection pool: %v\n", err)
-	}
-	return dbpool
-}

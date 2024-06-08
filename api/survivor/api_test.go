@@ -1,10 +1,7 @@
 package survivor
 
 import (
-	"context"
 	storeMocks "datamonster/store/mocks"
-	"datamonster/web"
-	authMocks "datamonster/web/mocks"
 	"encoding/json"
 	"io"
 	"net/http/httptest"
@@ -26,7 +23,7 @@ func (suite *SurvivorApiTestSuite) SetupTest() {
 	suite.db = &storeMocks.MockConnection{}
 	suite.target = NewController(suite.db)
 	suite.router = chi.NewRouter()
-	suite.target.RegisterRoutes(suite.router, authMocks.AuthHandlerFake)
+	suite.target.RegisterRoutes(suite.router)
 }
 
 func (suite *SurvivorApiTestSuite) Test_GetSurvivors_ReturnsSurvivorList() {
@@ -81,7 +78,6 @@ func (suite *SurvivorApiTestSuite) Test_GetSurvivors_ReturnsSurvivorList() {
 	suite.db.SetRows(&rows)
 	req := httptest.NewRequest("GET", "/settlement/1/survivor", nil)
 	ctx := req.Context()
-	ctx = context.WithValue(ctx, web.UserIdKey, authMocks.TestUserId)
 	req = req.WithContext(ctx)
 	w := httptest.NewRecorder()
 	suite.router.ServeHTTP(w, req)
