@@ -1,9 +1,0 @@
-version: "3.7"
-
-services:
-  records:
-    container_name: records
-    image: "ghcr.io/failuretoload/datamonster.records:latest"
-    restart: always
-    ports:
-      - "5432:5432"
