@@ -12,7 +12,7 @@ The site uses an alias to mitigate CORS issues. Make sure to add the following a
 
 `127.0.0.1       localhost dev.local`
 
-## Set up
+## Setup
 
 Add the following variable to your `.bashrc`. I'm intending to secure this all via the container build process but for how threadbare the project is currently (and the fact that anyone reading this can't even get to the database) a test user and pass is fine.
 
