@@ -2,8 +2,8 @@ package repo
 
 import (
 	"context"
-	"datamonster/store"
 	"fmt"
+	"github.com/failuretoload/datamonster/store"
 )
 
 type PostgresRepo struct {

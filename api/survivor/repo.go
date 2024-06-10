@@ -2,8 +2,8 @@ package survivor
 
 import (
 	"context"
-	"datamonster/store"
 	"fmt"
+	"github.com/failuretoload/datamonster/store"
 	"log"
 )
 

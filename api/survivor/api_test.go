@@ -1,8 +1,8 @@
 package survivor
 
 import (
-	storeMocks "datamonster/store/mocks"
 	"encoding/json"
+	storeMocks "github.com/failuretoload/datamonster/store/mocks"
 	"io"
 	"net/http/httptest"
 	"testing"

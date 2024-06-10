@@ -1,14 +1,15 @@
-package main
+package api
 
 import (
 	"context"
-	"datamonster/settlement"
-	settlementRepo "datamonster/settlement/repo"
-	postgres "datamonster/store/postgres"
-	"datamonster/survivor"
-	"datamonster/web"
-	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/failuretoload/datamonster/settlement"
+	settlementRepo "github.com/failuretoload/datamonster/settlement/repo"
+	postgres "github.com/failuretoload/datamonster/store/postgres"
+	"github.com/failuretoload/datamonster/survivor"
+	"github.com/failuretoload/datamonster/web"
 	"log"
+
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 var (

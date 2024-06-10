@@ -2,8 +2,8 @@ package survivor
 
 import (
 	"context"
-	"datamonster/store"
-	"datamonster/web"
+	"github.com/failuretoload/datamonster/store"
+	"github.com/failuretoload/datamonster/web"
 	"net/http"
 	"strconv"
 

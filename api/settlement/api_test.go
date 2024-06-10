@@ -9,10 +9,10 @@ import (
 	"net/http/httptest"
 	"testing"
 
-	"datamonster/settlement/repo"
-	storeMocks "datamonster/store/mocks"
-	"datamonster/web"
-	webMocks "datamonster/web/mocks"
+	"github.com/failuretoload/datamonster/settlement/repo"
+	storeMocks "github.com/failuretoload/datamonster/store/mocks"
+	"github.com/failuretoload/datamonster/web"
+	webMocks "github.com/failuretoload/datamonster/web/mocks"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5"

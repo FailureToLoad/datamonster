@@ -1,8 +1,8 @@
 package settlement
 
 import (
-	postgres "datamonster/settlement/repo"
-	"datamonster/web"
+	postgres "github.com/failuretoload/datamonster/settlement/repo"
+	"github.com/failuretoload/datamonster/web"
 	"github.com/supertokens/supertokens-golang/recipe/session"
 	"net/http"
 
