@@ -5,4 +5,4 @@ WORKDIR /app
 COPY ./ ./
 
 RUN npm ci --no-audit
-CMD [ "npm", "run", "container" ]
+CMD [ "npm", "run", "dev" ]
