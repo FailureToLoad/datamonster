@@ -1,11 +1,13 @@
 package survivor
 
 import (
+	"context"
 	"datamonster/store"
 	"datamonster/web"
-	"github.com/supertokens/supertokens-golang/recipe/session"
 	"net/http"
 	"strconv"
+
+	"github.com/supertokens/supertokens-golang/recipe/session"
 
 	"github.com/go-chi/chi/v5"
 )
@@ -20,7 +22,7 @@ func NewController(conn store.Connection) *Controller {
 }
 
 func (c Controller) RegisterRoutes(r chi.Router) {
-	r.Use(web.SettlementIdExtractor)
+	r.Use(settlementIdExtractor)
 	r.Get("/settlement/{id}/survivor", session.VerifySession(nil, c.getSurvivors))
 }
 
@@ -70,9 +72,30 @@ func dtoFromDomain(s Survivor) SurvivorDTO {
 }
 
 func dtoListFromDomain(s []Survivor) []SurvivorDTO {
-	dtos := make([]SurvivorDTO, len(s))
+	survivors := make([]SurvivorDTO, len(s))
 	for i, v := range s {
-		dtos[i] = dtoFromDomain(v)
+		survivors[i] = dtoFromDomain(v)
 	}
-	return dtos
+	return survivors
+}
+
+type ctxSettlementIdKey string
+
+const SettlementIdKey ctxSettlementIdKey = "settlementId"
+
+func settlementIdExtractor(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		settlementIdString := chi.URLParam(r, "id")
+		if settlementIdString != "" {
+			settlementId, convErr := strconv.Atoi(settlementIdString)
+			if convErr != nil {
+				web.MakeJsonResponse(w, http.StatusBadRequest, "settlement id should be a number")
+				return
+			}
+			ctx := context.WithValue(r.Context(), SettlementIdKey, settlementId)
+			next.ServeHTTP(w, r.WithContext(ctx))
+		} else {
+			next.ServeHTTP(w, r)
+		}
+	})
 }
