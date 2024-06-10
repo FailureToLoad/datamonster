@@ -10,7 +10,7 @@ import survivorApi from "@/api/survivor.ts";
 
 import SuperTokens, { SuperTokensWrapper } from "supertokens-auth-react";
 import EmailPassword from "supertokens-auth-react/recipe/emailpassword";
-import Session from "supertokens-auth-react/recipe/session";
+import Session, { SessionAuth } from "supertokens-auth-react/recipe/session";
 import { getSuperTokensRoutesForReactRouterDom } from "supertokens-auth-react/ui";
 import { EmailPasswordPreBuiltUI } from "supertokens-auth-react/recipe/emailpassword/prebuiltui";
 import * as reactRouterDom from "react-router-dom";
@@ -34,7 +34,11 @@ const router = createBrowserRouter([
   {
     path: ":settlementId",
     id: "home",
-    Component: Settlement,
+    element: (
+      <SessionAuth>
+        <Settlement />
+      </SessionAuth>
+    ),
     loader: async ({ params }) => {
       let id = params?.settlementId as string;
       return await settlementApi.getSettlement(id);
@@ -61,7 +65,11 @@ const router = createBrowserRouter([
   {
     path: "/",
     loader: SettlementListLoader,
-    Component: Selector,
+    element: (
+      <SessionAuth>
+        <Selector />
+      </SessionAuth>
+    ),
   },
 ]);
 
