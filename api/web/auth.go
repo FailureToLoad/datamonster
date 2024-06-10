@@ -16,8 +16,8 @@ func InitSuperTokens() error {
 		},
 		AppInfo: supertokens.AppInfo{
 			AppName:         "Data Monster",
-			APIDomain:       "http://dev.local:8080",
-			WebsiteDomain:   "http://dev.local:8090",
+			APIDomain:       "http://localhost:8080",
+			WebsiteDomain:   "http://localhost:8090",
 			APIBasePath:     &apiBasePath,
 			WebsiteBasePath: &websiteBasePath,
 		},

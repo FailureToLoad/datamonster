@@ -19,8 +19,8 @@ import Spinner from "./components/spinner.tsx";
 SuperTokens.init({
   appInfo: {
     appName: "Data Monster",
-    apiDomain: "http://dev.local:8080",
-    websiteDomain: "http://dev.local:8090",
+    apiDomain: "http://localhost:8080",
+    websiteDomain: "http://localhost:8090",
     apiBasePath: "/auth",
     websiteBasePath: "/auth",
   },

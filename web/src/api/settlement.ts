@@ -28,14 +28,14 @@ const SettlementApi: settlementRequests = {
   getSettlementsForUser: async function (): Promise<Settlement[]> {
     console.log("settlement request");
     const response = await api.get<AllSettlementsResponse>(
-      `http://dev.local:8080/settlement`,
+      `http://localhost:8080/settlement`,
     );
     console.log("settlement reponse", response.data);
     return response.data.settlements;
   },
   getSettlement: async function (id: string): Promise<Settlement> {
     const response = await api.get<Settlement>(
-      "http://dev.local:8080/settlement/" + id,
+      "http://localhost:8080/settlement/" + id,
     );
     return response.data;
   },
@@ -43,7 +43,7 @@ const SettlementApi: settlementRequests = {
     request: CreateSettlementRequest,
   ): Promise<Settlement> {
     const response = await api.post<Settlement>(
-      "http://dev.local:8080/settlement",
+      "http://localhost:8080/settlement",
       request,
     );
     return response.data;

@@ -36,7 +36,7 @@ const SurvivorApi: survivorRequests = {
     settlementId: string,
   ): Promise<Survivor[]> {
     const response = await api.get<Array<Survivor>>(
-      `http://dev.local:8080/settlement/${settlementId}/survivor`,
+      `http://localhost:8080/settlement/${settlementId}/survivor`,
     );
     return response.data;
   },
@@ -45,7 +45,7 @@ const SurvivorApi: survivorRequests = {
     survivor: Survivor,
   ): Promise<Survivor> {
     const response = await api.post<Survivor>(
-      `http://dev.local:8080/settlement/${settlementId}/survivor`,
+      `http://localhost:8080/settlement/${settlementId}/survivor`,
       survivor,
     );
     return response.data;
