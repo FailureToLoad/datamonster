@@ -2,7 +2,11 @@ import api from "@/api/settlement";
 import Selector from "./selector";
 
 export async function SettlementListLoader() {
-  return await api.getSettlementsForUser();
+  let settlements = await api.getSettlementsForUser();
+  if (!settlements) {
+    return null;
+  }
+  return settlements;
 }
 
 export default Selector;

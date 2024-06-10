@@ -1,11 +1,12 @@
 package web
 
 import (
-	"github.com/supertokens/supertokens-golang/supertokens"
 	"log"
 	"net/http"
 	"strings"
 	"time"
+
+	"github.com/supertokens/supertokens-golang/supertokens"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -36,7 +37,7 @@ func NewServer() Server {
 
 func corsMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(response http.ResponseWriter, r *http.Request) {
-		response.Header().Set("Access-Control-Allow-Origin", "http://dev.local:8090")
+		response.Header().Set("Access-Control-Allow-Origin", "http://localhost:8090")
 		response.Header().Set("Access-Control-Allow-Credentials", "true")
 		if r.Method == "OPTIONS" {
 			// we add content-type + other headers used by SuperTokens

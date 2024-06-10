@@ -19,31 +19,45 @@ type AllSettlementsResponse = {
 };
 
 type settlementRequests = {
-  getSettlementsForUser: () => Promise<Array<Settlement>>;
-  getSettlement: (id: string) => Promise<Settlement>;
+  getSettlementsForUser: () => Promise<Array<Settlement> | null>;
+  getSettlement: (id: string) => Promise<Settlement | null>;
   createSettlement: (request: CreateSettlementRequest) => Promise<Settlement>;
 };
 
 const SettlementApi: settlementRequests = {
-  getSettlementsForUser: async function (): Promise<Settlement[]> {
-    console.log("settlement request");
-    const response = await api.get<AllSettlementsResponse>(
-      `http://dev.local:8080/settlement`,
-    );
-    console.log("settlement reponse", response.data);
-    return response.data.settlements;
+  getSettlementsForUser: async function (): Promise<Settlement[] | null> {
+    try {
+      const response = await api.get<AllSettlementsResponse | null>(
+        `http://localhost:8080/settlement`,
+      );
+      if (!response.data) {
+        return null;
+      }
+      return response.data.settlements;
+    } catch (e) {
+      console.log(e);
+      return null;
+    }
   },
-  getSettlement: async function (id: string): Promise<Settlement> {
-    const response = await api.get<Settlement>(
-      "http://dev.local:8080/settlement/" + id,
-    );
-    return response.data;
+  getSettlement: async function (id: string): Promise<Settlement | null> {
+    try {
+      const response = await api.get<Settlement | null>(
+        "http://localhost:8080/settlement/" + id,
+      );
+      if (!response.data) {
+        return null;
+      }
+      return response.data;
+    } catch (e) {
+      console.log(e);
+      return null;
+    }
   },
   createSettlement: async function (
     request: CreateSettlementRequest,
   ): Promise<Settlement> {
     const response = await api.post<Settlement>(
-      "http://dev.local:8080/settlement",
+      "http://localhost:8080/settlement",
       request,
     );
     return response.data;

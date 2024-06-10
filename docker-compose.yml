@@ -1,0 +1,27 @@
+services:
+  db:
+    build: ./db
+    container_name: dm_db
+    restart: always
+    ports:
+      - "5432:5432"
+  api:
+    depends_on: 
+      - db
+    build: ./api
+    container_name: dm_api
+    restart: always
+    environment:
+      - CONN_STRING=${DB_CONN}
+    ports:
+      - "8080:8080"
+  web:
+    depends_on: 
+      - api
+    build: ./web
+    container_name: dm_web
+    restart: always
+    ports:
+      - "8090:8090"
+    
+

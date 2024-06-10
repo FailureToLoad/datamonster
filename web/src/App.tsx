@@ -1,16 +1,15 @@
 import "./App.css";
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import Selector, { SettlementListLoader } from "./routes/settlementSelector";
-import { Settlement } from "./routes/settlement";
+import { Settlement, SettlementLoader } from "./routes/settlement";
 import Timeline from "./routes/settlement/timeline.tsx";
 import Population from "./routes/settlement/population/index.tsx";
 import SettlementStorage from "./routes/settlement/settlementStorage.tsx";
-import settlementApi from "@/api/settlement.ts";
 import survivorApi from "@/api/survivor.ts";
 
 import SuperTokens, { SuperTokensWrapper } from "supertokens-auth-react";
 import EmailPassword from "supertokens-auth-react/recipe/emailpassword";
-import Session from "supertokens-auth-react/recipe/session";
+import Session, { SessionAuth } from "supertokens-auth-react/recipe/session";
 import { getSuperTokensRoutesForReactRouterDom } from "supertokens-auth-react/ui";
 import { EmailPasswordPreBuiltUI } from "supertokens-auth-react/recipe/emailpassword/prebuiltui";
 import * as reactRouterDom from "react-router-dom";
@@ -19,8 +18,8 @@ import Spinner from "./components/spinner.tsx";
 SuperTokens.init({
   appInfo: {
     appName: "Data Monster",
-    apiDomain: "http://dev.local:8080",
-    websiteDomain: "http://dev.local:8090",
+    apiDomain: "http://localhost:8080",
+    websiteDomain: "http://localhost:8090",
     apiBasePath: "/auth",
     websiteBasePath: "/auth",
   },
@@ -34,11 +33,12 @@ const router = createBrowserRouter([
   {
     path: ":settlementId",
     id: "home",
-    Component: Settlement,
-    loader: async ({ params }) => {
-      let id = params?.settlementId as string;
-      return await settlementApi.getSettlement(id);
-    },
+    element: (
+      <SessionAuth>
+        <Settlement />
+      </SessionAuth>
+    ),
+    loader: SettlementLoader,
     children: [
       {
         path: "timeline",
@@ -61,7 +61,11 @@ const router = createBrowserRouter([
   {
     path: "/",
     loader: SettlementListLoader,
-    Component: Selector,
+    element: (
+      <SessionAuth>
+        <Selector />
+      </SessionAuth>
+    ),
   },
 ]);
 
