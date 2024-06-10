@@ -26,22 +26,32 @@ type settlementRequests = {
 
 const SettlementApi: settlementRequests = {
   getSettlementsForUser: async function (): Promise<Settlement[] | null> {
-    const response = await api.get<AllSettlementsResponse | null>(
-      `http://localhost:8080/settlement`,
-    );
-    if (!response.data) {
+    try {
+      const response = await api.get<AllSettlementsResponse | null>(
+        `http://localhost:8080/settlement`,
+      );
+      if (!response.data) {
+        return null;
+      }
+      return response.data.settlements;
+    } catch (e) {
+      console.log(e);
       return null;
     }
-    return response.data.settlements;
   },
   getSettlement: async function (id: string): Promise<Settlement | null> {
-    const response = await api.get<Settlement | null>(
-      "http://localhost:8080/settlement/" + id,
-    );
-    if (!response.data) {
+    try {
+      const response = await api.get<Settlement | null>(
+        "http://localhost:8080/settlement/" + id,
+      );
+      if (!response.data) {
+        return null;
+      }
+      return response.data;
+    } catch (e) {
+      console.log(e);
       return null;
     }
-    return response.data;
   },
   createSettlement: async function (
     request: CreateSettlementRequest,
