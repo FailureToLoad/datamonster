@@ -3,7 +3,6 @@ package main
 import (
 	"context"
 	"github.com/failuretoload/datamonster/settlement"
-	settlementRepo "github.com/failuretoload/datamonster/settlement/repo"
 	postgres "github.com/failuretoload/datamonster/store/postgres"
 	"github.com/failuretoload/datamonster/survivor"
 	"github.com/failuretoload/datamonster/web"
@@ -13,7 +12,7 @@ import (
 )
 
 var (
-	appPool    *pgxpool.Pool
+	connPool   *pgxpool.Pool
 	server     web.Server
 	appContext context.Context
 )
@@ -24,14 +23,14 @@ func init() {
 		log.Fatal(stInitErr)
 	}
 	appContext = context.Background()
-	appPool = postgres.InitAppPool(appContext)
+	connPool = postgres.InitConnPool(appContext)
 	server = web.NewServer()
 }
 
 func main() {
-	defer appPool.Close()
-	settlementController := settlement.NewController(settlementRepo.New(appPool))
-	survivorController := survivor.NewController(appPool)
+	defer connPool.Close()
+	settlementController := settlement.NewController(connPool)
+	survivorController := survivor.NewController(connPool)
 	survivorController.RegisterRoutes(server.Mux)
 	settlementController.RegisterRoutes(server.Mux)
 	server.Start()

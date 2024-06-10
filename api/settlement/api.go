@@ -1,7 +1,8 @@
 package settlement
 
 import (
-	postgres "github.com/failuretoload/datamonster/settlement/repo"
+	postgres "github.com/failuretoload/datamonster/settlement/internal"
+	"github.com/failuretoload/datamonster/store"
 	"github.com/failuretoload/datamonster/web"
 	"github.com/supertokens/supertokens-golang/recipe/session"
 	"net/http"
@@ -13,7 +14,8 @@ type Controller struct {
 	repo *postgres.PostgresRepo
 }
 
-func NewController(repo *postgres.PostgresRepo) *Controller {
+func NewController(conn store.Connection) *Controller {
+	repo := postgres.New(conn)
 	return &Controller{repo: repo}
 }
 

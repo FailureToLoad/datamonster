@@ -1,4 +1,4 @@
-package repo
+package internal
 
 import (
 	"context"
