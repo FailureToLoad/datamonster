@@ -1,11 +1,10 @@
 import "./App.css";
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import Selector, { SettlementListLoader } from "./routes/settlementSelector";
-import { Settlement } from "./routes/settlement";
+import { Settlement, SettlementLoader } from "./routes/settlement";
 import Timeline from "./routes/settlement/timeline.tsx";
 import Population from "./routes/settlement/population/index.tsx";
 import SettlementStorage from "./routes/settlement/settlementStorage.tsx";
-import settlementApi from "@/api/settlement.ts";
 import survivorApi from "@/api/survivor.ts";
 
 import SuperTokens, { SuperTokensWrapper } from "supertokens-auth-react";
@@ -39,10 +38,7 @@ const router = createBrowserRouter([
         <Settlement />
       </SessionAuth>
     ),
-    loader: async ({ params }) => {
-      let id = params?.settlementId as string;
-      return await settlementApi.getSettlement(id);
-    },
+    loader: SettlementLoader,
     children: [
       {
         path: "timeline",

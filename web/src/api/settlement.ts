@@ -19,24 +19,28 @@ type AllSettlementsResponse = {
 };
 
 type settlementRequests = {
-  getSettlementsForUser: () => Promise<Array<Settlement>>;
-  getSettlement: (id: string) => Promise<Settlement>;
+  getSettlementsForUser: () => Promise<Array<Settlement> | null>;
+  getSettlement: (id: string) => Promise<Settlement | null>;
   createSettlement: (request: CreateSettlementRequest) => Promise<Settlement>;
 };
 
 const SettlementApi: settlementRequests = {
-  getSettlementsForUser: async function (): Promise<Settlement[]> {
-    console.log("settlement request");
-    const response = await api.get<AllSettlementsResponse>(
+  getSettlementsForUser: async function (): Promise<Settlement[] | null> {
+    const response = await api.get<AllSettlementsResponse | null>(
       `http://localhost:8080/settlement`,
     );
-    console.log("settlement reponse", response.data);
+    if (!response.data) {
+      return null;
+    }
     return response.data.settlements;
   },
-  getSettlement: async function (id: string): Promise<Settlement> {
-    const response = await api.get<Settlement>(
+  getSettlement: async function (id: string): Promise<Settlement | null> {
+    const response = await api.get<Settlement | null>(
       "http://localhost:8080/settlement/" + id,
     );
+    if (!response.data) {
+      return null;
+    }
     return response.data;
   },
   createSettlement: async function (

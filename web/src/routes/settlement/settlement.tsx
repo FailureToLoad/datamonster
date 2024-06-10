@@ -1,4 +1,4 @@
-import { Link, Outlet, useLoaderData } from "react-router-dom";
+import { Link, Navigate, Outlet, useLoaderData } from "react-router-dom";
 import { navigationMenuTriggerStyle } from "@/components/ui/navigation-menu";
 import { Settlement } from "@/api/settlement";
 
@@ -33,10 +33,7 @@ function Header({ settlement }: HeaderProps) {
 }
 
 function SettlementPage() {
-  const settlementJson = localStorage.getItem("settlement");
-  const settlement = settlementJson
-    ? (JSON.parse(settlementJson) as Settlement)
-    : null;
+  const settlement = useLoaderData();
   if (!settlement) {
     return <Navigate to="/select" />;
   }
