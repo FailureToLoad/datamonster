@@ -31,7 +31,7 @@ func main() {
 	defer connPool.Close()
 	settlementController := settlement.NewController(connPool)
 	survivorController := survivor.NewController(connPool)
-	survivorController.RegisterRoutes(server.Mux)
+	survivorController.RegisterRoutes(server.Mux, web.ProtectRoute)
 	settlementController.RegisterRoutes(server.Mux, web.ProtectRoute)
 	server.Start()
 }

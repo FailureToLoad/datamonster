@@ -16,14 +16,16 @@ type Controller struct {
 	repo *postgresRepo
 }
 
+type RouteGuard func(routeHandler http.HandlerFunc) http.HandlerFunc
+
 func NewController(conn store.Connection) *Controller {
 	repo := newRepo(conn)
 	return &Controller{repo: repo}
 }
 
-func (c Controller) RegisterRoutes(r chi.Router) {
+func (c Controller) RegisterRoutes(r chi.Router, protectRoute RouteGuard) {
 	r.Use(settlementIdExtractor)
-	r.Get("/settlement/{id}/survivor", session.VerifySession(nil, c.getSurvivors))
+	r.Get("/settlement/{id}/survivor", protectRoute(c.getSurvivors))
 }
 
 func (c Controller) getSurvivors(w http.ResponseWriter, r *http.Request) {

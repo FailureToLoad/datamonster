@@ -7,6 +7,7 @@ import (
 	"net/http/httptest"
 	"testing"
 
+	webMocks "github.com/failuretoload/datamonster/web/mocks"
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5"
 	"github.com/stretchr/testify/suite"
@@ -23,7 +24,7 @@ func (suite *SurvivorApiTestSuite) SetupTest() {
 	suite.db = &storeMocks.MockConnection{}
 	suite.target = NewController(suite.db)
 	suite.router = chi.NewRouter()
-	suite.target.RegisterRoutes(suite.router)
+	suite.target.RegisterRoutes(suite.router, webMocks.RouteGuardMock)
 }
 
 func (suite *SurvivorApiTestSuite) Test_GetSurvivors_ReturnsSurvivorList() {
