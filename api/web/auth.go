@@ -4,6 +4,7 @@ import (
 	"github.com/supertokens/supertokens-golang/recipe/emailpassword"
 	"github.com/supertokens/supertokens-golang/recipe/session"
 	"github.com/supertokens/supertokens-golang/supertokens"
+	"net/http"
 )
 
 func InitSuperTokens() error {
@@ -27,4 +28,8 @@ func InitSuperTokens() error {
 		},
 	})
 	return err
+}
+
+func ProtectRoute(routeHandler http.HandlerFunc) http.HandlerFunc {
+	return session.VerifySession(nil, routeHandler)
 }

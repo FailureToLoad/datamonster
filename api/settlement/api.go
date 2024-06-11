@@ -1,9 +1,9 @@
 package settlement
 
 import (
-	postgres "datamonster/settlement/repo"
-	"datamonster/web"
-	"github.com/supertokens/supertokens-golang/recipe/session"
+	postgres "github.com/failuretoload/datamonster/settlement/internal"
+	"github.com/failuretoload/datamonster/store"
+	"github.com/failuretoload/datamonster/web"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -13,10 +13,7 @@ type Controller struct {
 	repo *postgres.PostgresRepo
 }
 
-func NewController(repo *postgres.PostgresRepo) *Controller {
-	return &Controller{repo: repo}
-}
-
+type RouteGuard func(routeHandler http.HandlerFunc) http.HandlerFunc
 type SettlementDTO struct {
 	Id                  int    `json:"id"`
 	Name                string `json:"name"`
@@ -35,17 +32,21 @@ type CreateSettlementRequest struct {
 	Name string `json:"name"`
 }
 
-func (c Controller) RegisterRoutes(r chi.Router) {
-	r.Get("/settlement", session.VerifySession(nil, c.getSettlements))
-	r.Post("/settlement", session.VerifySession(nil, c.createSettlement))
+func NewController(conn store.Connection) *Controller {
+	repo := postgres.New(conn)
+	return &Controller{repo: repo}
+}
+
+func (c Controller) RegisterRoutes(r chi.Router, protectRoute RouteGuard) {
+	r.Get("/settlement", protectRoute(c.getSettlements))
+	r.Post("/settlement", protectRoute(c.createSettlement))
 	r.Route("/settlement/{id}", func(r chi.Router) {
-		r.Get("/", session.VerifySession(nil, c.getSettlement))
+		r.Get("/", protectRoute(c.getSettlement))
 	})
 }
 
 func (c Controller) getSettlements(w http.ResponseWriter, r *http.Request) {
-	sessionContainer := session.GetSessionFromRequestContext(r.Context())
-	userID := sessionContainer.GetUserID()
+	userID := r.Context().Value(web.UserIdKey).(string)
 	settlements, repoErr := c.repo.Select(r.Context(), userID)
 	if repoErr != nil {
 		web.MakeJsonResponse(w, http.StatusInternalServerError, "Error retrieving settlements")
@@ -56,16 +57,19 @@ func (c Controller) getSettlements(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c Controller) createSettlement(w http.ResponseWriter, r *http.Request) {
-	sessionContainer := session.GetSessionFromRequestContext(r.Context())
-	userID := sessionContainer.GetUserID()
+	userID, ok := r.Context().Value(web.UserIdKey).(string)
+	if !ok || userID == "" {
+		web.MakeJsonResponse(w, http.StatusBadRequest, "no user id provided")
+		return
+	}
 	var body CreateSettlementRequest
 	err := web.DecodeJsonRequest(r.Body, &body)
 	if err != nil {
-		web.MakeJsonResponse(w, http.StatusBadRequest, "Invalid request body")
+		web.MakeJsonResponse(w, http.StatusBadRequest, "invalid request body")
 		return
 	}
 	if body.Name == "" {
-		web.MakeJsonResponse(w, http.StatusBadRequest, "Name is required")
+		web.MakeJsonResponse(w, http.StatusBadRequest, "name is required")
 		return
 	}
 	settlement := postgres.Settlement{

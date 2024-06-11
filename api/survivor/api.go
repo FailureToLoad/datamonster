@@ -1,9 +1,10 @@
 package survivor
 
 import (
-	"datamonster/store"
-	"datamonster/web"
-	"github.com/supertokens/supertokens-golang/recipe/session"
+	"context"
+	"github.com/failuretoload/datamonster/store"
+	"github.com/failuretoload/datamonster/survivor/internal"
+	"github.com/failuretoload/datamonster/web"
 	"net/http"
 	"strconv"
 
@@ -11,17 +12,19 @@ import (
 )
 
 type Controller struct {
-	repo *postgresRepo
+	repo *internal.PostGresRepo
 }
 
+type RouteGuard func(routeHandler http.HandlerFunc) http.HandlerFunc
+
 func NewController(conn store.Connection) *Controller {
-	repo := newRepo(conn)
+	repo := internal.NewRepo(conn)
 	return &Controller{repo: repo}
 }
 
-func (c Controller) RegisterRoutes(r chi.Router) {
-	r.Use(web.SettlementIdExtractor)
-	r.Get("/settlement/{id}/survivor", session.VerifySession(nil, c.getSurvivors))
+func (c Controller) RegisterRoutes(r chi.Router, protectRoute RouteGuard) {
+	r.Use(settlementIdExtractor)
+	r.Get("/settlement/{id}/survivor", protectRoute(c.getSurvivors))
 }
 
 func (c Controller) getSurvivors(w http.ResponseWriter, r *http.Request) {
@@ -31,9 +34,7 @@ func (c Controller) getSurvivors(w http.ResponseWriter, r *http.Request) {
 		web.MakeJsonResponse(w, http.StatusInternalServerError, "unable to convert query param")
 		return
 	}
-	query := getAllSurvivorsForSettlement(settlementId)
-
-	survivors, err := c.repo.Find(r.Context(), query)
+	survivors, err := c.repo.GetAllSurvivorsForSettlement(r.Context(), settlementId)
 	if err != nil {
 		web.MakeJsonResponse(w, http.StatusInternalServerError, "Error retrieving survivors")
 		return
@@ -65,14 +66,35 @@ type SurvivorDTO struct {
 	Understanding    int    `json:"understanding"`
 }
 
-func dtoFromDomain(s Survivor) SurvivorDTO {
+func dtoFromDomain(s internal.Survivor) SurvivorDTO {
 	return SurvivorDTO(s)
 }
 
-func dtoListFromDomain(s []Survivor) []SurvivorDTO {
-	dtos := make([]SurvivorDTO, len(s))
+func dtoListFromDomain(s []internal.Survivor) []SurvivorDTO {
+	survivors := make([]SurvivorDTO, len(s))
 	for i, v := range s {
-		dtos[i] = dtoFromDomain(v)
+		survivors[i] = dtoFromDomain(v)
 	}
-	return dtos
+	return survivors
+}
+
+type ctxSettlementIdKey string
+
+const SettlementIdKey ctxSettlementIdKey = "settlementId"
+
+func settlementIdExtractor(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		settlementIdString := chi.URLParam(r, "id")
+		if settlementIdString != "" {
+			settlementId, convErr := strconv.Atoi(settlementIdString)
+			if convErr != nil {
+				web.MakeJsonResponse(w, http.StatusBadRequest, "settlement id should be a number")
+				return
+			}
+			ctx := context.WithValue(r.Context(), SettlementIdKey, settlementId)
+			next.ServeHTTP(w, r.WithContext(ctx))
+		} else {
+			next.ServeHTTP(w, r)
+		}
+	})
 }

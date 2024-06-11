@@ -1,9 +1,9 @@
-package repo
+package internal
 
 import (
 	"context"
-	"datamonster/store"
 	"fmt"
+	"github.com/failuretoload/datamonster/store"
 )
 
 type PostgresRepo struct {

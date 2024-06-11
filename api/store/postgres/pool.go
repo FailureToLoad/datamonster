@@ -10,7 +10,7 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func InitAppPool(ctx context.Context) *pgxpool.Pool {
+func InitConnPool(ctx context.Context) *pgxpool.Pool {
 	dbconfig, err := pgxpool.ParseConfig(os.Getenv("CONN_STRING"))
 	if err != nil {
 		log.Fatalf("Unable to parse db config: %v\n", err)

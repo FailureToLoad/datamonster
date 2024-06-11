@@ -9,7 +9,7 @@ export type Settlement = {
   year: number;
 };
 
-export type CreateSettlementRequest = {
+export type SettlementCreationRequest = {
   name: string;
 };
 
@@ -21,7 +21,7 @@ type AllSettlementsResponse = {
 type settlementRequests = {
   getSettlementsForUser: () => Promise<Array<Settlement> | null>;
   getSettlement: (id: string) => Promise<Settlement | null>;
-  createSettlement: (request: CreateSettlementRequest) => Promise<Settlement>;
+  createSettlement: (request: SettlementCreationRequest) => Promise<Settlement>;
 };
 
 const SettlementApi: settlementRequests = {
@@ -54,7 +54,7 @@ const SettlementApi: settlementRequests = {
     }
   },
   createSettlement: async function (
-    request: CreateSettlementRequest,
+    request: SettlementCreationRequest,
   ): Promise<Settlement> {
     const response = await api.post<Settlement>(
       "http://localhost:8080/settlement",
