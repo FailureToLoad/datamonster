@@ -61,7 +61,14 @@ const UserIdKey ctxUserIdKey = "userId"
 
 func userIdExtractor(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		sessionContainer := session.GetSessionFromRequestContext(r.Context())
+		sessionContainer, err := session.GetSession(r, w, nil)
+		if err != nil {
+			err = supertokens.ErrorHandler(err, r, w)
+			if err != nil {
+				MakeJsonResponse(w, http.StatusInternalServerError, err.Error())
+			}
+			return
+		}
 		userID := sessionContainer.GetUserID()
 		if userID != "" {
 			ctx := context.WithValue(r.Context(), UserIdKey, userID)

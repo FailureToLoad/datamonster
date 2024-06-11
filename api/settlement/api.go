@@ -57,15 +57,19 @@ func (c Controller) getSettlements(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c Controller) createSettlement(w http.ResponseWriter, r *http.Request) {
-	userID := r.Context().Value(web.UserIdKey).(string)
+	userID, ok := r.Context().Value(web.UserIdKey).(string)
+	if !ok || userID == "" {
+		web.MakeJsonResponse(w, http.StatusBadRequest, "no user id provided")
+		return
+	}
 	var body CreateSettlementRequest
 	err := web.DecodeJsonRequest(r.Body, &body)
 	if err != nil {
-		web.MakeJsonResponse(w, http.StatusBadRequest, "Invalid request body")
+		web.MakeJsonResponse(w, http.StatusBadRequest, "invalid request body")
 		return
 	}
 	if body.Name == "" {
-		web.MakeJsonResponse(w, http.StatusBadRequest, "Name is required")
+		web.MakeJsonResponse(w, http.StatusBadRequest, "name is required")
 		return
 	}
 	settlement := postgres.Settlement{
