@@ -3,23 +3,22 @@ package survivor
 import (
 	"context"
 	"github.com/failuretoload/datamonster/store"
+	"github.com/failuretoload/datamonster/survivor/internal"
 	"github.com/failuretoload/datamonster/web"
 	"net/http"
 	"strconv"
-
-	"github.com/supertokens/supertokens-golang/recipe/session"
 
 	"github.com/go-chi/chi/v5"
 )
 
 type Controller struct {
-	repo *postgresRepo
+	repo *internal.PostGresRepo
 }
 
 type RouteGuard func(routeHandler http.HandlerFunc) http.HandlerFunc
 
 func NewController(conn store.Connection) *Controller {
-	repo := newRepo(conn)
+	repo := internal.NewRepo(conn)
 	return &Controller{repo: repo}
 }
 
@@ -35,9 +34,7 @@ func (c Controller) getSurvivors(w http.ResponseWriter, r *http.Request) {
 		web.MakeJsonResponse(w, http.StatusInternalServerError, "unable to convert query param")
 		return
 	}
-	query := getAllSurvivorsForSettlement(settlementId)
-
-	survivors, err := c.repo.Find(r.Context(), query)
+	survivors, err := c.repo.GetAllSurvivorsForSettlement(r.Context(), settlementId)
 	if err != nil {
 		web.MakeJsonResponse(w, http.StatusInternalServerError, "Error retrieving survivors")
 		return
@@ -69,11 +66,11 @@ type SurvivorDTO struct {
 	Understanding    int    `json:"understanding"`
 }
 
-func dtoFromDomain(s Survivor) SurvivorDTO {
+func dtoFromDomain(s internal.Survivor) SurvivorDTO {
 	return SurvivorDTO(s)
 }
 
-func dtoListFromDomain(s []Survivor) []SurvivorDTO {
+func dtoListFromDomain(s []internal.Survivor) []SurvivorDTO {
 	survivors := make([]SurvivorDTO, len(s))
 	for i, v := range s {
 		survivors[i] = dtoFromDomain(v)
