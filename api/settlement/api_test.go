@@ -5,38 +5,40 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
+	"github.com/failuretoload/datamonster/web"
 	"io"
+	"net/http"
 	"net/http/httptest"
 	"testing"
 
-	"github.com/failuretoload/datamonster/settlement/repo"
 	storeMocks "github.com/failuretoload/datamonster/store/mocks"
-	"github.com/failuretoload/datamonster/web"
-	webMocks "github.com/failuretoload/datamonster/web/mocks"
-
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5"
 	"github.com/stretchr/testify/suite"
 )
 
 var (
-	userId = webMocks.TestUserId
+	testUserId = "userId"
 )
 
 type SettlementApiTestSuite struct {
 	suite.Suite
 	target *Controller
 	db     *storeMocks.MockConnection
-	repo   *repo.PostgresRepo
 	router *chi.Mux
+}
+
+func routeGuardMock(handler http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		handler(w, r)
+	}
 }
 
 func (suite *SettlementApiTestSuite) SetupTest() {
 	suite.db = &storeMocks.MockConnection{}
-	suite.repo = repo.New(suite.db)
-	suite.target = NewController(suite.repo)
+	suite.target = NewController(suite.db)
 	suite.router = chi.NewRouter()
-	suite.target.RegisterRoutes(suite.router, webMocks.AuthHandlerFake)
+	suite.target.RegisterRoutes(suite.router, routeGuardMock)
 
 }
 
@@ -45,7 +47,7 @@ func (suite *SettlementApiTestSuite) Test_GetSettlements_ReturnsSettmentsList() 
 		Rows: []pgx.Row{
 			&SettlementRow{
 				Id:                  1,
-				Owner:               webMocks.TestUserId,
+				Owner:               testUserId,
 				Name:                "Fun Forever",
 				SurvivalLimit:       1,
 				DepartingSurvival:   0,
@@ -54,7 +56,7 @@ func (suite *SettlementApiTestSuite) Test_GetSettlements_ReturnsSettmentsList() 
 			},
 			&SettlementRow{
 				Id:                  2,
-				Owner:               webMocks.TestUserId,
+				Owner:               testUserId,
 				Name:                "Wait, we get insanity for the croc?",
 				SurvivalLimit:       1,
 				DepartingSurvival:   0,
@@ -66,11 +68,9 @@ func (suite *SettlementApiTestSuite) Test_GetSettlements_ReturnsSettmentsList() 
 	suite.db.SetRows(&rows)
 	req := httptest.NewRequest("GET", "/settlement", nil)
 	ctx := req.Context()
-	ctx = context.WithValue(ctx, web.UserIdKey, userId)
-	req = req.WithContext(ctx)
+	ctx = context.WithValue(ctx, web.UserIdKey, testUserId)
 	w := httptest.NewRecorder()
-
-	suite.router.ServeHTTP(w, req)
+	suite.router.ServeHTTP(w, req.WithContext(ctx))
 	resp := w.Result()
 
 	suite.Equal(200, resp.StatusCode, "200 response should be returned")
@@ -85,7 +85,7 @@ func (suite *SettlementApiTestSuite) Test_GetSettlements_ReportsScanErrors() {
 		Rows: []pgx.Row{
 			&SettlementRow{
 				Id:                  1,
-				Owner:               userId,
+				Owner:               testUserId,
 				Name:                "Fun Forever",
 				SurvivalLimit:       1,
 				DepartingSurvival:   0,
@@ -100,7 +100,7 @@ func (suite *SettlementApiTestSuite) Test_GetSettlements_ReportsScanErrors() {
 	suite.db.SetRows(&errorRows)
 	req := httptest.NewRequest("GET", "/settlement", nil)
 	ctx := req.Context()
-	ctx = context.WithValue(ctx, web.UserIdKey, userId)
+	ctx = context.WithValue(ctx, web.UserIdKey, testUserId)
 	req = req.WithContext(ctx)
 	w := httptest.NewRecorder()
 
@@ -115,7 +115,7 @@ func (suite *SettlementApiTestSuite) Test_GetSettlements_ReportsConnectionErrors
 	suite.db.SetError(err)
 	req := httptest.NewRequest("GET", "/settlement", nil)
 	ctx := req.Context()
-	ctx = context.WithValue(ctx, web.UserIdKey, userId)
+	ctx = context.WithValue(ctx, web.UserIdKey, testUserId)
 	req = req.WithContext(ctx)
 	w := httptest.NewRecorder()
 
@@ -137,7 +137,7 @@ func (suite *SettlementApiTestSuite) Test_CreateSettlement_ReturnsASettlement() 
 	req := httptest.NewRequest("POST", "/settlement", bytes.NewReader(reqBody))
 
 	ctx := req.Context()
-	ctx = context.WithValue(ctx, web.UserIdKey, userId)
+	ctx = context.WithValue(ctx, web.UserIdKey, testUserId)
 	req = req.WithContext(ctx)
 	w := httptest.NewRecorder()
 
@@ -164,7 +164,7 @@ func (suite *SettlementApiTestSuite) Test_CreateSettlement_EnforceRequestType() 
 	req := httptest.NewRequest("POST", "/settlement", bytes.NewReader(reqBody))
 
 	ctx := req.Context()
-	ctx = context.WithValue(ctx, web.UserIdKey, userId)
+	ctx = context.WithValue(ctx, web.UserIdKey, testUserId)
 	req = req.WithContext(ctx)
 	w := httptest.NewRecorder()
 
@@ -182,7 +182,7 @@ func (suite *SettlementApiTestSuite) Test_CreateSettlement_RequiresAName() {
 	req := httptest.NewRequest("POST", "/settlement", bytes.NewReader(reqBody))
 
 	ctx := req.Context()
-	ctx = context.WithValue(ctx, web.UserIdKey, userId)
+	ctx = context.WithValue(ctx, web.UserIdKey, testUserId)
 	req = req.WithContext(ctx)
 	w := httptest.NewRecorder()
 
@@ -204,7 +204,7 @@ func (suite *SettlementApiTestSuite) Test_CreateSettlement_ReportsCreationErrors
 	req := httptest.NewRequest("POST", "/settlement", bytes.NewReader(reqBody))
 
 	ctx := req.Context()
-	ctx = context.WithValue(ctx, web.UserIdKey, userId)
+	ctx = context.WithValue(ctx, web.UserIdKey, testUserId)
 	req = req.WithContext(ctx)
 	w := httptest.NewRecorder()
 
@@ -217,7 +217,7 @@ func (suite *SettlementApiTestSuite) Test_CreateSettlement_ReportsCreationErrors
 func (suite *SettlementApiTestSuite) Test_GetSettlement_ReturnsOneSettlement() {
 	row := SettlementRow{
 		Id:                  1,
-		Owner:               userId,
+		Owner:               "owner",
 		Name:                "Fun Forever",
 		SurvivalLimit:       1,
 		DepartingSurvival:   0,
@@ -230,7 +230,7 @@ func (suite *SettlementApiTestSuite) Test_GetSettlement_ReturnsOneSettlement() {
 	rctx := chi.NewRouteContext()
 	rctx.URLParams.Add("id", "1")
 	ctx = context.WithValue(ctx, chi.RouteCtxKey, rctx)
-	ctx = context.WithValue(ctx, web.UserIdKey, userId)
+	ctx = context.WithValue(ctx, web.UserIdKey, testUserId)
 	req = req.WithContext(ctx)
 	w := httptest.NewRecorder()
 
@@ -254,7 +254,7 @@ func (suite *SettlementApiTestSuite) Test_GetSettlement_ReportsScanErrors() {
 	rctx := chi.NewRouteContext()
 	rctx.URLParams.Add("id", "1")
 	ctx = context.WithValue(ctx, chi.RouteCtxKey, rctx)
-	ctx = context.WithValue(ctx, web.UserIdKey, userId)
+	ctx = context.WithValue(ctx, web.UserIdKey, testUserId)
 	req = req.WithContext(ctx)
 	w := httptest.NewRecorder()
 
@@ -269,7 +269,7 @@ func TestSettlementApiTestSuite(t *testing.T) {
 
 type SettlementRow struct {
 	Id                  int
-	Owner               int
+	Owner               string
 	Name                string
 	SurvivalLimit       int
 	DepartingSurvival   int
@@ -279,7 +279,7 @@ type SettlementRow struct {
 
 func (s *SettlementRow) Scan(dest ...any) error {
 	id := dest[0].(*int)
-	owner := dest[1].(*int)
+	owner := dest[1].(*string)
 	name := dest[2].(*string)
 	survivalLimit := dest[3].(*int)
 	departingSurvival := dest[4].(*int)

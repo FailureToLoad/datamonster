@@ -1,6 +1,8 @@
 package web
 
 import (
+	"context"
+	"github.com/supertokens/supertokens-golang/recipe/session"
 	"log"
 	"net/http"
 	"strings"
@@ -32,6 +34,7 @@ func NewServer() Server {
 	router.Use(middleware.Recoverer)
 	router.Use(middleware.URLFormat)
 	router.Use(middleware.Timeout(10 * time.Second))
+	router.Use(userIdExtractor)
 	return Server{Mux: router}
 }
 
@@ -49,5 +52,21 @@ func corsMiddleware(next http.Handler) http.Handler {
 		} else {
 			next.ServeHTTP(response, r)
 		}
+	})
+}
+
+type ctxUserIdKey string
+
+const UserIdKey ctxUserIdKey = "userId"
+
+func userIdExtractor(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		sessionContainer := session.GetSessionFromRequestContext(r.Context())
+		userID := sessionContainer.GetUserID()
+		if userID != "" {
+			ctx := context.WithValue(r.Context(), UserIdKey, userID)
+			r = r.WithContext(ctx)
+		}
+		next.ServeHTTP(w, r)
 	})
 }

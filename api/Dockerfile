@@ -4,15 +4,14 @@ WORKDIR /app
 
 COPY ./ ./
 RUN go mod download
-
-
-RUN CGO_ENABLED=0 GOOS=linux go build -o /api
-
+RUN go build -o /out/apiserver ./cmd/apiserver/main.go
+RUN ls /out
 FROM gcr.io/distroless/base-debian12:latest AS run-stage
 
 WORKDIR /
 
-COPY --from=build-stage /api /api
+
+COPY --from=build-stage /out/apiserver /apiserver
 
 USER nonroot:nonroot
-ENTRYPOINT ["/api"]
+ENTRYPOINT ["./apiserver"]
