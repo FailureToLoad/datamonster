@@ -3,8 +3,6 @@ services:
     build: ./db
     container_name: dm_db
     restart: always
-    ports:
-      - "5432:5432"
   api:
     depends_on: 
       - db
