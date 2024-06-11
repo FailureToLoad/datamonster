@@ -2,11 +2,11 @@
 
 An app for managing the complexity of Kingdom Death: Monster campaigns.
 
-| Functionality  | Status | API Tests | Web Tests| 
+| Functionality  | Status | API Tests | Web Tests|
 | ------------- | ------------- | ------------- |  ------------- |
-| User registration  | Done  | No coverage | No coverage |
-| Settlement Creation  | Done  | Covered, likely broken during supertokens implementation |  No Coverage |
-| Survivor Creation | WIP | No Coverage | No Coverage |
+| User registration  | Done  | NA | NA |
+| Settlement Selection  | Done  | Covered |  Covered |
+| Survivor Creation | WIP | Partial Coverage | No Coverage |
 
 ## Requirements
 
