@@ -1,11 +1,14 @@
 package survivor
 
 import (
+	"bytes"
 	"encoding/json"
-	storeMocks "github.com/failuretoload/datamonster/store/mocks"
+	"errors"
 	"io"
 	"net/http/httptest"
 	"testing"
+
+	storeMocks "github.com/failuretoload/datamonster/store/mocks"
 
 	webMocks "github.com/failuretoload/datamonster/web/mocks"
 	"github.com/go-chi/chi/v5"
@@ -34,9 +37,8 @@ func (suite *SurvivorApiTestSuite) Test_GetSurvivors_ReturnsSurvivorList() {
 				Id:               1,
 				Settlement:       1,
 				Name:             "Zach",
-				Born:             1,
+				Birth:            1,
 				Gender:           "M",
-				Status:           "alive",
 				HuntXp:           1,
 				Survival:         1,
 				Movement:         1,
@@ -56,9 +58,8 @@ func (suite *SurvivorApiTestSuite) Test_GetSurvivors_ReturnsSurvivorList() {
 				Id:               2,
 				Settlement:       1,
 				Name:             "Lucy",
-				Born:             1,
+				Birth:            1,
 				Gender:           "M",
-				Status:           "alive",
 				HuntXp:           1,
 				Survival:         1,
 				Movement:         1,
@@ -92,6 +93,173 @@ func (suite *SurvivorApiTestSuite) Test_GetSurvivors_ReturnsSurvivorList() {
 	suite.Equal(2, count, "2 settlements should be returned")
 }
 
+func (suite *SurvivorApiTestSuite) Test_CreateSurvivor_ReturnsNoContent() {
+	survivor := SurvivorDTO{
+		Settlement:       1,
+		Name:             "Zach",
+		Birth:            1,
+		Gender:           "M",
+		HuntXp:           1,
+		Survival:         1,
+		Movement:         1,
+		Accuracy:         1,
+		Strength:         1,
+		Evasion:          1,
+		Luck:             1,
+		Speed:            1,
+		Insanity:         1,
+		SystemicPressure: 1,
+		Torment:          1,
+		Lumi:             1,
+		Understanding:    1,
+		Courage:          1,
+	}
+	reqBody, err := json.Marshal(survivor)
+	if err != nil {
+		panic("Failed to marshal JSON")
+	}
+	req := httptest.NewRequest("POST", "/settlement/1/survivor", bytes.NewBuffer(reqBody))
+	ctx := req.Context()
+	req = req.WithContext(ctx)
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	resp := w.Result()
+	suite.Equal(204, resp.StatusCode, "204 response should be returned")
+}
+
+func (suite *SurvivorApiTestSuite) Test_CreateSurvivor_RequiresAValidSettlementId() {
+	survivor := SurvivorDTO{
+		Settlement:       1,
+		Name:             "Zach",
+		Birth:            1,
+		Gender:           "M",
+		HuntXp:           1,
+		Survival:         1,
+		Movement:         1,
+		Accuracy:         1,
+		Strength:         1,
+		Evasion:          1,
+		Luck:             1,
+		Speed:            1,
+		Insanity:         1,
+		SystemicPressure: 1,
+		Torment:          1,
+		Lumi:             1,
+		Understanding:    1,
+		Courage:          1,
+	}
+	reqBody, err := json.Marshal(survivor)
+	if err != nil {
+		panic("Failed to marshal JSON")
+	}
+	req := httptest.NewRequest("POST", "/settlement/z/survivor", bytes.NewBuffer(reqBody))
+	ctx := req.Context()
+	req = req.WithContext(ctx)
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	resp := w.Result()
+	suite.Equal(500, resp.StatusCode, "500 should be returned if the param is invalid")
+}
+
+func (suite *SurvivorApiTestSuite) Test_CreateSurvivor_RequiresAUniqueName() {
+	survivor := SurvivorDTO{
+		Settlement:       1,
+		Name:             "Zach",
+		Birth:            1,
+		Gender:           "M",
+		HuntXp:           1,
+		Survival:         1,
+		Movement:         1,
+		Accuracy:         1,
+		Strength:         1,
+		Evasion:          1,
+		Luck:             1,
+		Speed:            1,
+		Insanity:         1,
+		SystemicPressure: 1,
+		Torment:          1,
+		Lumi:             1,
+		Understanding:    1,
+		Courage:          1,
+	}
+
+	reqBody, err := json.Marshal(survivor)
+	if err != nil {
+		panic("Failed to marshal JSON")
+	}
+	req := httptest.NewRequest("POST", "/settlement/1/survivor", bytes.NewBuffer(reqBody))
+	ctx := req.Context()
+	req = req.WithContext(ctx)
+	w := httptest.NewRecorder()
+	suite.db.SetError(errors.New("duplicate key value"))
+	suite.router.ServeHTTP(w, req)
+
+	resp := w.Result()
+	suite.Equal(400, resp.StatusCode, "400 should be returned if the survivor already exists")
+}
+
+func (suite *SurvivorApiTestSuite) Test_CreateSurvivor_RequiresAValidBody() {
+	wrongBody := struct {
+		a, b, c int
+	}{
+		a: 1,
+		b: 1,
+		c: 1,
+	}
+
+	reqBody, err := json.Marshal(wrongBody)
+	if err != nil {
+		panic("Failed to marshal JSON")
+	}
+	req := httptest.NewRequest("POST", "/settlement/1/survivor", bytes.NewBuffer(reqBody))
+	ctx := req.Context()
+	req = req.WithContext(ctx)
+	w := httptest.NewRecorder()
+	suite.router.ServeHTTP(w, req)
+
+	resp := w.Result()
+	suite.Equal(500, resp.StatusCode, "500 should be returned if the body is invalid")
+}
+
+func (suite *SurvivorApiTestSuite) Test_CreateSurvivor_CommunicatesDbIssues() {
+	survivor := SurvivorDTO{
+		Settlement:       1,
+		Name:             "Zach",
+		Birth:            1,
+		Gender:           "M",
+		HuntXp:           1,
+		Survival:         1,
+		Movement:         1,
+		Accuracy:         1,
+		Strength:         1,
+		Evasion:          1,
+		Luck:             1,
+		Speed:            1,
+		Insanity:         1,
+		SystemicPressure: 1,
+		Torment:          1,
+		Lumi:             1,
+		Understanding:    1,
+		Courage:          1,
+	}
+
+	reqBody, err := json.Marshal(survivor)
+	if err != nil {
+		panic("Failed to marshal JSON")
+	}
+	req := httptest.NewRequest("POST", "/settlement/1/survivor", bytes.NewBuffer(reqBody))
+	ctx := req.Context()
+	req = req.WithContext(ctx)
+	w := httptest.NewRecorder()
+	suite.db.SetError(errors.New("well that ain't right"))
+	suite.router.ServeHTTP(w, req)
+
+	resp := w.Result()
+	suite.Equal(500, resp.StatusCode, "500 should be returned as the default for DB issues")
+}
+
 func TestSurvivorApiTestSuite(t *testing.T) {
 	suite.Run(t, new(SurvivorApiTestSuite))
 }
@@ -100,9 +268,8 @@ type SurvivorRow struct {
 	Id               int
 	Settlement       int
 	Name             string
-	Born             int
 	Gender           string
-	Status           string
+	Birth            int
 	HuntXp           int
 	Survival         int
 	Movement         int
@@ -123,31 +290,29 @@ func (s *SurvivorRow) Scan(dest ...interface{}) error {
 	id := dest[0].(*int)
 	settlement := dest[1].(*int)
 	name := dest[2].(*string)
-	born := dest[3].(*int)
-	gender := dest[4].(*string)
-	status := dest[5].(*string)
-	huntXp := dest[6].(*int)
-	survival := dest[7].(*int)
-	movement := dest[8].(*int)
-	accuracy := dest[9].(*int)
-	strength := dest[10].(*int)
-	evasion := dest[11].(*int)
-	luck := dest[12].(*int)
-	speed := dest[13].(*int)
-	insanity := dest[14].(*int)
-	systemicPressure := dest[15].(*int)
-	torment := dest[16].(*int)
-	lumi := dest[17].(*int)
-	courage := dest[18].(*int)
-	understanding := dest[19].(*int)
+	gender := dest[3].(*string)
+	birth := dest[4].(*int)
+	huntXp := dest[5].(*int)
+	survival := dest[6].(*int)
+	movement := dest[7].(*int)
+	accuracy := dest[8].(*int)
+	strength := dest[0].(*int)
+	evasion := dest[10].(*int)
+	luck := dest[11].(*int)
+	speed := dest[12].(*int)
+	insanity := dest[13].(*int)
+	systemicPressure := dest[14].(*int)
+	torment := dest[15].(*int)
+	lumi := dest[16].(*int)
+	courage := dest[17].(*int)
+	understanding := dest[18].(*int)
 
 	*id = s.Id
 	*settlement = s.Settlement
 	*name = s.Name
-	*born = s.Born
+	*birth = s.Birth
 	*gender = s.Gender
 	*huntXp = s.HuntXp
-	*status = s.Status
 	*survival = s.Survival
 	*movement = s.Movement
 	*accuracy = s.Accuracy

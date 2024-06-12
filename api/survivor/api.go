@@ -2,29 +2,34 @@ package survivor
 
 import (
 	"context"
-	"github.com/failuretoload/datamonster/store"
-	"github.com/failuretoload/datamonster/survivor/internal"
-	"github.com/failuretoload/datamonster/web"
+	"encoding/json"
+	"errors"
+	"fmt"
 	"net/http"
 	"strconv"
+
+	"github.com/failuretoload/datamonster/store"
+	repo "github.com/failuretoload/datamonster/survivor/internal"
+	"github.com/failuretoload/datamonster/web"
 
 	"github.com/go-chi/chi/v5"
 )
 
 type Controller struct {
-	repo *internal.PostGresRepo
+	db *repo.PostGresRepo
 }
 
 type RouteGuard func(routeHandler http.HandlerFunc) http.HandlerFunc
 
 func NewController(conn store.Connection) *Controller {
-	repo := internal.NewRepo(conn)
-	return &Controller{repo: repo}
+	r := repo.NewRepo(conn)
+	return &Controller{db: r}
 }
 
 func (c Controller) RegisterRoutes(r chi.Router, protectRoute RouteGuard) {
 	r.Use(settlementIdExtractor)
 	r.Get("/settlement/{id}/survivor", protectRoute(c.getSurvivors))
+	r.Post("/settlement/{id}/survivor", protectRoute(c.createSurvivor))
 }
 
 func (c Controller) getSurvivors(w http.ResponseWriter, r *http.Request) {
@@ -34,7 +39,7 @@ func (c Controller) getSurvivors(w http.ResponseWriter, r *http.Request) {
 		web.MakeJsonResponse(w, http.StatusInternalServerError, "unable to convert query param")
 		return
 	}
-	survivors, err := c.repo.GetAllSurvivorsForSettlement(r.Context(), settlementId)
+	survivors, err := c.db.GetAllSurvivorsForSettlement(r.Context(), settlementId)
 	if err != nil {
 		web.MakeJsonResponse(w, http.StatusInternalServerError, "Error retrieving survivors")
 		return
@@ -43,34 +48,65 @@ func (c Controller) getSurvivors(w http.ResponseWriter, r *http.Request) {
 	web.MakeJsonResponse(w, http.StatusOK, data)
 }
 
-type SurvivorDTO struct {
-	Id               int    `json:"id"`
-	Settlement       int    `json:"settlement"`
-	Name             string `json:"name"`
-	Born             int    `json:"born"`
-	Gender           string `json:"gender"`
-	Status           string `json:"status"`
-	HuntXp           int    `json:"huntXp"`
-	Survival         int    `json:"survival"`
-	Movement         int    `json:"movement"`
-	Accuracy         int    `json:"accuracy"`
-	Strength         int    `json:"strength"`
-	Evasion          int    `json:"evasion"`
-	Luck             int    `json:"luck"`
-	Speed            int    `json:"speed"`
-	Insanity         int    `json:"insanity"`
-	SystemicPressure int    `json:"systemicPressure"`
-	Torment          int    `json:"torment"`
-	Lumi             int    `json:"lumi"`
-	Courage          int    `json:"courage"`
-	Understanding    int    `json:"understanding"`
+func (c Controller) createSurvivor(w http.ResponseWriter, r *http.Request) {
+	param := chi.URLParam(r, "id")
+	settlementId, convErr := strconv.Atoi(param)
+	if convErr != nil {
+		web.MakeJsonResponse(w, http.StatusInternalServerError, "settlement id must be a positive integer")
+		return
+	}
+	survivorDTO := SurvivorDTO{}
+	decodeErr := json.NewDecoder(r.Body).Decode(&survivorDTO)
+	if decodeErr != nil || survivorDTO.Name == "" {
+		web.MakeJsonResponse(w, http.StatusInternalServerError, "unable to decode request body")
+		return
+	}
+	survivorDTO.Settlement = settlementId
+	err := c.db.CreateSurvivor(r.Context(), domainFromDTO(survivorDTO))
+	if err != nil {
+		dupError := repo.DuplicateNameError{}
+		if errors.As(err, &dupError) {
+			web.MakeJsonResponse(w, http.StatusBadRequest, fmt.Sprintf("survivor with name %s already exists", survivorDTO.Name))
+			return
+		}
+		web.MakeJsonResponse(w, http.StatusInternalServerError, fmt.Sprintf("error creating survivor %s", survivorDTO.Name))
+		return
+	}
+	web.MakeJsonResponse(w, http.StatusNoContent, nil)
 }
 
-func dtoFromDomain(s internal.Survivor) SurvivorDTO {
+type SurvivorDTO struct {
+	Id               int     `json:"id"`
+	Settlement       int     `json:"settlement"`
+	Name             string  `json:"name"`
+	Birth            int     `json:"birth"`
+	Gender           string  `json:"gender"`
+	Status           *string `json:"status,omitempty"`
+	HuntXp           int     `json:"huntXp"`
+	Survival         int     `json:"survival"`
+	Movement         int     `json:"movement"`
+	Accuracy         int     `json:"accuracy"`
+	Strength         int     `json:"strength"`
+	Evasion          int     `json:"evasion"`
+	Luck             int     `json:"luck"`
+	Speed            int     `json:"speed"`
+	Insanity         int     `json:"insanity"`
+	SystemicPressure int     `json:"systemicPressure"`
+	Torment          int     `json:"torment"`
+	Lumi             int     `json:"lumi"`
+	Courage          int     `json:"courage"`
+	Understanding    int     `json:"understanding"`
+}
+
+func dtoFromDomain(s repo.Survivor) SurvivorDTO {
 	return SurvivorDTO(s)
 }
 
-func dtoListFromDomain(s []internal.Survivor) []SurvivorDTO {
+func domainFromDTO(s SurvivorDTO) repo.Survivor {
+	return repo.Survivor(s)
+}
+
+func dtoListFromDomain(s []repo.Survivor) []SurvivorDTO {
 	survivors := make([]SurvivorDTO, len(s))
 	for i, v := range s {
 		survivors[i] = dtoFromDomain(v)

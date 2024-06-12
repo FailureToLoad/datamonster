@@ -6,8 +6,10 @@ import (
 )
 
 func MakeJsonResponse(w http.ResponseWriter, status int, data interface{}) {
-	body, _ := json.Marshal(data)
-	w.Header().Set("Content-Type", "application/json")
 	w.WriteHeader(status)
-	_, _ = w.Write(body)
+	if data != nil {
+		w.Header().Set("Content-Type", "application/json")
+		body, _ := json.Marshal(data)
+		_, _ = w.Write(body)
+	}
 }
