@@ -35,7 +35,7 @@ function Header({ settlement }: HeaderProps) {
 function SettlementPage() {
   const settlement = useLoaderData();
   if (!settlement) {
-    return <Navigate to="/select" />;
+    return <Navigate to="/" />;
   }
   return (
     <div className="flex h-screen w-full flex-col">
