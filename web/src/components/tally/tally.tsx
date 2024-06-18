@@ -51,7 +51,7 @@ const EmptyTally = ({ size = 24, color = "#000000" }: IconProps) => {
 
 const Tally: React.FC<TallyProps> = ({
   count,
-  value,
+  value = 0,
   color = "#ffd700",
   hoverColor = "#ffc107",
   activeColor = "#ffc107",

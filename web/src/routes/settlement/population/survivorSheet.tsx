@@ -14,7 +14,7 @@ import {
   Form,
   FormMessage,
 } from "@/components/ui/form";
-import * as z from "zod";
+import { z } from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
@@ -31,25 +31,19 @@ const formSchema = z.object({
     .string()
     .min(1, { message: "Name cannot be empty" })
     .max(50, { message: "Name cannot be longer than 50 characters" }),
-  born: z.coerce
-    .number()
-    .min(0, { message: "Birth year must be between 1 and 30" })
-    .max(30, { message: "Birth year must be between 1 and 30" }),
   gender: z.enum(["M", "F"]),
   huntXp: z.coerce.number().min(0).max(16),
-  survival: z.number().min(-10).max(30),
-  insanity: z.number().min(0).max(1000),
+  survival: z.coerce.number().min(0).max(30),
+  insanity: z.coerce.number().min(0).max(1000),
   movement: z.coerce.number().min(0).max(15),
-  accuracy: z.number().min(-10).max(15),
-  strength: z.number().min(-10).max(15),
-  evasion: z.number().min(-10).max(15),
-  luck: z.number().min(-10).max(15),
-  speed: z.number().min(-10).max(15),
-  // systemicPressure: z.number().min(0).max(10),
-  // torment: z.number().min(0).max(10),
-  lumi: z.number().min(0).max(50),
-  courage: z.number().min(0).max(9),
-  understanding: z.number().min(0).max(9),
+  accuracy: z.coerce.number().min(-10).max(15),
+  strength: z.coerce.number().min(-10).max(15),
+  evasion: z.coerce.number().min(-10).max(15),
+  luck: z.coerce.number().min(-10).max(15),
+  speed: z.coerce.number().min(-10).max(15),
+  lumi: z.coerce.number().min(0).max(50),
+  courage: z.coerce.number().min(0).max(9),
+  understanding: z.coerce.number().min(0).max(9),
 });
 
 export function NewSurvivorDialogue() {
@@ -77,7 +71,7 @@ export function NewSurvivorDialogue() {
     try {
       const newbie: Survivor = {
         name: values.name,
-        born: values.born,
+        born: 1,
         gender: values.gender,
         status: "alive",
         id: 0,
@@ -97,7 +91,6 @@ export function NewSurvivorDialogue() {
         courage: 0,
         understanding: 0,
       };
-
       await api.createSurvivor(settlementId as string, newbie);
       setOpen(false);
     } catch (error) {
@@ -203,7 +196,7 @@ export function NewSurvivorDialogue() {
                 />
                 <FormField
                   control={form.control}
-                  name="survival"
+                  name="insanity"
                   render={({ field }) => (
                     <Stat field={field} label="Insanity" />
                   )}
