@@ -21,7 +21,11 @@ func (c MockConnection) Begin(ctx context.Context) (pgx.Tx, error) {
 	panic("not implemented")
 }
 func (c MockConnection) Exec(ctx context.Context, sql string, arguments ...interface{}) (pgconn.CommandTag, error) {
-	panic("not implemented")
+	tag := pgconn.NewCommandTag("tag")
+	if c.err != nil {
+		return tag, c.err
+	}
+	return tag, nil
 }
 func (c MockConnection) Query(ctx context.Context, sql string, optionsAndArgs ...interface{}) (pgx.Rows, error) {
 	if c.err != nil {

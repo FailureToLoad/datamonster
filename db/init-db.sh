@@ -16,12 +16,15 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
     );
     CREATE TABLE IF NOT EXISTS campaign.survivor
     (
-        id SERIAL,
+        id SERIAL PRIMARY KEY,
         settlement integer NOT NULL,
-        name character varying(50) COLLATE pg_catalog."default" NOT NULL,
+        name VARCHAR(50) COLLATE pg_catalog."default" NOT NULL,
+        gender character(1) COLLATE pg_catalog."default",
         birth smallint NOT NULL DEFAULT 0,
         huntxp smallint NOT NULL DEFAULT 0,
         survival smallint NOT NULL DEFAULT 1,
+        courage smallint NOT NULL DEFAULT 0,
+        understanding smallint NOT NULL DEFAULT 0,
         movement smallint NOT NULL DEFAULT 5,
         accuracy smallint NOT NULL DEFAULT 0,
         strength smallint NOT NULL DEFAULT 0,
@@ -32,8 +35,8 @@ psql -v ON_ERROR_STOP=1 --username "$POSTGRES_USER" --dbname "$POSTGRES_DB" <<-E
         systemic_pressure smallint NOT NULL DEFAULT 0,
         torment smallint NOT NULL DEFAULT 0,
         lumi smallint NOT NULL DEFAULT 0,
-        gender character(1) COLLATE pg_catalog."default",
-        CONSTRAINT survivor_pkey PRIMARY KEY (id),
+        status VARCHAR(50),
+        UNIQUE (settlement, name),
         CONSTRAINT fk_settlement_id 
             FOREIGN KEY (settlement)
                 REFERENCES campaign.settlement (id)
