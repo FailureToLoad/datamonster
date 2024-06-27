@@ -1,7 +1,8 @@
-using Auth;
+using datamonster.Auth;
 using Context;
 using Microsoft.AspNetCore.HttpLogging;
 using Settlement;
+using datamonster.Middleware;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -19,6 +20,8 @@ builder.Services.AddHttpLogging(logging =>
 });
 builder.Services.AddDbContext<RecordsContext>();
 builder.Services.RegisterSettlementModule();
+builder.Services.RegisterAuthModule();
+builder.Services.AddTransient<UserIdExtractor>();
 
 var app = builder.Build();
 app.UseCors();
@@ -34,5 +37,6 @@ if (app.Environment.IsDevelopment())
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
+app.UseMiddleware<UserIdExtractor>();
 app.MapSettlementEndpoints();
 app.Run();

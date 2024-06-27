@@ -11,9 +11,8 @@ namespace Settlement
             [FromServices] SettlementRepository repo,
             HttpContext context)
         {
-            log.LogInformation("Getting settlements for user.");
-            var id = context.Request.HttpContext.User.FindFirst("id")?.Value;
-            if (id == null)
+            var id = context?.Items["id"] as string;
+            if (string.IsNullOrWhiteSpace(id))
             {
                 log.LogError("No user id found in claims.");
                 return Results.Unauthorized();
