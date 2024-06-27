@@ -19,17 +19,15 @@ type Controller struct {
 	db *repo.PostGresRepo
 }
 
-type RouteGuard func(routeHandler http.HandlerFunc) http.HandlerFunc
-
 func NewController(conn store.Connection) *Controller {
 	r := repo.NewRepo(conn)
 	return &Controller{db: r}
 }
 
-func (c Controller) RegisterRoutes(r chi.Router, protectRoute RouteGuard) {
+func (c Controller) RegisterRoutes(r chi.Router) {
 	r.Use(settlementIdExtractor)
-	r.Get("/settlement/{id}/survivor", protectRoute(c.getSurvivors))
-	r.Post("/settlement/{id}/survivor", protectRoute(c.createSurvivor))
+	r.Get("/settlement/{id}/survivor", c.getSurvivors)
+	r.Post("/settlement/{id}/survivor", c.createSurvivor)
 }
 
 func (c Controller) getSurvivors(w http.ResponseWriter, r *http.Request) {

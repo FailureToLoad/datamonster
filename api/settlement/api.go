@@ -13,7 +13,6 @@ type Controller struct {
 	repo *postgres.PostgresRepo
 }
 
-type RouteGuard func(routeHandler http.HandlerFunc) http.HandlerFunc
 type SettlementDTO struct {
 	Id                  int    `json:"id"`
 	Name                string `json:"name"`
@@ -37,11 +36,11 @@ func NewController(conn store.Connection) *Controller {
 	return &Controller{repo: repo}
 }
 
-func (c Controller) RegisterRoutes(r chi.Router, protectRoute RouteGuard) {
-	r.Get("/settlement", protectRoute(c.getSettlements))
-	r.Post("/settlement", protectRoute(c.createSettlement))
+func (c Controller) RegisterRoutes(r chi.Router) {
+	r.Get("/settlement", c.getSettlements)
+	r.Post("/settlement", c.createSettlement)
 	r.Route("/settlement/{id}", func(r chi.Router) {
-		r.Get("/", protectRoute(c.getSettlement))
+		r.Get("/", c.getSettlement)
 	})
 }
 

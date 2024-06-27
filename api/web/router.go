@@ -1,14 +1,10 @@
 package web
 
 import (
-	"context"
-	"github.com/supertokens/supertokens-golang/recipe/session"
 	"log"
 	"net/http"
 	"strings"
 	"time"
-
-	"github.com/supertokens/supertokens-golang/supertokens"
 
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
@@ -20,7 +16,7 @@ type Server struct {
 
 func (s Server) Start() {
 	log.Default().Println("Starting server on port 8080")
-	err := http.ListenAndServe(":8080", corsMiddleware(supertokens.Middleware(s.Mux)))
+	err := http.ListenAndServe(":8080", corsMiddleware(s.Mux))
 	if err != nil {
 		log.Default().Println(err)
 	}
@@ -43,10 +39,15 @@ func corsMiddleware(next http.Handler) http.Handler {
 		response.Header().Set("Access-Control-Allow-Origin", "http://localhost:8090")
 		response.Header().Set("Access-Control-Allow-Credentials", "true")
 		if r.Method == "OPTIONS" {
-			// we add content-type + other headers used by SuperTokens
+			headers := []string{
+				"Origin",
+				"Accept",
+				"Authorization",
+				"Content-Type",
+				"X-CSRF-Token",
+			}
 			response.Header().Set("Access-Control-Allow-Headers",
-				strings.Join(append([]string{"Content-Type"},
-					supertokens.GetAllCORSHeaders()...), ","))
+				strings.Join(append(headers, ","), ""))
 			response.Header().Set("Access-Control-Allow-Methods", "*")
 			response.Write([]byte(""))
 		} else {
@@ -61,19 +62,6 @@ const UserIdKey ctxUserIdKey = "userId"
 
 func userIdExtractor(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
-		sessionContainer, err := session.GetSession(r, w, nil)
-		if err != nil {
-			err = supertokens.ErrorHandler(err, r, w)
-			if err != nil {
-				MakeJsonResponse(w, http.StatusInternalServerError, err.Error())
-			}
-			return
-		}
-		userID := sessionContainer.GetUserID()
-		if userID != "" {
-			ctx := context.WithValue(r.Context(), UserIdKey, userID)
-			r = r.WithContext(ctx)
-		}
 		next.ServeHTTP(w, r)
 	})
 }
