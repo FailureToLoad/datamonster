@@ -18,7 +18,6 @@ builder.Services.AddHttpLogging(logging =>
     logging.CombineLogs = true;
 });
 builder.Services.AddDbContext<RecordsContext>();
-builder.Services.RegisterAuthModule();
 builder.Services.RegisterSettlementModule();
 
 var app = builder.Build();
@@ -35,6 +34,5 @@ if (app.Environment.IsDevelopment())
 app.UseRouting();
 app.UseAuthentication();
 app.UseAuthorization();
-app.MapAuthEndpoints();
 app.MapSettlementEndpoints();
 app.Run();
