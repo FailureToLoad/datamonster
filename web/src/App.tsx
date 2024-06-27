@@ -1,6 +1,6 @@
 import "./App.css";
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
-import Selector, { SettlementListLoader } from "./routes/settlementSelector";
+import Selector from "@/routes/settlementSelector";
 import { Settlement, SettlementLoader } from "./routes/settlement";
 import Timeline from "./routes/settlement/timeline.tsx";
 import Population from "./routes/settlement/population/index.tsx";
@@ -36,7 +36,6 @@ const router = createBrowserRouter([
   },
   {
     path: "/",
-    loader: SettlementListLoader,
     element: <AuthGuard component={Selector} />,
   },
 ]);
