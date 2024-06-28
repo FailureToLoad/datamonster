@@ -1,35 +1,57 @@
 package web
 
 import (
-	"github.com/supertokens/supertokens-golang/recipe/emailpassword"
-	"github.com/supertokens/supertokens-golang/recipe/session"
-	"github.com/supertokens/supertokens-golang/supertokens"
+	"context"
+	jwtmiddleware "github.com/auth0/go-jwt-middleware/v2"
+	"github.com/auth0/go-jwt-middleware/v2/validator"
+	"log"
 	"net/http"
+	"slices"
+	"strings"
 )
 
-func InitSuperTokens() error {
-	apiBasePath := "/auth"
-	websiteBasePath := "/auth"
-	err := supertokens.Init(supertokens.TypeInput{
-		Supertokens: &supertokens.ConnectionInfo{
-			ConnectionURI: "https://st-dev-5f1e08c0-252b-11ef-ad47-516b0aeb722e.aws.supertokens.io",
-			APIKey:        "2iFbtKJlI9eFn3HHu5LlT1dDzI",
-		},
-		AppInfo: supertokens.AppInfo{
-			AppName:         "Data Monster",
-			APIDomain:       "http://localhost:8080",
-			WebsiteDomain:   "http://localhost:8090",
-			APIBasePath:     &apiBasePath,
-			WebsiteBasePath: &websiteBasePath,
-		},
-		RecipeList: []supertokens.Recipe{
-			emailpassword.Init(nil),
-			session.Init(nil),
-		},
-	})
-	return err
+const (
+	permissionDeniedErrorMessage = "Permission denied"
+)
+
+type CustomClaims struct {
+	Permissions []string `json:"permissions"`
 }
 
-func ProtectRoute(routeHandler http.HandlerFunc) http.HandlerFunc {
-	return session.VerifySession(nil, routeHandler)
+func (c CustomClaims) Validate(_ context.Context) error {
+	return nil
+}
+
+func (c CustomClaims) HasPermissions(expectedClaims []string) bool {
+	if len(expectedClaims) == 0 {
+		return false
+	}
+	for _, scope := range expectedClaims {
+		if !slices.Contains(c.Permissions, scope) {
+			return false
+		}
+	}
+	return true
+}
+
+type ctxUserIdKey string
+
+const UserIdKey ctxUserIdKey = "userId"
+
+func ValidatePermissions(expectedClaims []string, next http.HandlerFunc) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		token := r.Context().Value(jwtmiddleware.ContextKey{}).(*validator.ValidatedClaims)
+		claims := token.CustomClaims.(*CustomClaims)
+		if !claims.HasPermissions(expectedClaims) {
+			errorMessage := ErrorMessage{Message: permissionDeniedErrorMessage}
+			if err := WriteJSON(w, http.StatusForbidden, errorMessage); err != nil {
+				log.Printf("Failed to write error message: %v", err)
+			}
+			return
+		}
+		subjectParts := strings.Split(token.RegisteredClaims.Subject, "|")
+		ctx := context.WithValue(r.Context(), UserIdKey, subjectParts[1])
+		r = r.WithContext(ctx)
+		next.ServeHTTP(w, r)
+	}
 }

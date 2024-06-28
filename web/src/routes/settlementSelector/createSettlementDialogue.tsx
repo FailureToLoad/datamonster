@@ -30,7 +30,7 @@ const formSchema = z.object({
 export interface CreateSettlementProps {
   update: (s: Settlement) => void;
 }
-export function CreateSettlementDialogue({ update }: CreateSettlementProps) {
+export function CreateSettlementDialogue() {
   const [open, setOpen] = useState(false);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -44,8 +44,7 @@ export function CreateSettlementDialogue({ update }: CreateSettlementProps) {
         name: values.settlementName,
       };
 
-      const response = await api.createSettlement(request);
-      update(response);
+      await api.createSettlement(request);
       setOpen(false);
     } catch (error) {
       console.log(error);
