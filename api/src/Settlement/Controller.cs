@@ -18,13 +18,8 @@ namespace Settlement
                 return Results.Unauthorized();
             }
             var settlements = await repo.GetSettlementsForUser(id);
-            var result = new ListSettlementsResponse()
-            {
-                Settlements = [.. settlements],
-                Count = settlements.Count
-            };
-            var jsonResult = Results.Json(result, statusCode: 200);
-            return jsonResult;
+
+            return Results.Json(settlements, statusCode: 200); ;
         }
 
         public async Task<IResult> CreateSettlement(
