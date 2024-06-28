@@ -11,11 +11,10 @@ public static class SettlementModule
 
     public static IEndpointRouteBuilder MapSettlementEndpoints(this IEndpointRouteBuilder endpoints)
     {
-        endpoints.MapGet("/settlement", controller.GetSettlementsForUser).RequireAuthorization("default");
-        endpoints.MapGet("/settlements/{id}", controller.GetSettlement).RequireAuthorization("default");
-        endpoints.MapPost("/settlement", controller.CreateSettlement).RequireAuthorization("default");
-        endpoints.MapPut("/settlements/{id}", controller.UpdateSettlement).RequireAuthorization("default");
-        endpoints.MapDelete("/settlements/{id}", controller.DeleteSettlement).RequireAuthorization("default");
+        endpoints.MapGet("/settlement", controller.GetSettlementsForUser).RequireAuthorization("read:settlements");
+        endpoints.MapGet("/settlements/{id}", controller.GetSettlement).RequireAuthorization("read:settlements");
+        endpoints.MapPost("/settlement", controller.CreateSettlement).RequireAuthorization("create:settlements");
+        endpoints.MapPut("/settlements/{id}", controller.UpdateSettlement).RequireAuthorization("update:settlements");
         return endpoints;
     }
 }
