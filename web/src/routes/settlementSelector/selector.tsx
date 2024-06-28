@@ -59,7 +59,7 @@ function SettlementList({ settlements }: SettlementListProps) {
 async function getSettlementsForUser(
   client: Auth0ContextInterface<User>,
 ): Promise<Array<Settlement> | null> {
-  const token = await client.getAccessTokenWithPopup({
+  const token = await client.getAccessTokenSilently({
     authorizationParams: {
       audience: import.meta.env.VITE_AUTH0_AUDIENCE,
       scope: "read:settlements",
