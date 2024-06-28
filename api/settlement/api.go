@@ -13,6 +13,11 @@ type Controller struct {
 	repo *postgres.PostgresRepo
 }
 
+func NewController(conn store.Connection) *Controller {
+	repo := postgres.New(conn)
+	return &Controller{repo: repo}
+}
+
 type SettlementDTO struct {
 	Id                  int    `json:"id"`
 	Name                string `json:"name"`
@@ -22,25 +27,19 @@ type SettlementDTO struct {
 	Year                int    `json:"year"`
 }
 
-type SettlementsDTO struct {
-	Settlements []SettlementDTO `json:"settlements"`
-	Count       int             `json:"count"`
+func withReadPermission(routeHandler http.HandlerFunc) http.HandlerFunc {
+	return web.ValidatePermissions([]string{"read:settlements"}, routeHandler)
 }
 
-type CreateSettlementRequest struct {
-	Name string `json:"name"`
-}
-
-func NewController(conn store.Connection) *Controller {
-	repo := postgres.New(conn)
-	return &Controller{repo: repo}
+func withCreatePermission(routeHandler http.HandlerFunc) http.HandlerFunc {
+	return web.ValidatePermissions([]string{"create:settlements"}, routeHandler)
 }
 
 func (c Controller) RegisterRoutes(r chi.Router) {
-	r.Get("/settlement", c.getSettlements)
-	r.Post("/settlement", c.createSettlement)
+	r.Get("/settlement", withReadPermission(c.getSettlements))
+	r.Post("/settlement", withCreatePermission(c.createSettlement))
 	r.Route("/settlement/{id}", func(r chi.Router) {
-		r.Get("/", c.getSettlement)
+		r.Get("/", withReadPermission(c.getSettlement))
 	})
 }
 
@@ -53,6 +52,10 @@ func (c Controller) getSettlements(w http.ResponseWriter, r *http.Request) {
 	}
 	data := domainListToDto(settlements)
 	web.MakeJsonResponse(w, http.StatusOK, data)
+}
+
+type CreateSettlementRequest struct {
+	Name string `json:"name"`
 }
 
 func (c Controller) createSettlement(w http.ResponseWriter, r *http.Request) {
@@ -101,8 +104,8 @@ func (c Controller) getSettlement(w http.ResponseWriter, r *http.Request) {
 	web.MakeJsonResponse(w, http.StatusOK, dto)
 }
 
-func domainListToDto(settlements []postgres.Settlement) SettlementsDTO {
-	dtos := SettlementsDTO{}
+func domainListToDto(settlements []postgres.Settlement) []SettlementDTO {
+	dtos := []SettlementDTO{}
 	for _, s := range settlements {
 		dto := SettlementDTO{
 			Id:                  s.Id,
@@ -112,8 +115,7 @@ func domainListToDto(settlements []postgres.Settlement) SettlementsDTO {
 			CollectiveCognition: s.CollectiveCognition,
 			Year:                s.CurrentYear,
 		}
-		dtos.Settlements = append(dtos.Settlements, dto)
-		dtos.Count++
+		dtos = append(dtos, dto)
 	}
 	return dtos
 }

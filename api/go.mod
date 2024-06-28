@@ -2,7 +2,14 @@ module github.com/failuretoload/datamonster
 
 go 1.21.1
 
-require github.com/go-chi/chi/v5 v5.0.10
+require (
+	github.com/auth0/go-jwt-middleware/v2 v2.2.1
+	github.com/go-chi/chi/v5 v5.0.10
+	github.com/go-chi/cors v1.2.1
+	github.com/unrolled/secure v1.15.0
+)
+
+require gopkg.in/go-jose/go-jose.v2 v2.6.2 // indirect
 
 require (
 	github.com/davecgh/go-spew v1.1.1 // indirect
