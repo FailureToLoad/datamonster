@@ -5,10 +5,11 @@ import (
 	"context"
 	"encoding/json"
 	"fmt"
-	"github.com/failuretoload/datamonster/web"
 	"io"
 	"net/http/httptest"
 	"testing"
+
+	"github.com/failuretoload/datamonster/web"
 
 	storeMocks "github.com/failuretoload/datamonster/store/mocks"
 	webMocks "github.com/failuretoload/datamonster/web/mocks"
@@ -69,9 +70,9 @@ func (suite *SettlementApiTestSuite) Test_GetSettlements_ReturnsSettmentsList() 
 
 	suite.Equal(200, resp.StatusCode, "200 response should be returned")
 	body, _ := io.ReadAll(resp.Body)
-	dto := SettlementsDTO{}
+	dto := []SettlementDTO{}
 	json.Unmarshal(body, &dto)
-	suite.Equal(2, dto.Count, "2 settlements should be returned")
+	suite.Equal(2, len(dto), "2 settlements should be returned")
 }
 
 func (suite *SettlementApiTestSuite) Test_GetSettlements_ReportsScanErrors() {
