@@ -20,7 +20,7 @@ import * as z from "zod";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { Post } from "@/api/api";
-import { Settlement } from "@/api/settlement";
+import { Settlement } from "@/types";
 import { useState } from "react";
 import { Plus } from "lucide-react";
 import { useAuth0 } from "@auth0/auth0-react";

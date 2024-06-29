@@ -1,7 +1,7 @@
 import "./App.css";
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import Selector from "@/routes/settlementSelector";
-import { Settlement, SettlementLoader } from "./routes/settlement";
+import { Settlement } from "./routes/settlement";
 import Timeline from "./routes/settlement/timeline.tsx";
 import Population from "./routes/settlement/population/index.tsx";
 import SettlementStorage from "./routes/settlement/settlementStorage.tsx";
@@ -14,7 +14,6 @@ const router = createBrowserRouter([
     path: ":settlementId",
     id: "home",
     element: <AuthGuard component={Settlement} />,
-    loader: SettlementLoader,
     children: [
       {
         path: "timeline",

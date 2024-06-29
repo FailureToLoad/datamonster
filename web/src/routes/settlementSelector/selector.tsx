@@ -1,6 +1,6 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Get } from "@/api/api";
-import { Settlement } from "@/api/settlement";
+import { Settlement } from "@/types";
 import { CreateSettlementDialogue } from "./createSettlementDialogue";
 import { Button } from "@/components/ui/button";
 import { Play } from "lucide-react";

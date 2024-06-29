@@ -1,6 +1,10 @@
-import { Link, Navigate, Outlet, useLoaderData } from "react-router-dom";
+import { Link, Navigate, Outlet, useParams } from "react-router-dom";
 import { navigationMenuTriggerStyle } from "@/components/ui/navigation-menu";
-import { Settlement } from "@/api/settlement";
+import { Settlement } from "@/types";
+import { useAuth0 } from "@auth0/auth0-react";
+import { Get } from "@/api/api";
+import Spinner from "@/components/spinner";
+import { useQuery } from "@tanstack/react-query";
 
 interface HeaderProps {
   settlement: Settlement;
@@ -33,10 +37,42 @@ function Header({ settlement }: HeaderProps) {
 }
 
 function SettlementPage() {
-  const settlement = useLoaderData();
-  if (!settlement) {
+  const { settlementId } = useParams();
+  const { getAccessTokenSilently } = useAuth0();
+  const getSettlement = async () => {
+    try {
+      let token = await getAccessTokenSilently();
+      let response = await Get<Settlement | null>(
+        "settlement/" + settlementId,
+        token,
+      );
+      if (!response.data) {
+        return null;
+      }
+      return response.data as Settlement;
+    } catch (e) {
+      console.log(e);
+      return null;
+    }
+  };
+  const { isPending, isError, data, error } = useQuery({
+    queryKey: ["settlement"],
+    queryFn: getSettlement,
+  });
+
+  if (isPending) {
+    return <Spinner />;
+  }
+
+  if (isError) {
+    return <span>Error: {error.message}</span>;
+  }
+
+  if (!data) {
     return <Navigate to="/" />;
   }
+
+  let settlement = data as Settlement;
   return (
     <div className="flex h-screen w-full flex-col">
       <Header settlement={settlement as Settlement} />
