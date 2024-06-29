@@ -19,12 +19,14 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useState } from "react";
 import { Plus } from "lucide-react";
-import api, { Survivor } from "@/api/survivor";
 import { useParams } from "react-router-dom";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import Tally from "@/components/tally";
 import Stat from "./stat";
 import { GenderMale, GenderFemale } from "@phosphor-icons/react";
+import { useAuth0 } from "@auth0/auth0-react";
+import { Post } from "@/api/api";
+import { Survivor } from "@/types";
 
 const formSchema = z.object({
   name: z
@@ -48,6 +50,7 @@ const formSchema = z.object({
 
 export function NewSurvivorDialogue() {
   const { settlementId } = useParams();
+  const { getAccessTokenSilently } = useAuth0();
   const [open, setOpen] = useState(false);
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -69,6 +72,7 @@ export function NewSurvivorDialogue() {
   });
   async function onSubmit(values: z.infer<typeof formSchema>) {
     try {
+      const token = await getAccessTokenSilently();
       const newbie: Survivor = {
         name: values.name,
         born: 1,
@@ -76,22 +80,26 @@ export function NewSurvivorDialogue() {
         status: "alive",
         id: 0,
         settlement: 0,
-        huntXp: 0,
-        survival: 0,
-        movement: 5,
-        accuracy: 0,
-        strength: 0,
-        evasion: 0,
-        luck: 0,
-        speed: 0,
-        insanity: 0,
+        huntXp: values.huntXp,
+        survival: values.survival,
+        movement: values.movement,
+        accuracy: values.accuracy,
+        strength: values.strength,
+        evasion: values.evasion,
+        luck: values.luck,
+        speed: values.speed,
+        insanity: values.insanity,
         systemicPressure: 0,
         torment: 0,
         lumi: 0,
-        courage: 0,
-        understanding: 0,
+        courage: values.courage,
+        understanding: values.understanding,
       };
-      await api.createSurvivor(settlementId as string, newbie);
+      await Post<Survivor>(
+        `settlement/${settlementId}/survivor`,
+        newbie,
+        token,
+      );
       setOpen(false);
     } catch (error) {
       console.log(error);
