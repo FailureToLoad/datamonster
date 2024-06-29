@@ -1,7 +1,7 @@
 import Selector from "./selector";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
-import { Post } from "@/api/api";
+import { Post } from "@/api";
 import { Settlement } from "@/types";
 import { useLoaderData } from "react-router-dom";
 import userEvent from "@testing-library/user-event";

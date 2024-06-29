@@ -2,7 +2,7 @@ import { Link, Navigate, Outlet, useParams } from "react-router-dom";
 import { navigationMenuTriggerStyle } from "@/components/ui/navigation-menu";
 import { Settlement } from "@/types";
 import { useAuth0 } from "@auth0/auth0-react";
-import { Get } from "@/api/api";
+import { Get } from "@/api";
 import Spinner from "@/components/spinner";
 import { useQuery } from "@tanstack/react-query";
 
