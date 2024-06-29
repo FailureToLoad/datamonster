@@ -1,4 +1,4 @@
-import api from "./api";
+import axios from "axios";
 
 export type Settlement = {
   id: string;
@@ -27,8 +27,8 @@ type settlementRequests = {
 const SettlementApi: settlementRequests = {
   getSettlementsForUser: async function (): Promise<Settlement[] | null> {
     try {
-      const response = await api.get<AllSettlementsResponse | null>(
-        `http://localhost:8080/settlement`,
+      const response = await axios.get<AllSettlementsResponse | null>(
+        `settlement`,
       );
       if (!response.data) {
         return null;
@@ -41,9 +41,7 @@ const SettlementApi: settlementRequests = {
   },
   getSettlement: async function (id: string): Promise<Settlement | null> {
     try {
-      const response = await api.get<Settlement | null>(
-        "http://localhost:8080/settlement/" + id,
-      );
+      const response = await axios.get<Settlement | null>("settlement/" + id);
       if (!response.data) {
         return null;
       }
@@ -56,10 +54,7 @@ const SettlementApi: settlementRequests = {
   createSettlement: async function (
     request: SettlementCreationRequest,
   ): Promise<Settlement> {
-    const response = await api.post<Settlement>(
-      "http://localhost:8080/settlement",
-      request,
-    );
+    const response = await axios.post<Settlement>("settlement", request);
     return response.data;
   },
 };

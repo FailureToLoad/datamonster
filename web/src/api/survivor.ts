@@ -1,4 +1,4 @@
-import api from "./api";
+import axios from "axios";
 
 export type Survivor = {
   id: number;
@@ -35,8 +35,8 @@ const SurvivorApi: survivorRequests = {
   getSurvivorsForSettlement: async function (
     settlementId: string,
   ): Promise<Survivor[]> {
-    const response = await api.get<Array<Survivor>>(
-      `http://localhost:8080/settlement/${settlementId}/survivor`,
+    const response = await axios.get<Array<Survivor>>(
+      `settlement/${settlementId}/survivor`,
     );
     return response.data;
   },
@@ -44,8 +44,8 @@ const SurvivorApi: survivorRequests = {
     settlementId: string,
     survivor: Survivor,
   ): Promise<Survivor> {
-    const response = await api.post<Survivor>(
-      `http://localhost:8080/settlement/${settlementId}/survivor`,
+    const response = await axios.post<Survivor>(
+      `settlement/${settlementId}/survivor`,
       survivor,
     );
     return response.data;
