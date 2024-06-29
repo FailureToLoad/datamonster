@@ -12,7 +12,6 @@ import (
 	"github.com/failuretoload/datamonster/web"
 
 	storeMocks "github.com/failuretoload/datamonster/store/mocks"
-	webMocks "github.com/failuretoload/datamonster/web/mocks"
 	"github.com/go-chi/chi/v5"
 	"github.com/jackc/pgx/v5"
 	"github.com/stretchr/testify/suite"
@@ -33,7 +32,7 @@ func (suite *SettlementApiTestSuite) SetupTest() {
 	suite.db = &storeMocks.MockConnection{}
 	suite.target = NewController(suite.db)
 	suite.router = chi.NewRouter()
-	suite.target.RegisterRoutes(suite.router, webMocks.RouteGuardMock)
+	suite.target.RegisterRoutes(suite.router)
 
 }
 

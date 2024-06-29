@@ -1,13 +1,13 @@
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import api from "@/api/api";
-import { Settlement } from "@/api/settlement";
+import { Get } from "@/api";
+import { Settlement } from "@/types";
 import { CreateSettlementDialogue } from "./createSettlementDialogue";
 import { Button } from "@/components/ui/button";
 import { Play } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
-import { Auth0ContextInterface, User, useAuth0 } from "@auth0/auth0-react";
 import Spinner from "@/components/spinner";
+import { useAuth0 } from "@auth0/auth0-react";
 
 function SettlementCard({ settlement }: { settlement: Settlement }) {
   const link = "/" + settlement.id;
@@ -32,67 +32,29 @@ function SettlementCard({ settlement }: { settlement: Settlement }) {
   );
 }
 
-interface SettlementListProps {
-  settlements: Array<Settlement>;
-}
-
-function SettlementList({ settlements }: SettlementListProps) {
-  const dialogueListItem = (
-    <li key={-1}>
-      <CreateSettlementDialogue />
-    </li>
-  );
-  if (settlements === null || settlements.length === 0) {
-    return dialogueListItem;
-  }
-
-  console.log(settlements);
-
-  const cards = settlements.map((settlement) => (
-    <li key={settlement.id}>
-      <SettlementCard settlement={settlement} />
-    </li>
-  ));
-  return [dialogueListItem, ...cards];
-}
-
-async function getSettlementsForUser(
-  client: Auth0ContextInterface<User>,
-): Promise<Array<Settlement> | null> {
-  const token = await client.getAccessTokenSilently({
-    authorizationParams: {
-      audience: import.meta.env.VITE_AUTH0_AUDIENCE,
-      scope: "read:settlements",
-    },
-  });
-  const config = {
-    headers: { Authorization: `Bearer ${token}` },
-  };
-  try {
-    const response = await api.get<Array<Settlement> | null>(
-      `http://localhost:8080/settlement`,
-      config,
-    );
-    if (!response.data) {
-      return null;
-    }
-    return response.data;
-  } catch (e) {
-    console.log(e);
-    return null;
-  }
-}
-
 type SelectorProps = {
   testId?: string;
 };
 
 function SettlementSelector({ testId }: SelectorProps) {
-  const client = useAuth0();
+  const { getAccessTokenSilently } = useAuth0();
+  const getSettlements = async () => {
+    try {
+      const token = await getAccessTokenSilently();
+      const response = await Get<Array<Settlement> | null>("settlement", token);
+      if (!response.data) {
+        return null;
+      }
+      return response.data;
+    } catch (e) {
+      console.log(e);
+      return null;
+    }
+  };
 
   const { isPending, isError, data, error } = useQuery({
     queryKey: ["settlements"],
-    queryFn: async () => getSettlementsForUser(client),
+    queryFn: getSettlements,
   });
 
   if (isPending) {
@@ -100,13 +62,22 @@ function SettlementSelector({ testId }: SelectorProps) {
   }
 
   if (isError) {
-    return <span>Error: {error.message}</span>;
+    throw new Error(error.message);
   }
-
+  console.log(data);
+  let settlements = data as Array<Settlement>;
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden">
       <ul className="w-1/4 space-y-4 " data-testid={testId}>
-        <SettlementList settlements={data as Array<Settlement>} />
+        {settlements &&
+          settlements.map((settlement) => (
+            <li key={settlement.id}>
+              <SettlementCard settlement={settlement} />
+            </li>
+          ))}
+        <li key={-1}>
+          <CreateSettlementDialogue />
+        </li>
       </ul>
     </div>
   );

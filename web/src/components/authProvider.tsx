@@ -29,7 +29,7 @@ const Auth0ProviderWithNavigate = ({
       authorizationParams={{
         audience: audience,
         redirect_uri: redirectUri,
-        scope: "read:settlements create:settlements update:settlements",
+        scope: "manage:settlements manage:survivors",
       }}
       onRedirectCallback={onRedirectCallback}
     >

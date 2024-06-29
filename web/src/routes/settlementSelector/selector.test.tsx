@@ -1,12 +1,13 @@
 import Selector from "./selector";
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen } from "@testing-library/react";
-import api, { Settlement } from "@/api/settlement";
+import { Post } from "@/api/api";
+import { Settlement } from "@/types";
 import { useLoaderData } from "react-router-dom";
 import userEvent from "@testing-library/user-event";
 
 vi.mock("react-router-dom");
-vi.mock("@/api/settlement");
+vi.mock("@/api");
 const settlement1: Settlement = {
   id: "1",
   name: "First",
@@ -92,13 +93,12 @@ describe("Selector", () => {
       await userEvent.click(nameField);
       await userEvent.paste("First");
       expect(nameField).toHaveValue("First");
-      vi.mocked(api.createSettlement).mockResolvedValue(settlement1);
       const addButton = screen.getByRole("button", { name: "Add" });
       expect(addButton).toBeInTheDocument();
       const dialogue = screen.getByRole("dialog");
       expect(dialogue).toBeInTheDocument();
       await userEvent.click(addButton);
-      expect(api.createSettlement).toHaveBeenCalledWith({ name: "First" });
+      expect(Post).toHaveBeenCalledWith({ name: "First" });
       expect(dialogue).not.toBeInTheDocument();
       expect(screen.getByText("First")).toBeInTheDocument();
     });

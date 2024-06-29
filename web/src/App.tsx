@@ -1,42 +1,51 @@
 import "./App.css";
 import { RouterProvider, createBrowserRouter } from "react-router-dom";
 import Selector from "@/routes/settlementSelector";
-import { Settlement, SettlementLoader } from "./routes/settlement";
+import { Settlement } from "./routes/settlement";
 import Timeline from "./routes/settlement/timeline.tsx";
 import Population from "./routes/settlement/population/index.tsx";
 import SettlementStorage from "./routes/settlement/settlementStorage.tsx";
-import survivorApi from "@/api/survivor.ts";
 import Spinner from "./components/spinner.tsx";
 import AuthGuard from "./components/authGuard";
+import Welcome from "./routes/welcome/index.tsx";
+import Layout from "./layout.tsx";
+import ErrorPage from "./routes/error.tsx";
 
 const router = createBrowserRouter([
   {
-    path: ":settlementId",
-    id: "home",
-    element: <AuthGuard component={Settlement} />,
-    loader: SettlementLoader,
+    path: "/",
+    id: "root",
+    element: <Layout />,
+    errorElement: <ErrorPage />,
     children: [
       {
-        path: "timeline",
-        Component: Timeline,
+        path: ":settlementId",
+        id: "home",
+        element: <AuthGuard component={Settlement} />,
+        children: [
+          {
+            path: "timeline",
+            Component: Timeline,
+          },
+          {
+            path: "population",
+            Component: Population,
+          },
+          {
+            path: "storage",
+            Component: SettlementStorage,
+          },
+        ],
       },
       {
-        path: "population",
-        Component: Population,
-        loader: async ({ params }) => {
-          let id = params?.settlementId as string;
-          return await survivorApi.getSurvivorsForSettlement(id);
-        },
+        path: "/select",
+        element: <AuthGuard component={Selector} />,
       },
       {
-        path: "storage",
-        Component: SettlementStorage,
+        path: "/welcome",
+        Component: Welcome,
       },
     ],
-  },
-  {
-    path: "/",
-    element: <AuthGuard component={Selector} />,
   },
 ]);
 
