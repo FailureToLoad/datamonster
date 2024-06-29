@@ -3,7 +3,7 @@ import { columns } from "./columns";
 import { DataTable } from "./data-table";
 import { useAuth0 } from "@auth0/auth0-react";
 import { Survivor } from "./types";
-import { Get } from "@/api/api";
+import { Get } from "@/api";
 import { useQuery } from "@tanstack/react-query";
 import Spinner from "@/components/spinner";
 
