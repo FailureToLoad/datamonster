@@ -25,7 +25,7 @@ import Tally from "@/components/tally";
 import Stat from "./stat";
 import { GenderMale, GenderFemale } from "@phosphor-icons/react";
 import { useAuth0 } from "@auth0/auth0-react";
-import { Post } from "@/api/api";
+import { Post } from "@/api";
 import { Survivor } from "@/types";
 
 const formSchema = z.object({
