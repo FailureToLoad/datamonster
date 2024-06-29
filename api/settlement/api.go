@@ -27,19 +27,15 @@ type SettlementDTO struct {
 	Year                int    `json:"year"`
 }
 
-func withReadPermission(routeHandler http.HandlerFunc) http.HandlerFunc {
-	return web.ValidatePermissions([]string{"read:settlements"}, routeHandler)
-}
-
-func withCreatePermission(routeHandler http.HandlerFunc) http.HandlerFunc {
-	return web.ValidatePermissions([]string{"create:settlements"}, routeHandler)
+func withPermission(routeHandler http.HandlerFunc) http.HandlerFunc {
+	return web.ValidatePermissions([]string{"manage:settlements"}, routeHandler)
 }
 
 func (c Controller) RegisterRoutes(r chi.Router) {
-	r.Get("/settlement", withReadPermission(c.getSettlements))
-	r.Post("/settlement", withCreatePermission(c.createSettlement))
+	r.Get("/settlement", withPermission(c.getSettlements))
+	r.Post("/settlement", withPermission(c.createSettlement))
 	r.Route("/settlement/{id}", func(r chi.Router) {
-		r.Get("/", withReadPermission(c.getSettlement))
+		r.Get("/", withPermission(c.getSettlement))
 	})
 }
 
