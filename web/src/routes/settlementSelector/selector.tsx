@@ -7,7 +7,6 @@ import { Play } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useQuery } from "@tanstack/react-query";
 import Spinner from "@/components/spinner";
-
 import { useAuth0 } from "@auth0/auth0-react";
 
 function SettlementCard({ settlement }: { settlement: Settlement }) {
@@ -63,8 +62,9 @@ function SettlementSelector({ testId }: SelectorProps) {
   }
 
   if (isError) {
-    return <span>Error: {error.message}</span>;
+    throw new Error(error.message);
   }
+  console.log(data);
   let settlements = data as Array<Settlement>;
   return (
     <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden">
