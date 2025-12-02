@@ -2,8 +2,9 @@ package main
 
 import (
 	"context"
-	"log"
+	"log/slog"
 	"net/http"
+	"os"
 	"time"
 
 	"github.com/failuretoload/datamonster/auth"
@@ -21,16 +22,23 @@ import (
 var ready = false
 
 func main() {
+	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
+		Level: slog.LevelDebug,
+	}))
+	slog.SetDefault(logger)
+
 	appContext := context.Background()
 
 	keycloakConfig, err := auth.NewKeycloakConfig(appContext)
 	if err != nil {
-		log.Fatal("Failed to initialize Keycloak config: ", err)
+		slog.Error("failed to initialize keycloak config", "error", err)
+		os.Exit(1)
 	}
 
 	valkeyClient, err := valkey.NewClient(appContext)
 	if err != nil {
-		log.Fatal("Failed to initialize Valkey client: ", err)
+		slog.Error("failed to initialize valkey client", "error", err)
+		os.Exit(1)
 	}
 	defer valkeyClient.Close()
 
@@ -41,7 +49,8 @@ func main() {
 
 	settlementController, err := settlement.NewController(connPool)
 	if err != nil {
-		log.Fatal(err)
+		slog.Error("failed to initialize settlement controller", "error", err)
+		os.Exit(1)
 	}
 	survivorController := survivor.NewController(connPool)
 
@@ -115,10 +124,11 @@ func (s Server) Handle(route string, handler http.Handler) {
 
 func (s Server) Run() {
 	ready = true
-	log.Default().Println("Starting server on 0.0.0.0:8080")
+	slog.Info("starting server", "addr", "0.0.0.0:8080")
 	err := http.ListenAndServe("0.0.0.0:8080", s.Mux)
 	if err != nil {
-		log.Default().Fatal(err)
+		slog.Error("server failed", "error", err)
+		os.Exit(1)
 	}
 }
 

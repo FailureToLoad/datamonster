@@ -61,8 +61,11 @@ func (k *KeycloakConfig) LoginHandler(w http.ResponseWriter, r *http.Request) {
 
 func (k *KeycloakConfig) CallbackHandler(sessions *valkey.SessionStore) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		slog.Debug("callback handler invoked", "url", r.URL.String())
+
 		stateCookie, err := r.Cookie(stateCookieName)
 		if err != nil {
+			slog.Error("missing state cookie", "error", err)
 			http.Error(w, "Missing state cookie", http.StatusBadRequest)
 			return
 		}
@@ -88,7 +91,9 @@ func (k *KeycloakConfig) CallbackHandler(sessions *valkey.SessionStore) http.Han
 			return
 		}
 
+		slog.Debug("exchanging code for token", "code_prefix", code[:10])
 		token, err := k.OAuth2Config.Exchange(r.Context(), code)
+		slog.Debug("exchange complete", "error", err)
 		if err != nil {
 			slog.Error("token exchange failed", "error", err)
 			http.Error(w, "Failed to exchange token", http.StatusInternalServerError)
@@ -103,6 +108,7 @@ func (k *KeycloakConfig) CallbackHandler(sessions *valkey.SessionStore) http.Han
 
 		idToken, err := k.Verifier.Verify(r.Context(), rawIDToken)
 		if err != nil {
+			slog.Error("failed to verify ID token", "error", err)
 			http.Error(w, "Failed to verify ID token", http.StatusInternalServerError)
 			return
 		}
