@@ -1,10 +1,10 @@
 :80 {
     handle /auth/* {
-        reverse_proxy 127.0.0.1:8080
+        reverse_proxy datamonster-api.datamonster.svc.cluster.local:8080
     }
 
     handle /api/* {
-        reverse_proxy 127.0.0.1:8080
+        reverse_proxy datamonster-api.datamonster.svc.cluster.local:8080
     }
 
     handle {
