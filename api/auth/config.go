@@ -41,14 +41,10 @@ func NewKeycloakConfig(ctx context.Context) (*KeycloakConfig, error) {
 
 	issuerURL := fmt.Sprintf("%s/realms/%s", keycloakURL, realm)
 
-	providerConfig := &oidc.ProviderConfig{
-		IssuerURL:   issuerURL,
-		AuthURL:     issuerURL + "/protocol/openid-connect/auth",
-		TokenURL:    issuerURL + "/protocol/openid-connect/token",
-		JWKSURL:     issuerURL + "/protocol/openid-connect/certs",
-		UserInfoURL: issuerURL + "/protocol/openid-connect/userinfo",
+	provider, err := oidc.NewProvider(ctx, issuerURL)
+	if err != nil {
+		return nil, fmt.Errorf("failed to create OIDC provider: %w", err)
 	}
-	provider := providerConfig.NewProvider(ctx)
 
 	oauth2Config := oauth2.Config{
 		ClientID:     clientID,
