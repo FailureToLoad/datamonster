@@ -1,0 +1,27 @@
+package postgres
+
+import (
+	"context"
+	"log"
+	"os"
+
+	pgxuuid "github.com/jackc/pgx-gofrs-uuid"
+	"github.com/jackc/pgx/v5"
+	"github.com/jackc/pgx/v5/pgxpool"
+)
+
+func InitConnPool(ctx context.Context) *pgxpool.Pool {
+	config, err := pgxpool.ParseConfig(os.Getenv("CONN_STRING"))
+	if err != nil {
+		log.Fatalf("Unable to parse db config: %v\n", err)
+	}
+	config.AfterConnect = func(_ context.Context, conn *pgx.Conn) error {
+		pgxuuid.Register(conn.TypeMap())
+		return nil
+	}
+	pool, err := pgxpool.NewWithConfig(ctx, config)
+	if err != nil {
+		log.Fatalf("Unable to create connection pool: %v\n", err)
+	}
+	return pool
+}

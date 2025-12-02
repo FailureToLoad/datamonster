@@ -1,0 +1,20 @@
+FROM golang:1.24-alpine AS build-stage
+
+WORKDIR /app
+
+COPY go.mod go.sum ./
+RUN go mod download
+
+COPY . .
+RUN go build -o /out/apiserver .
+
+
+FROM gcr.io/distroless/base-debian12:latest AS run-stage
+
+WORKDIR /
+COPY --from=build-stage /out/apiserver /apiserver
+USER nonroot:nonroot
+
+EXPOSE 8080
+
+ENTRYPOINT ["./apiserver"]

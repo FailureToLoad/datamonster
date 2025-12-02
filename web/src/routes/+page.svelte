@@ -1,4 +1,6 @@
 <script lang="ts">
+  import { logout } from "$lib/auth.svelte";
+
   let currentYear = new Date().getFullYear();
 </script>
 
@@ -13,6 +15,8 @@
       <span class="status-dot"></span>
       <span class="status-text">System Online</span>
     </div>
+
+    <button onclick={logout} class="logout-button">Sign out</button>
   </section>
 
   <footer>
@@ -34,7 +38,7 @@
     align-items: center;
     justify-content: center;
     padding: 2rem;
-    gap: 3rem;
+    gap: 2rem;
   }
 
   .hero-content {
@@ -90,6 +94,24 @@
     50% {
       opacity: 0.5;
     }
+  }
+
+  .logout-button {
+    padding: 0.5rem 1rem;
+    font-size: 0.875rem;
+    color: var(--color-text-muted);
+    background: transparent;
+    border: 1px solid var(--color-border);
+    border-radius: 0.375rem;
+    cursor: pointer;
+    transition:
+      border-color 0.2s ease,
+      color 0.2s ease;
+  }
+
+  .logout-button:hover {
+    color: var(--color-text);
+    border-color: var(--color-text-muted);
   }
 
   footer {

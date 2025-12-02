@@ -1,0 +1,26 @@
+{
+  "realm": "data-monster",
+  "displayName": "Data Monster",
+  "enabled": true,
+  "loginWithEmailAllowed": true,
+  "clients": [
+    {
+      "clientId": "datamonster-local",
+      "name": "Datamonster Local",
+      "secret": "dev-local-secret",
+      "redirectUris": ["http://localhost:8000/*"],
+      "webOrigins": ["+"],
+      "standardFlowEnabled": true
+    }
+  ],
+  "users": [
+    {
+      "username": "testuser",
+      "enabled": true,
+      "email": "test@example.com",
+      "firstName": "Test",
+      "lastName": "User",
+      "credentials": [{"type": "password", "value": "testpass"}]
+    }
+  ]
+}

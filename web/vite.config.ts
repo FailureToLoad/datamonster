@@ -1,7 +1,6 @@
-import type { UserConfig } from 'vite'
-import { svelte } from '@sveltejs/vite-plugin-svelte'
+import { sveltekit } from '@sveltejs/kit/vite';
+import type { UserConfig } from 'vite';
 
-
-export default ({
-  plugins: [svelte()],
-}) satisfies UserConfig
+export default {
+  plugins: [sveltekit()]
+} satisfies UserConfig;

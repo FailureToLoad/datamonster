@@ -1,0 +1,5 @@
+FROM quay.io/keycloak/keycloak:26.4
+
+COPY data-monster-realm.json /opt/keycloak/data/import/
+
+ENTRYPOINT ["/opt/keycloak/bin/kc.sh"]

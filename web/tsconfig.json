@@ -1,4 +1,5 @@
 {
+  "extends": "./.svelte-kit/tsconfig.json",
   "compilerOptions": {
     "moduleResolution": "bundler",
     "target": "ESNext",
@@ -9,8 +10,6 @@
     "sourceMap": true,
     "esModuleInterop": true,
     "strict": true,
-    "types": ["vite/client"],
     "skipLibCheck": true
-  },
-  "include": ["../web/src/**/*.d.ts", "../web/src/**/*.ts", "../web/src/**/*.svelte"]
+  }
 }
