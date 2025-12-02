@@ -22,10 +22,6 @@ func NewKeycloakConfig(ctx context.Context) (*KeycloakConfig, error) {
 	if keycloakURL == "" {
 		return nil, fmt.Errorf("KEYCLOAK_URL environment variable is required")
 	}
-	internalURL := os.Getenv("KEYCLOAK_INTERNAL_URL")
-	if internalURL == "" {
-		return nil, fmt.Errorf("KEYCLOAK_INTERNAL_URL environment variable is required")
-	}
 	realm := os.Getenv("KEYCLOAK_REALM")
 	if realm == "" {
 		return nil, fmt.Errorf("KEYCLOAK_REALM environment variable is required")
@@ -44,14 +40,13 @@ func NewKeycloakConfig(ctx context.Context) (*KeycloakConfig, error) {
 	}
 
 	issuerURL := fmt.Sprintf("%s/realms/%s", keycloakURL, realm)
-	internalIssuerURL := fmt.Sprintf("%s/realms/%s", internalURL, realm)
 
 	providerConfig := &oidc.ProviderConfig{
 		IssuerURL:   issuerURL,
 		AuthURL:     issuerURL + "/protocol/openid-connect/auth",
-		TokenURL:    internalIssuerURL + "/protocol/openid-connect/token",
-		JWKSURL:     internalIssuerURL + "/protocol/openid-connect/certs",
-		UserInfoURL: internalIssuerURL + "/protocol/openid-connect/userinfo",
+		TokenURL:    issuerURL + "/protocol/openid-connect/token",
+		JWKSURL:     issuerURL + "/protocol/openid-connect/certs",
+		UserInfoURL: issuerURL + "/protocol/openid-connect/userinfo",
 	}
 	provider := providerConfig.NewProvider(ctx)
 
