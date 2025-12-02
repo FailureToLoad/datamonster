@@ -4,6 +4,7 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/json"
+	"log/slog"
 	"net/http"
 	"os"
 	"time"
@@ -89,6 +90,7 @@ func (k *KeycloakConfig) CallbackHandler(sessions *valkey.SessionStore) http.Han
 
 		token, err := k.OAuth2Config.Exchange(r.Context(), code)
 		if err != nil {
+			slog.Error("token exchange failed", "error", err)
 			http.Error(w, "Failed to exchange token", http.StatusInternalServerError)
 			return
 		}
