@@ -18,22 +18,42 @@ type KeycloakConfig struct {
 }
 
 func NewKeycloakConfig(ctx context.Context) (*KeycloakConfig, error) {
-	keycloakURL := getEnvOrDefault("KEYCLOAK_URL", "https://auth.electriclantern.net")
-	realm := getEnvOrDefault("KEYCLOAK_REALM", "data-monster")
-	clientID := getEnvOrDefault("KEYCLOAK_CLIENT_ID", "datamonster-app")
+	keycloakURL := os.Getenv("KEYCLOAK_URL")
+	if keycloakURL == "" {
+		return nil, fmt.Errorf("KEYCLOAK_URL environment variable is required")
+	}
+	internalURL := os.Getenv("KEYCLOAK_INTERNAL_URL")
+	if internalURL == "" {
+		return nil, fmt.Errorf("KEYCLOAK_INTERNAL_URL environment variable is required")
+	}
+	realm := os.Getenv("KEYCLOAK_REALM")
+	if realm == "" {
+		return nil, fmt.Errorf("KEYCLOAK_REALM environment variable is required")
+	}
+	clientID := os.Getenv("KEYCLOAK_CLIENT_ID")
+	if clientID == "" {
+		return nil, fmt.Errorf("KEYCLOAK_CLIENT_ID environment variable is required")
+	}
 	clientSecret := os.Getenv("KEYCLOAK_CLIENT_SECRET")
-	redirectURL := getEnvOrDefault("KEYCLOAK_REDIRECT_URL", "http://localhost:8080/auth/callback")
-
 	if clientSecret == "" {
 		return nil, fmt.Errorf("KEYCLOAK_CLIENT_SECRET environment variable is required")
 	}
+	redirectURL := os.Getenv("KEYCLOAK_REDIRECT_URL")
+	if redirectURL == "" {
+		return nil, fmt.Errorf("KEYCLOAK_REDIRECT_URL environment variable is required")
+	}
 
 	issuerURL := fmt.Sprintf("%s/realms/%s", keycloakURL, realm)
+	internalIssuerURL := fmt.Sprintf("%s/realms/%s", internalURL, realm)
 
-	provider, err := oidc.NewProvider(ctx, issuerURL)
-	if err != nil {
-		return nil, fmt.Errorf("failed to create OIDC provider: %w", err)
+	providerConfig := &oidc.ProviderConfig{
+		IssuerURL:   issuerURL,
+		AuthURL:     internalIssuerURL + "/protocol/openid-connect/auth",
+		TokenURL:    internalIssuerURL + "/protocol/openid-connect/token",
+		JWKSURL:     internalIssuerURL + "/protocol/openid-connect/certs",
+		UserInfoURL: internalIssuerURL + "/protocol/openid-connect/userinfo",
 	}
+	provider := providerConfig.NewProvider(ctx)
 
 	oauth2Config := oauth2.Config{
 		ClientID:     clientID,
@@ -58,11 +78,4 @@ func NewKeycloakConfig(ctx context.Context) (*KeycloakConfig, error) {
 		IssuerURL:    issuerURL,
 		ClientID:     clientID,
 	}, nil
-}
-
-func getEnvOrDefault(key, defaultValue string) string {
-	if value := os.Getenv(key); value != "" {
-		return value
-	}
-	return defaultValue
 }
