@@ -48,7 +48,7 @@ func NewKeycloakConfig(ctx context.Context) (*KeycloakConfig, error) {
 
 	providerConfig := &oidc.ProviderConfig{
 		IssuerURL:   issuerURL,
-		AuthURL:     internalIssuerURL + "/protocol/openid-connect/auth",
+		AuthURL:     issuerURL + "/protocol/openid-connect/auth",
 		TokenURL:    internalIssuerURL + "/protocol/openid-connect/token",
 		JWKSURL:     internalIssuerURL + "/protocol/openid-connect/certs",
 		UserInfoURL: internalIssuerURL + "/protocol/openid-connect/userinfo",
