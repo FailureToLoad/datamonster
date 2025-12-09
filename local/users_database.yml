@@ -1,0 +1,9 @@
+---
+users:
+  testuser:
+    disabled: false
+    displayname: "Test User"
+    password: "$pbkdf2-sha512$310000$YXeSdGNwxNzvNbOFVyRx0g$Jv4Q.HvQDQAtD5Wq0nCimlpy0/fOgub21I.tlw3ThEPpCP.F4Ltn8MI3qF1EKv32ClDu0n1ffysX/w9Zl15/uA"
+    email: "test@example.com"
+    groups:
+      - "users"

@@ -1,0 +1,40 @@
+name: publish api
+
+on:
+    workflow_dispatch:
+    push:
+        branches: [main]
+        paths: ["api/**"]
+
+jobs:
+    build:
+        runs-on: ubuntu-24.04-arm
+        permissions:
+            contents: read
+            packages: write
+
+        steps:
+            - uses: actions/checkout@v4
+
+            - name: Log in to GitHub Container Registry
+              uses: docker/login-action@v3
+              with:
+                  registry: ghcr.io
+                  username: ${{ github.actor }}
+                  password: ${{ secrets.GITHUB_TOKEN }}
+
+            - name: Build image
+              uses: redhat-actions/buildah-build@v2
+              with:
+                  image: datamonster-api
+                  tags: latest ${{ github.sha }}
+                  containerfiles: ./api/Containerfile
+                  context: ./api
+                  platforms: linux/arm64
+
+            - name: Push image
+              uses: redhat-actions/push-to-registry@v2
+              with:
+                  image: datamonster-api
+                  tags: latest ${{ github.sha }}
+                  registry: ghcr.io/failuretoload

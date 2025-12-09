@@ -1,0 +1,78 @@
+---
+server:
+  address: 'tcp://0.0.0.0:9091'
+  disable_healthcheck: false
+  tls:
+    certificate: '/certs/authelia.crt'
+    key: '/certs/authelia.key'
+
+log:
+  level: 'debug'
+
+authentication_backend:
+  file:
+    path: '/config/users_database.yml'
+
+access_control:
+  default_policy: 'one_factor'
+
+session:
+  cookies:
+    - domain: '127.0.0.1'
+      authelia_url: 'https://127.0.0.1:9091'
+
+storage:
+  local:
+    path: '/config/data/db.sqlite3'
+
+notifier:
+  filesystem:
+    filename: '/config/data/notification.txt'
+
+identity_providers:
+  oidc:
+    jwks:
+      - algorithm: 'RS256'
+        key: |
+          -----BEGIN PRIVATE KEY-----
+          MIIEvAIBADANBgkqhkiG9w0BAQEFAASCBKYwggSiAgEAAoIBAQCo/hL7w/LHI2bU
+          6c1u23OaekMriSHstLJ44JsunxwSF7aXKk5oGz5MGxcPImHAnhSlFxOJDHtEtSdR
+          cVByL11vg8/qtYT3xFJNLudjLfx7oRdz4dBK/ipzRnd21TNvjnEy5hqecJIFWmkY
+          DjmTzlSEbXipo3UusabFbxvZsVNtgbrFfud9n5HA0IMvFyFtKW7oOT6x/yvDxJQ1
+          pm91MHJKnMokAMXFPg43zoaSSUYX4Rit1TYyMPxHHkDKscw3yc/yAwpWq0s0s8DK
+          SIKTHEhtgPbVpXrIxAFEesdvaI1x9aOxcwOjftI19WwQPUzuyscA6vxJkCllLMNR
+          AIaAIb6NAgMBAAECggEAHzQSw0QSHu0NfsDQ+ugwd1Sd9Hr0taVD0wf9/2THpRuV
+          zmG0aoqlPR4/ar75d7x4qWcSZ1rTpAMjCGm45eyS/xVCnd74d1tbqv6/INQL67P6
+          BZ6rfD1kDzbythF11uJhSnmsbpbwj2Z7Q0LVJNKTToR8JC6XY5DP72KtrMuOUQi2
+          75ryNGRPohpJov0WpZju6k1aOMz1WK0IjLUExTkk1Fwxbh0bW0u+ydk5mca/QxPZ
+          aX3oC6svDv3QRP4IIIt1ywF0WcSncx1IEZlaB4jyJdUu0dyzXiNJfG+Fe4D+vJcY
+          9Bb3XlUC0lv4uRf9GSW/jlXEKz0eZA/yF8hYZ1YIAQKBgQDocrDCEKuxymjJpZh0
+          7xgAPU1ZYt9yAMGlC+ofGzI9EdPt5FMKxHQqqX4/VpNm6Hnrj//yhj24wU0d9UsN
+          AiuBwuLFOl2wfAIKZP52oNUZMS7aY471onx44leUI9ZsmmNdjaNGhxdDe/1bMsjI
+          WwKTcRSWE6rLXZOEWjz7FEteAQKBgQC6HXRC7hg9gJ1AzE8acW0WVuMVhMqCUk8s
+          TqkjGGRt2AUYBu3HWWfqwd5j0GHicmDXJ8pbpkwEEwf3C9lCBX+1LeTQ68tDGeiL
+          B6WoKMu1N3gdBBHMMT7C4jCy/OfH6gBKg9uuh1YfUJ6/HqQB5fPPB70hEzH6eBhi
+          yRn7K474jQKBgE5rkxKFyUb8AIo3Ic4hc7lw9Q14++VcN/hUorHH3RUZVKRnaVSy
+          nnZeJEd+D9CiEa/VLwZFH8GbBUdcH+vNlZv7gcIERONrksyq8eZXsE0FeMcY23wn
+          S1MFGYLS7F5LX8aKKFF89e5AgGMqKO7fNWlEtytCi1Z8xW3be8NBP4QBAoGAVnks
+          9ZQOqzTA28SR1GVzG/gO1oa2WMrJgnqh126T6v19kGZXwFHoGIkvPQ0rDb27BPy1
+          5tNjalk1UDGvJh/L8HB8ah3EeU7mXwKUk4cw7ufw5PppEoim8oGJwwAC6T3uGLEf
+          Nv4mo7IfsAkahs9C8qRT2bRDem6mVe++JJdefFkCgYBeHl1JuL/0cq1XciyA1Ubv
+          xGB/01Aolcagr7nQBKvLx8CnTjHLo3ntcH38QJlxwCeu3c/+HeBrzkW0wA52AKqc
+          DjBTPbRrGVe9SJCj6Em6o3uvJ5UKp4pNAKedNk4+9Vvk8IEww20C+UVpORFFHymP
+          /1VhKUJ8IteS6zEXqPILag==
+          -----END PRIVATE KEY-----
+    clients:
+      - client_id: 'datamonster'
+        client_name: 'Datamonster Local'
+        client_secret: '$pbkdf2-sha512$310000$.oBbL5E1/r41SNBlI7NbVA$W2uNeIS0AEUtAVkMuuhLpjYa8WFMZfB/x.hnX6RoHgyosWqLIVpEN8Tq0vdB956mM267GRnJh5JNJpoiZqcfsA'
+        public: false
+        authorization_policy: 'one_factor'
+        redirect_uris:
+          - 'http://localhost:8000/auth/callback'
+        scopes:
+          - 'openid'
+          - 'profile'
+          - 'email'
+          - 'groups'
+        token_endpoint_auth_method: 'client_secret_post'
