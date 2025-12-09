@@ -16,6 +16,10 @@ jobs:
         steps:
             - uses: actions/checkout@v4
 
+            - name: Generate image tag
+              id: tag
+              run: echo "tag=$(date +'%Y.%m.%d')-${{ github.run_number }}" >> $GITHUB_OUTPUT
+
             - name: Log in to GitHub Container Registry
               uses: docker/login-action@v3
               with:
@@ -27,7 +31,7 @@ jobs:
               uses: redhat-actions/buildah-build@v2
               with:
                   image: datamonster-web
-                  tags: latest ${{ github.sha }}
+                  tags: latest ${{ steps.tag.outputs.tag }}
                   containerfiles: ./web/Containerfile
                   context: ./web
                   platforms: linux/arm64
@@ -36,5 +40,5 @@ jobs:
               uses: redhat-actions/push-to-registry@v2
               with:
                   image: datamonster-web
-                  tags: latest ${{ github.sha }}
+                  tags: latest ${{ steps.tag.outputs.tag }}
                   registry: ghcr.io/failuretoload
