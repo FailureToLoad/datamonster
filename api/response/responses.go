@@ -47,7 +47,7 @@ func InternalServerError(ctx context.Context, rw http.ResponseWriter, reason str
 }
 
 func Unauthorized(ctx context.Context, rw http.ResponseWriter, err error) {
-	writeError := writeJSON(rw, http.StatusUnauthorized, err.Error())
+	writeError := writeJSON(rw, http.StatusUnauthorized, "Unauthorized")
 	if writeError != nil {
 		slog.Log(ctx, slog.LevelWarn, "error producing InternalServerError response", slog.Any("error", writeError))
 	}

@@ -1,11 +1,22 @@
 <script lang="ts">
   import { page } from '$app/state';
+  import { dev } from '$app/environment';
+
+  const errorMessages: Record<number, string> = {
+    404: 'Page not found',
+    500: 'Internal server error',
+    503: 'Service unavailable',
+  };
+
+  const displayMessage = dev
+    ? (page.error?.message ?? 'An unexpected error occurred')
+    : (errorMessages[page.status] ?? 'An error occurred');
 </script>
 
 <main class="error">
   <div class="error-content">
     <h1>{page.status}</h1>
-    <p class="message">{page.error?.message ?? 'An unexpected error occurred'}</p>
+    <p class="message">{displayMessage}</p>
     <a href="/" class="home-link">Return Home</a>
   </div>
 </main>
