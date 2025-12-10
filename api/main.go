@@ -159,7 +159,7 @@ func SecureOptions() func(http.Handler) http.Handler {
 		ContentTypeNosniff:    true,
 		BrowserXssFilter:      true,
 		CustomBrowserXssValue: "0",
-		ContentSecurityPolicy: "default-src 'self', frame-ancestors 'none'",
+		ContentSecurityPolicy: "default-src 'self'; frame-ancestors 'none'",
 	}
 	return secure.New(options).Handler
 }
