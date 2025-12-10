@@ -35,7 +35,7 @@ func (p *Provider) introspectToken(ctx context.Context, token string) (*Introspe
 
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
 
-	resp, err := http.DefaultClient.Do(req)
+	resp, err := p.httpClient.Do(req)
 	if err != nil {
 		return nil, err
 	}

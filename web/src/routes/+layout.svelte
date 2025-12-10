@@ -2,31 +2,18 @@
   import type { Snippet } from 'svelte';
   import '../app.css';
   import { onMount } from 'svelte';
-  import { goto } from '$app/navigation';
-  import { page } from '$app/state';
-  import { checkAuthentication, AUTH_LOGIN_URL } from '$lib/auth';
+  import { checkAuthentication, getAuthState } from '$lib/auth.svelte';
 
   let { children }: { children: Snippet } = $props();
 
-  let isLoading = $state(true);
-  let isAuthenticated = $state(false);
+  const auth = getAuthState();
 
-  const publicPaths = ['/login'];
-
-  onMount(async () => {
-    const authenticated = await checkAuthentication();
-    isAuthenticated = authenticated;
-    
-    if (!authenticated && !publicPaths.includes(page.url.pathname)) {
-      window.location.href = AUTH_LOGIN_URL;
-      return;
-    }
-    
-    isLoading = false;
+  onMount(() => {
+    checkAuthentication();
   });
 </script>
 
-{#if isLoading}
+{#if auth.isLoading}
 <div id="app">
   <main class="loading" role="status" aria-busy="true" aria-live="polite">
     <div class="loading-spinner" aria-hidden="true"></div>

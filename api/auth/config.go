@@ -3,6 +3,8 @@ package auth
 import (
 	"context"
 	"errors"
+	"net/http"
+	"time"
 
 	"github.com/coreos/go-oidc/v3/oidc"
 	"golang.org/x/oauth2"
@@ -47,6 +49,7 @@ type Provider struct {
 	IntrospectURL string
 	OAuth2Config  *oauth2.Config
 	Verifier      *oidc.IDTokenVerifier
+	httpClient    *http.Client
 }
 
 func NewAuthConfig(c Config) (*Provider, error) {
@@ -70,6 +73,15 @@ func NewAuthConfig(c Config) (*Provider, error) {
 
 	verifier := provider.Verifier(&oidc.Config{ClientID: c.ClientID})
 
+	httpClient := &http.Client{
+		Timeout: 10 * time.Second,
+		Transport: &http.Transport{
+			MaxIdleConns:        100,
+			MaxIdleConnsPerHost: 10,
+			IdleConnTimeout:     90 * time.Second,
+		},
+	}
+
 	return &Provider{
 		ClientID:      c.ClientID,
 		ClientSecret:  c.ClientSecret,
@@ -77,5 +89,6 @@ func NewAuthConfig(c Config) (*Provider, error) {
 		IntrospectURL: c.IntrospectURL,
 		OAuth2Config:  oauth2Config,
 		Verifier:      verifier,
+		httpClient:    httpClient,
 	}, nil
 }

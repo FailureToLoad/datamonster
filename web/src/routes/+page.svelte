@@ -1,5 +1,8 @@
 <script lang="ts">
-  let currentYear = new Date().getFullYear();
+  import { getAuthState, AUTH_LOGIN_URL } from '$lib/auth.svelte';
+
+  const auth = getAuthState();
+  const currentYear = new Date().getFullYear();
 </script>
 
 <main>
@@ -7,6 +10,14 @@
     <div class="hero-content">
       <h1>Datamonster</h1>
       <p class="tagline">Homelab Data Platform</p>
+    </div>
+
+    <div class="actions">
+      {#if auth.isAuthenticated}
+        <a href="/settlements/new" class="btn btn-primary">Add Settlement</a>
+      {:else}
+        <a href={AUTH_LOGIN_URL} class="btn btn-primary">Login</a>
+      {/if}
     </div>
 
     <div class="status">
@@ -56,6 +67,32 @@
     font-size: 1.25rem;
     color: var(--color-text-muted);
     letter-spacing: 0.02em;
+  }
+
+  .actions {
+    display: flex;
+    gap: 1rem;
+  }
+
+  .btn {
+    display: inline-flex;
+    align-items: center;
+    justify-content: center;
+    padding: 0.75rem 1.5rem;
+    font-size: 1rem;
+    font-weight: 500;
+    text-decoration: none;
+    border-radius: 0.5rem;
+    transition: all 0.2s ease;
+  }
+
+  .btn-primary {
+    background: var(--color-accent);
+    color: var(--color-bg);
+  }
+
+  .btn-primary:hover {
+    box-shadow: 0 0 20px var(--color-accent-glow);
   }
 
   .status {
