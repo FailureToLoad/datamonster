@@ -1,11 +1,12 @@
 <script lang="ts">
+  import type { Snippet } from 'svelte';
   import '../app.css';
   import { onMount } from 'svelte';
   import { goto } from '$app/navigation';
   import { page } from '$app/state';
   import { checkAuthentication, AUTH_LOGIN_URL } from '$lib/auth';
 
-  let { children } = $props();
+  let { children }: { children: Snippet } = $props();
 
   let isLoading = $state(true);
   let isAuthenticated = $state(false);
@@ -27,13 +28,15 @@
 
 {#if isLoading}
 <div id="app">
-  <main class="loading">
-    <div class="loading-spinner"></div>
+  <main class="loading" role="status" aria-busy="true" aria-live="polite">
+    <div class="loading-spinner" aria-hidden="true"></div>
     <p>Checking authentication...</p>
   </main>
 </div>
 {:else}
+<div id="app">
   {@render children()}
+</div>
 {/if}
 
 <style>
