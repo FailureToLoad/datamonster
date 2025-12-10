@@ -2,6 +2,7 @@ package main
 
 import (
 	"context"
+	"errors"
 	"log/slog"
 	"net/http"
 	"os"
@@ -48,7 +49,11 @@ func main() {
 
 	sessions := valkey.NewSessionStore(valkeyClient)
 
-	app := NewServer(authProvider, sessions)
+	app, err := NewServer(authProvider, sessions)
+	if err != nil {
+		slog.Error("failed to initialize server", "error", err)
+		os.Exit(1)
+	}
 	app.Run()
 }
 
@@ -56,7 +61,12 @@ type Server struct {
 	Mux *chi.Mux
 }
 
-func NewServer(authProvider *auth.Provider, sessions *valkey.SessionStore) Server {
+func NewServer(authProvider *auth.Provider, sessions *valkey.SessionStore) (Server, error) {
+	allowedOrigins, err := getAllowedOrigins()
+	if err != nil {
+		return Server{}, err
+	}
+
 	router := chi.NewRouter()
 	router.Use(middleware.RequestID)
 	router.Use(middleware.RealIP)
@@ -87,36 +97,36 @@ func NewServer(authProvider *auth.Provider, sessions *valkey.SessionStore) Serve
 		_, _ = w.Write([]byte("ready"))
 	})
 
-	router.Mount("/auth", authRoutes(authProvider, sessions))
-	router.Mount("/api", protectedRoutes(authProvider, sessions))
+	router.Mount("/auth", authRoutes(authProvider, sessions, allowedOrigins))
+	router.Mount("/api", protectedRoutes(authProvider, sessions, allowedOrigins))
 
 	return Server{
 		Mux: router,
-	}
+	}, nil
 }
 
-func authRoutes(provider *auth.Provider, sessions *valkey.SessionStore) http.Handler {
+func authRoutes(provider *auth.Provider, sessions *valkey.SessionStore, allowedOrigins []string) http.Handler {
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.URLFormat)
 	r.Use(middleware.Timeout(10 * time.Second))
-	r.Use(CorsHandler())
+	r.Use(CorsHandler(allowedOrigins))
 	r.Use(SecureOptions())
 	r.Use(CacheControl)
 	provider.RegisterRoutes(sessions, r)
 	return r
 }
 
-func protectedRoutes(provider *auth.Provider, sessions *valkey.SessionStore) http.Handler {
+func protectedRoutes(provider *auth.Provider, sessions *valkey.SessionStore, allowedOrigins []string) http.Handler {
 	r := chi.NewRouter()
 	r.Use(middleware.RequestID)
 	r.Use(middleware.RealIP)
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.URLFormat)
 	r.Use(middleware.Timeout(10 * time.Second))
-	r.Use(CorsHandler())
+	r.Use(CorsHandler(allowedOrigins))
 	r.Use(SecureOptions())
 	r.Use(CacheControl)
 	r.Use(auth.AuthMiddleware(provider, sessions))
@@ -162,13 +172,21 @@ func CacheControl(next http.Handler) http.Handler {
 	})
 }
 
-func CorsHandler() func(http.Handler) http.Handler {
+func CorsHandler(allowedOrigins []string) func(http.Handler) http.Handler {
 	c := cors.New(cors.Options{
-		AllowedOrigins:   []string{"*"},
+		AllowedOrigins:   allowedOrigins,
 		AllowedMethods:   []string{"HEAD", "GET", "POST", "OPTIONS"},
 		AllowedHeaders:   []string{"Origin", "Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
 		AllowCredentials: true,
-		MaxAge:           3599, // Maximum value not ignored by any of major browsers
+		MaxAge:           3599,
 	})
 	return c.Handler
+}
+
+func getAllowedOrigins() ([]string, error) {
+	frontendURL := os.Getenv("FRONTEND_URL")
+	if frontendURL == "" {
+		return nil, errors.New("FRONTEND_URL environment variable is required")
+	}
+	return []string{frontendURL}, nil
 }
