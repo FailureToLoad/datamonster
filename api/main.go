@@ -14,6 +14,7 @@ import (
 	"github.com/go-chi/chi/v5"
 	"github.com/go-chi/chi/v5/middleware"
 	"github.com/go-chi/cors"
+	"github.com/go-chi/httprate"
 	"github.com/unrolled/secure"
 )
 
@@ -112,6 +113,7 @@ func authRoutes(provider *auth.Provider, sessions *valkey.SessionStore, allowedO
 	r.Use(middleware.Recoverer)
 	r.Use(middleware.URLFormat)
 	r.Use(middleware.Timeout(10 * time.Second))
+	r.Use(httprate.LimitByIP(100, time.Minute))
 	r.Use(CorsHandler(allowedOrigins))
 	r.Use(SecureOptions())
 	r.Use(CacheControl)
