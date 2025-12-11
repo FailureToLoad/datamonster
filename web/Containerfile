@@ -1,12 +1,22 @@
-FROM node:22-alpine AS build
+FROM node:24-alpine AS builder
+
 WORKDIR /app
-RUN corepack enable
-COPY package.json pnpm-lock.yaml pnpm-workspace.yaml ./
+
+RUN corepack enable && corepack prepare pnpm@latest --activate
+
+COPY package.json pnpm-lock.yaml ./
+
 RUN pnpm install --frozen-lockfile
+
 COPY . .
-RUN pnpm run build
+
+RUN pnpm build-only
 
 FROM caddy:alpine
-COPY --from=build /app/build /srv
+
+COPY --from=builder /app/dist /srv
 COPY Caddyfile /etc/caddy/Caddyfile
+
 EXPOSE 80
+
+CMD ["caddy", "run", "--config", "/etc/caddy/Caddyfile"]

@@ -24,12 +24,6 @@ clean-certs:
 valkey-new:
 	podman run -d --name valkey -p 6379:6379 valkey/valkey:8.0-alpine
 
-valkey-stop:
-	podman stop valkey
-
-valkey-start:
-	podman start valkey
-
 valkey-kill:
 	podman rm -f valkey
 
@@ -46,12 +40,6 @@ authelia-new:
 		-e AUTHELIA_STORAGE_ENCRYPTION_KEY="insecure_encryption_key_for_local_dev" \
 		-e AUTHELIA_SERVER_DISABLE_HEALTHCHECK=true \
 		docker.io/authelia/authelia:latest
-
-authelia-stop:
-	podman stop authelia
-
-authelia-start:
-	podman start authelia
 
 authelia-kill:
 	podman rm -f authelia
