@@ -1,22 +1,24 @@
-FROM node:24-alpine AS builder
-
-WORKDIR /app
-
+FROM node:20-alpine AS development-dependencies-env
 RUN corepack enable && corepack prepare pnpm@latest --activate
-
-COPY package.json pnpm-lock.yaml ./
-
+COPY . /app
+WORKDIR /app
 RUN pnpm install --frozen-lockfile
 
-COPY . .
+FROM node:20-alpine AS production-dependencies-env
+RUN corepack enable && corepack prepare pnpm@latest --activate
+COPY ./package.json pnpm-lock.yaml /app/
+WORKDIR /app
+RUN pnpm install --frozen-lockfile --prod
 
-RUN pnpm build-only
+FROM node:20-alpine AS build-env
+COPY . /app/
+COPY --from=development-dependencies-env /app/node_modules /app/node_modules
+WORKDIR /app
+RUN npm run build
 
-FROM caddy:alpine
-
-COPY --from=builder /app/dist /srv
-COPY Caddyfile /etc/caddy/Caddyfile
-
-EXPOSE 80
-
-CMD ["caddy", "run", "--config", "/etc/caddy/Caddyfile"]
+FROM node:20-alpine
+COPY ./package.json /app/
+COPY --from=production-dependencies-env /app/node_modules /app/node_modules
+COPY --from=build-env /app/build /app/build
+WORKDIR /app
+CMD ["node", "./build/server/index.js"]
