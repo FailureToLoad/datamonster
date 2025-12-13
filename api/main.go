@@ -3,22 +3,18 @@ package main
 import (
 	"context"
 	"errors"
+	"fmt"
 	"log/slog"
 	"net/http"
 	"os"
+	"os/signal"
+	"syscall"
 	"time"
 
 	"github.com/failuretoload/datamonster/auth"
+	"github.com/failuretoload/datamonster/server"
 	"github.com/failuretoload/datamonster/store/valkey"
-
-	"github.com/go-chi/chi/v5"
-	"github.com/go-chi/chi/v5/middleware"
-	"github.com/go-chi/cors"
-	"github.com/go-chi/httprate"
-	"github.com/unrolled/secure"
 )
-
-var ready = false
 
 func main() {
 	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
@@ -26,169 +22,74 @@ func main() {
 	}))
 	slog.SetDefault(logger)
 
-	appContext := context.Background()
+	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
+	defer stop()
+
+	valkeyClient, err := valkey.NewClient(ctx)
+	if err != nil {
+		exit(fmt.Errorf("failed to initialize valkey client: %w", err))
+	}
+	defer valkeyClient.Close()
+
+	sessions := valkey.NewSessionStore(valkeyClient)
 	authConfig := auth.Config{
 		ClientID:      os.Getenv("CLIENT_ID"),
 		ClientSecret:  os.Getenv("CLIENT_SECRET"),
 		IssuerURL:     os.Getenv("ISSUER_URL"),
 		RedirectURL:   os.Getenv("REDIRECT_URL"),
 		IntrospectURL: os.Getenv("INTROSPECT_URL"),
+		ClientURL:     os.Getenv("CLIENT_URL"),
+		Sessions:      sessions,
 	}
 
-	authProvider, err := auth.NewAuthConfig(authConfig)
+	authController, err := auth.NewController(authConfig)
 	if err != nil {
-		slog.Error("failed to initialize auth provider", "error", err)
-		os.Exit(1)
+		exit(fmt.Errorf("failed to initialize auth controller: %w", err))
 	}
 
-	valkeyClient, err := valkey.NewClient(appContext)
+	authorizer, err := auth.NewAuthorizer(
+		authConfig.ClientID,
+		authConfig.ClientSecret,
+		authConfig.IntrospectURL,
+		sessions,
+	)
 	if err != nil {
-		slog.Error("failed to initialize valkey client", "error", err)
-		os.Exit(1)
+		exit(fmt.Errorf("failed to initialize authorizer: %w", err))
 	}
-	defer valkeyClient.Close()
 
-	sessions := valkey.NewSessionStore(valkeyClient)
+	clientURL := os.Getenv("CLIENT_URL")
+	if clientURL == "" {
+		exit(errors.New("CLIENT_URL environment variable is required"))
+	}
 
-	app, err := NewServer(authProvider, sessions)
+	srv, err := server.New(authController, authorizer, []string{clientURL})
 	if err != nil {
-		slog.Error("failed to initialize server", "error", err)
-		os.Exit(1)
-	}
-	app.Run()
-}
-
-type Server struct {
-	Mux *chi.Mux
-}
-
-func NewServer(authProvider *auth.Provider, sessions *valkey.SessionStore) (Server, error) {
-	allowedOrigins, err := getAllowedOrigins()
-	if err != nil {
-		return Server{}, err
+		exit(fmt.Errorf("failed to create server: %w", err))
 	}
 
-	router := chi.NewRouter()
-	router.Use(middleware.RequestID)
-	router.Use(middleware.RealIP)
-	router.Use(middleware.Recoverer)
-	router.Use(middleware.URLFormat)
-	router.Use(middleware.Timeout(10 * time.Second))
-
-	router.Get("/heartbeat", func(w http.ResponseWriter, _ *http.Request) {
-		w.WriteHeader(http.StatusOK)
-	})
-	router.Get("/startup", func(w http.ResponseWriter, _ *http.Request) {
-		if !ready {
-			w.WriteHeader(http.StatusServiceUnavailable)
-			_, _ = w.Write([]byte("api is not ready"))
-			return
+	go func() {
+		slog.Info("starting server", "addr", srv.Addr)
+		if err := srv.ListenAndServe(); err != nil && err != http.ErrServerClosed {
+			slog.Error("server error", "error", err)
+			os.Exit(1)
 		}
-		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte("ready"))
-	})
+	}()
 
-	router.Get("/ready", func(w http.ResponseWriter, _ *http.Request) {
-		if !ready {
-			w.WriteHeader(http.StatusServiceUnavailable)
-			_, _ = w.Write([]byte("api is not ready"))
-			return
-		}
-		w.WriteHeader(http.StatusOK)
-		_, _ = w.Write([]byte("ready"))
-	})
+	<-ctx.Done()
+	stop()
+	slog.Info("shutting down gracefully, press Ctrl+C again to force")
 
-	router.Mount("/auth", authRoutes(authProvider, sessions, allowedOrigins))
-	router.Mount("/api", protectedRoutes(authProvider, sessions, allowedOrigins))
+	shutdownCtx, cancel := context.WithTimeout(context.Background(), 30*time.Second)
+	defer cancel()
 
-	return Server{
-		Mux: router,
-	}, nil
-}
-
-func authRoutes(provider *auth.Provider, sessions *valkey.SessionStore, allowedOrigins []string) http.Handler {
-	r := chi.NewRouter()
-	r.Use(middleware.RequestID)
-	r.Use(middleware.RealIP)
-	r.Use(middleware.Recoverer)
-	r.Use(middleware.URLFormat)
-	r.Use(middleware.Timeout(10 * time.Second))
-	r.Use(httprate.LimitByIP(100, time.Minute))
-	r.Use(CorsHandler(allowedOrigins))
-	r.Use(SecureOptions())
-	r.Use(CacheControl)
-	provider.RegisterRoutes(sessions, r)
-	return r
-}
-
-func protectedRoutes(provider *auth.Provider, sessions *valkey.SessionStore, allowedOrigins []string) http.Handler {
-	r := chi.NewRouter()
-	r.Use(middleware.RequestID)
-	r.Use(middleware.RealIP)
-	r.Use(middleware.Recoverer)
-	r.Use(middleware.URLFormat)
-	r.Use(middleware.Timeout(10 * time.Second))
-	r.Use(CorsHandler(allowedOrigins))
-	r.Use(SecureOptions())
-	r.Use(CacheControl)
-	r.Use(auth.AuthMiddleware(provider, sessions))
-	return r
-}
-
-func (s Server) Handle(route string, handler http.Handler) {
-	s.Mux.Handle(route, handler)
-}
-
-func (s Server) Run() {
-	ready = true
-	slog.Info("starting server", "addr", "0.0.0.0:8080")
-	err := http.ListenAndServe("0.0.0.0:8080", s.Mux)
-	if err != nil {
-		slog.Error("server failed", "error", err)
-		os.Exit(1)
+	if err := srv.Shutdown(shutdownCtx); err != nil {
+		exit(fmt.Errorf("server forced to shutdown: %w", err))
 	}
+
+	slog.Info("server exited")
 }
 
-func SecureOptions() func(http.Handler) http.Handler {
-	options := secure.Options{
-		STSSeconds:            31536000,
-		STSIncludeSubdomains:  true,
-		STSPreload:            true,
-		FrameDeny:             true,
-		ForceSTSHeader:        true,
-		ContentTypeNosniff:    true,
-		BrowserXssFilter:      true,
-		CustomBrowserXssValue: "0",
-		ContentSecurityPolicy: "default-src 'self'; frame-ancestors 'none'",
-	}
-	return secure.New(options).Handler
-}
-
-func CacheControl(next http.Handler) http.Handler {
-	return http.HandlerFunc(func(rw http.ResponseWriter, req *http.Request) {
-		headers := rw.Header()
-		headers.Set("Cache-Control", "no-cache, no-store, max-age=0, must-revalidate")
-		headers.Set("Pragma", "no-cache")
-		headers.Set("Expires", "0")
-		next.ServeHTTP(rw, req)
-	})
-}
-
-func CorsHandler(allowedOrigins []string) func(http.Handler) http.Handler {
-	c := cors.New(cors.Options{
-		AllowedOrigins:   allowedOrigins,
-		AllowedMethods:   []string{"HEAD", "GET", "POST", "OPTIONS"},
-		AllowedHeaders:   []string{"Origin", "Accept", "Authorization", "Content-Type", "X-CSRF-Token"},
-		AllowCredentials: true,
-		MaxAge:           3599,
-	})
-	return c.Handler
-}
-
-func getAllowedOrigins() ([]string, error) {
-	frontendURL := os.Getenv("FRONTEND_URL")
-	if frontendURL == "" {
-		return nil, errors.New("FRONTEND_URL environment variable is required")
-	}
-	return []string{frontendURL}, nil
+func exit(err error) {
+	slog.Error(err.Error())
+	os.Exit(1)
 }
