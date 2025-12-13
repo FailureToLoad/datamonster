@@ -69,7 +69,7 @@ identity_providers:
         public: false
         authorization_policy: 'one_factor'
         redirect_uris:
-          - 'http://localhost:8000/auth/callback'
+          - 'http://localhost:3000/auth/callback'
         scopes:
           - 'openid'
           - 'profile'
