@@ -9,13 +9,16 @@ import (
 	"net/url"
 	"strings"
 	"time"
+
+	"github.com/failuretoload/datamonster/request"
 )
 
-type contextKey string
-
-const (
-	sessionDataKey contextKey = "sessionData"
-)
+type SessionData struct {
+	AccessToken  string `json:"access_token"`
+	RefreshToken string `json:"refresh_token"`
+	IDToken      string `json:"id_token"`
+	UserID       string `json:"user_id"`
+}
 
 type SessionStore interface {
 	Delete(ctx context.Context, sessionID string) error
@@ -102,7 +105,7 @@ func (a Authorizer) AuthorizeRequest(next http.Handler) http.Handler {
 			return
 		}
 
-		ctx := context.WithValue(r.Context(), sessionDataKey, &session)
+		ctx := request.SetUserID(r.Context(), session.UserID)
 		next.ServeHTTP(w, r.WithContext(ctx))
 	})
 }

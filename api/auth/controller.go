@@ -22,13 +22,6 @@ const (
 	sessionCookieName = "dm_session"
 )
 
-type SessionData struct {
-	AccessToken  string `json:"access_token"`
-	RefreshToken string `json:"refresh_token"`
-	IDToken      string `json:"id_token"`
-	UserID       string `json:"user_id"`
-}
-
 type Claims struct {
 	Subject string `json:"sub"`
 }
