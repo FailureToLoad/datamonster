@@ -7,6 +7,7 @@ import (
 	"net/http"
 	"net/http/httptest"
 	"os"
+	"strings"
 	"testing"
 
 	"github.com/failuretoload/datamonster/server"
@@ -134,6 +135,76 @@ func TestGetSettlements_Unauthorized(t *testing.T) {
 	requester.Unauthorized()
 
 	req := httptest.NewRequest(http.MethodGet, "/api/settlements", nil)
+	w := httptest.NewRecorder()
+
+	requester.DoRequest(w, req)
+
+	assert.Equal(t, http.StatusUnauthorized, w.Code)
+}
+
+func TestCreateSettlement_Success(t *testing.T) {
+	userID := "create-test-user"
+	ctx := context.Background()
+	t.Cleanup(func() {
+		dbContainer.PGPool.Exec(ctx, "DELETE FROM campaign.settlement WHERE owner = $1", userID)
+	})
+
+	requester.Authorized()
+	requester.ExpectUserID(userID)
+
+	body := `{"name":"New Settlement"}`
+	req := httptest.NewRequest(http.MethodPost, "/api/settlements", strings.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+
+	requester.DoRequest(w, req)
+
+	require.Equal(t, http.StatusOK, w.Code)
+
+	var settlementID int
+	require.NoError(t, json.NewDecoder(w.Body).Decode(&settlementID))
+	assert.Greater(t, settlementID, 0)
+
+	var name string
+	err := dbContainer.PGPool.QueryRow(ctx, "SELECT name FROM campaign.settlement WHERE id = $1", settlementID).Scan(&name)
+	require.NoError(t, err)
+	assert.Equal(t, "New Settlement", name)
+}
+
+func TestCreateSettlement_MissingName(t *testing.T) {
+	requester.Authorized()
+	requester.ExpectUserID("missing-name-user")
+
+	body := `{}`
+	req := httptest.NewRequest(http.MethodPost, "/api/settlements", strings.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+
+	requester.DoRequest(w, req)
+
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+}
+
+func TestCreateSettlement_InvalidJSON(t *testing.T) {
+	requester.Authorized()
+	requester.ExpectUserID("invalid-json-user")
+
+	body := `{invalid json}`
+	req := httptest.NewRequest(http.MethodPost, "/api/settlements", strings.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+
+	requester.DoRequest(w, req)
+
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+}
+
+func TestCreateSettlement_Unauthorized(t *testing.T) {
+	requester.Unauthorized()
+
+	body := `{"name":"Unauthorized Settlement"}`
+	req := httptest.NewRequest(http.MethodPost, "/api/settlements", strings.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
 
 	requester.DoRequest(w, req)

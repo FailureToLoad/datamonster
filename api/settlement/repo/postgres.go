@@ -21,8 +21,14 @@ type settlement struct {
 }
 
 const (
-	table = "campaign.settlement"
-	owner = "owner"
+	table               = "campaign.settlement"
+	owner               = "owner"
+	id                  = "id"
+	name                = "name"
+	survivalLimit       = "survival_limit"
+	departingSurvival   = "departing_survival"
+	collectiveCognition = "collective_cognition"
+	year                = "year"
 )
 
 type Postgres struct {
@@ -54,14 +60,34 @@ func (r Postgres) All(ctx context.Context, userID string) ([]domain.Settlement, 
 		return nil, nil
 	}
 
-	return convertList(settlements), nil
+	return toDTOList(settlements), nil
 }
 
-func convertList(settlements []settlement) []domain.Settlement {
+func (r Postgres) Insert(ctx context.Context, s domain.Settlement) (int, error) {
+	query := fmt.Sprintf(
+		"INSERT INTO %s (%s, %s, %s, %s, %s, %s) VALUES ($1, $2, $3, $4, $5, $6) RETURNING %s",
+		table, owner, name, survivalLimit, departingSurvival, collectiveCognition, year, id,
+	)
+
+	var id int32
+	err := r.db.QueryRow(ctx, query,
+		s.Owner,
+		s.Name,
+		s.SurvivalLimit,
+		s.DepartingSurvival,
+		s.CollectiveCognition,
+		s.CurrentYear,
+	).Scan(&id)
+
+	return int(id), err
+}
+
+func toDTOList(settlements []settlement) []domain.Settlement {
 	var settlementDTOs []domain.Settlement
 	for _, s := range settlements {
 		dto := domain.Settlement{
 			ID:                  s.ID,
+			Owner:               s.Owner,
 			Name:                s.Name,
 			SurvivalLimit:       s.SurvivalLimit,
 			DepartingSurvival:   s.DepartingSurvival,

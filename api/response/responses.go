@@ -2,6 +2,7 @@ package response
 
 import (
 	"encoding/json"
+	"errors"
 	"log/slog"
 	"net/http"
 )
@@ -21,11 +22,17 @@ func writeJSON(rw http.ResponseWriter, status int, data any) {
 }
 
 func BadRequest(rw http.ResponseWriter, reason string, err error) {
+	if err == nil {
+		err = errors.New(reason)
+	}
 	slog.Error("bad request", slog.Any("error", err))
 	writeJSON(rw, http.StatusBadRequest, reason)
 }
 
 func InternalServerError(rw http.ResponseWriter, reason string, err error) {
+	if err == nil {
+		err = errors.New(reason)
+	}
 	slog.Error("internal server error", slog.Any("error", err))
 	writeJSON(rw, http.StatusInternalServerError, reason)
 }
