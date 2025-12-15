@@ -1,0 +1,142 @@
+package settlement_test
+
+import (
+	"context"
+	"encoding/json"
+	"log"
+	"net/http"
+	"net/http/httptest"
+	"os"
+	"testing"
+
+	"github.com/failuretoload/datamonster/server"
+	"github.com/failuretoload/datamonster/settlement"
+	"github.com/failuretoload/datamonster/settlement/domain"
+	"github.com/failuretoload/datamonster/settlement/repo"
+	"github.com/failuretoload/datamonster/testenv"
+	"github.com/stretchr/testify/assert"
+	"github.com/stretchr/testify/require"
+)
+
+var (
+	dbContainer *testenv.DBContainer
+	requester   *testenv.Requester
+)
+
+func TestMain(m *testing.M) {
+	var err error
+	dbContainer, err = testenv.NewDBContainer(context.Background())
+	if err != nil {
+		log.Fatalf("unable to set up test env for settlement tests: %v", err)
+	}
+	defer dbContainer.Cleanup()
+
+	repo, err := repo.New(dbContainer.PGPool)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	controller, err := settlement.NewController(repo)
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	requester, err = testenv.NewRequester([]server.Controller{controller})
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	exitCode := m.Run()
+	os.Exit(exitCode)
+}
+
+func TestGetSettlements_Empty(t *testing.T) {
+	requester.Authorized()
+	requester.ExpectUserID("user-with-no-settlements")
+
+	req := httptest.NewRequest(http.MethodGet, "/api/settlements", nil)
+	w := httptest.NewRecorder()
+
+	requester.DoRequest(w, req)
+
+	assert.Equal(t, http.StatusOK, w.Code)
+	assert.Equal(t, "[]", w.Body.String())
+}
+
+func TestGetSettlements_ReturnsUserSettlements(t *testing.T) {
+	userID := "test-user-1"
+	ctx := context.Background()
+
+	_, err := dbContainer.PGPool.Exec(ctx, `
+		INSERT INTO campaign.settlement (owner, name, survival_limit, departing_survival, collective_cognition, year)
+		VALUES ($1, 'First Settlement', 1, 1, 0, 1),
+		       ($1, 'Second Settlement', 2, 2, 1, 5)
+	`, userID)
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		dbContainer.PGPool.Exec(ctx, "DELETE FROM campaign.settlement WHERE owner = $1", userID)
+	})
+
+	requester.Authorized()
+	requester.ExpectUserID(userID)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/settlements", nil)
+	w := httptest.NewRecorder()
+
+	requester.DoRequest(w, req)
+
+	require.Equal(t, http.StatusOK, w.Code)
+
+	var settlements []domain.Settlement
+	require.NoError(t, json.NewDecoder(w.Body).Decode(&settlements))
+	require.Len(t, settlements, 2)
+
+	names := map[string]bool{}
+	for _, s := range settlements {
+		names[s.Name] = true
+	}
+	assert.True(t, names["First Settlement"], "expected 'First Settlement' in results")
+	assert.True(t, names["Second Settlement"], "expected 'Second Settlement' in results")
+}
+
+func TestGetSettlements_IsolatesUserData(t *testing.T) {
+	ctx := context.Background()
+	user1 := "isolation-user-1"
+	user2 := "isolation-user-2"
+
+	_, err := dbContainer.PGPool.Exec(ctx, `
+		INSERT INTO campaign.settlement (owner, name, survival_limit, departing_survival, collective_cognition, year)
+		VALUES ($1, 'User1 Settlement', 1, 1, 0, 1),
+		       ($2, 'User2 Settlement', 1, 1, 0, 1)
+	`, user1, user2)
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		dbContainer.PGPool.Exec(ctx, "DELETE FROM campaign.settlement WHERE owner IN ($1, $2)", user1, user2)
+	})
+
+	requester.Authorized()
+	requester.ExpectUserID(user1)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/settlements", nil)
+	w := httptest.NewRecorder()
+
+	requester.DoRequest(w, req)
+
+	require.Equal(t, http.StatusOK, w.Code)
+
+	var settlements []domain.Settlement
+	require.NoError(t, json.NewDecoder(w.Body).Decode(&settlements))
+	require.Len(t, settlements, 1)
+	assert.Equal(t, "User1 Settlement", settlements[0].Name)
+}
+
+func TestGetSettlements_Unauthorized(t *testing.T) {
+	requester.Unauthorized()
+
+	req := httptest.NewRequest(http.MethodGet, "/api/settlements", nil)
+	w := httptest.NewRecorder()
+
+	requester.DoRequest(w, req)
+
+	assert.Equal(t, http.StatusUnauthorized, w.Code)
+}

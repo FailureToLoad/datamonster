@@ -20,7 +20,11 @@ type AuthMiddleware interface {
 	AuthorizeRequest(next http.Handler) http.Handler
 }
 
-func New(authController AuthController, authMiddleware AuthMiddleware, origins []string) (*http.Server, error) {
+type Controller interface {
+	RegisterRoutes(r chi.Router)
+}
+
+func New(authController AuthController, authMiddleware AuthMiddleware, origins []string, controllers []Controller) (*http.Server, error) {
 	if authController == nil {
 		return nil, errors.New("auth controller cannot be nil")
 	}
@@ -56,7 +60,7 @@ func New(authController AuthController, authMiddleware AuthMiddleware, origins [
 	})
 
 	router.Mount("/auth", authRoutes(authController, origins))
-	router.Mount("/api", protectedRoutes(authMiddleware.AuthorizeRequest, origins))
+	router.Mount("/api", protectedRoutes(authMiddleware.AuthorizeRequest, origins, controllers))
 
 	return &http.Server{
 		Addr:           "0.0.0.0:8080",
@@ -74,15 +78,19 @@ func authRoutes(ac AuthController, allowedOrigins []string) *chi.Mux {
 	return r
 }
 
-func protectedRoutes(authMiddleware func(next http.Handler) http.Handler, allowedOrigins []string) *chi.Mux {
+func protectedRoutes(authMiddleware func(next http.Handler) http.Handler, allowedOrigins []string, controllers []Controller) *chi.Mux {
 	r := baseRouter(allowedOrigins)
 	r.Use(authMiddleware)
 
-	r.Get("/me", func(w http.ResponseWriter, r *http.Request) {
+	r.Get("/me", func(w http.ResponseWriter, _ *http.Request) {
 		w.Header().Set("Content-Type", "application/json")
 		w.WriteHeader(http.StatusOK)
 		w.Write([]byte(`{"authenticated":true}`))
 	})
+
+	for _, controller := range controllers {
+		controller.RegisterRoutes(r)
+	}
 
 	return r
 }

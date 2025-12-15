@@ -1,71 +1,44 @@
 package response
 
 import (
-	"context"
 	"encoding/json"
 	"log/slog"
 	"net/http"
 )
 
-func writeJSON(rw http.ResponseWriter, status int, data any) error {
-	js, err := json.Marshal(data)
-	if err != nil {
-		return err
+func writeJSON(rw http.ResponseWriter, status int, data any) {
+	js, jsonErr := json.Marshal(data)
+	if jsonErr != nil {
+		slog.Error("could not marshal json response", slog.Any("error", jsonErr), slog.Int("targetStatus", status))
 	}
 
-	rw.Header().Set("Content-Type", "application/json")
 	rw.WriteHeader(status)
-	_, err = rw.Write(js)
-	if err != nil {
-		return err
+	rw.Header().Set("Content-Type", "application/json")
+	_, writeErr := rw.Write(js)
+	if writeErr != nil {
+		slog.Error("could not write response", slog.Any("error", writeErr), slog.Int("targetStatus", status))
 	}
-	return nil
 }
 
-func BadRequest(ctx context.Context, rw http.ResponseWriter, reason string, err error) {
-	writeError := writeJSON(rw, http.StatusBadRequest, reason)
-	if writeError != nil {
-		slog.Log(ctx, slog.LevelWarn, "error producing BadRequest response", slog.Any("error", writeError))
-	}
-	var content any
-	if err != nil {
-		content = slog.Any("error", err)
-	}
-	slog.Log(ctx, slog.LevelError, "bad request", content)
+func BadRequest(rw http.ResponseWriter, reason string, err error) {
+	slog.Error("bad request", slog.Any("error", err))
+	writeJSON(rw, http.StatusBadRequest, reason)
 }
 
-func InternalServerError(ctx context.Context, rw http.ResponseWriter, reason string, err error) {
-	writeError := writeJSON(rw, http.StatusInternalServerError, reason)
-	if writeError != nil {
-		slog.Log(ctx, slog.LevelWarn, "error producing InternalServerError response", slog.Any("error", writeError))
-	}
-	var content any
-	if err != nil {
-		content = slog.Any("error", err)
-	}
-	slog.Log(ctx, slog.LevelError, "internal server error", content)
+func InternalServerError(rw http.ResponseWriter, reason string, err error) {
+	slog.Error("internal server error", slog.Any("error", err))
+	writeJSON(rw, http.StatusInternalServerError, reason)
 }
 
-func Unauthorized(ctx context.Context, rw http.ResponseWriter, err error) {
-	writeError := writeJSON(rw, http.StatusUnauthorized, "Unauthorized")
-	if writeError != nil {
-		slog.Log(ctx, slog.LevelWarn, "error producing InternalServerError response", slog.Any("error", writeError))
-	}
-	slog.Log(ctx, slog.LevelError, "unauthorized", slog.Any("error", err))
+func Unauthorized(rw http.ResponseWriter, err error) {
+	slog.Error("unauthorized", slog.Any("error", err))
+	writeJSON(rw, http.StatusUnauthorized, "Unauthorized")
 }
 
-func NoContent(ctx context.Context, rw http.ResponseWriter) {
-	writeError := writeJSON(rw, http.StatusNoContent, nil)
-	if writeError != nil {
-		slog.Log(ctx, slog.LevelWarn, "error producing InternalServerError response", slog.Any("error", writeError))
-	}
-	slog.Log(ctx, slog.LevelInfo, "no content")
+func NoContent(rw http.ResponseWriter) {
+	rw.WriteHeader(http.StatusNoContent)
 }
 
-func OK(ctx context.Context, rw http.ResponseWriter, data any) {
-	writeError := writeJSON(rw, http.StatusOK, data)
-	if writeError != nil {
-		slog.Log(ctx, slog.LevelError, "error producing OK response", slog.Any("error", writeError))
-	}
-	slog.Log(ctx, slog.LevelInfo, "ok")
+func OK(rw http.ResponseWriter, data any) {
+	writeJSON(rw, http.StatusOK, data)
 }

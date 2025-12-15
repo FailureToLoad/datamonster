@@ -1,4 +1,4 @@
-package valkey
+package session
 
 import (
 	"context"
@@ -9,11 +9,19 @@ import (
 	"github.com/valkey-io/valkey-go"
 )
 
-type Client struct {
-	client valkey.Client
+func getEnvOrDefault(key, defaultValue string) string {
+	if value := os.Getenv(key); value != "" {
+		return value
+	}
+	return defaultValue
 }
 
-func NewClient(ctx context.Context) (*Client, error) {
+type SessionStore struct {
+	client valkey.Client
+	prefix string
+}
+
+func NewSessionStore(ctx context.Context) (*SessionStore, error) {
 	addr := getEnvOrDefault("VALKEY_ADDR", "localhost:6379")
 	password := os.Getenv("VALKEY_PASSWORD")
 
@@ -30,31 +38,10 @@ func NewClient(ctx context.Context) (*Client, error) {
 	if err := client.Do(ctx, client.B().Ping().Build()).Error(); err != nil {
 		return nil, fmt.Errorf("failed to ping valkey: %w", err)
 	}
-
-	return &Client{client: client}, nil
-}
-
-func (c *Client) Close() {
-	c.client.Close()
-}
-
-func getEnvOrDefault(key, defaultValue string) string {
-	if value := os.Getenv(key); value != "" {
-		return value
-	}
-	return defaultValue
-}
-
-type SessionStore struct {
-	client *Client
-	prefix string
-}
-
-func NewSessionStore(client *Client) *SessionStore {
 	return &SessionStore{
 		client: client,
 		prefix: "session:",
-	}
+	}, nil
 }
 
 func (s *SessionStore) key(sessionID string) string {
@@ -62,14 +49,14 @@ func (s *SessionStore) key(sessionID string) string {
 }
 
 func (s *SessionStore) Set(ctx context.Context, sessionID string, data []byte, ttl time.Duration) error {
-	return s.client.client.Do(ctx,
-		s.client.client.B().Set().Key(s.key(sessionID)).Value(string(data)).Ex(ttl).Build(),
+	return s.client.Do(ctx,
+		s.client.B().Set().Key(s.key(sessionID)).Value(string(data)).Ex(ttl).Build(),
 	).Error()
 }
 
 func (s *SessionStore) Exists(ctx context.Context, sessionID string) (bool, error) {
-	result, err := s.client.client.Do(ctx,
-		s.client.client.B().Exists().Key(s.key(sessionID)).Build(),
+	result, err := s.client.Do(ctx,
+		s.client.B().Exists().Key(s.key(sessionID)).Build(),
 	).AsInt64()
 	if err != nil {
 		return false, err
@@ -78,8 +65,8 @@ func (s *SessionStore) Exists(ctx context.Context, sessionID string) (bool, erro
 }
 
 func (s *SessionStore) Get(ctx context.Context, sessionID string) ([]byte, error) {
-	result, err := s.client.client.Do(ctx,
-		s.client.client.B().Get().Key(s.key(sessionID)).Build(),
+	result, err := s.client.Do(ctx,
+		s.client.B().Get().Key(s.key(sessionID)).Build(),
 	).AsBytes()
 	if err != nil {
 		if valkey.IsValkeyNil(err) {
@@ -91,7 +78,11 @@ func (s *SessionStore) Get(ctx context.Context, sessionID string) ([]byte, error
 }
 
 func (s *SessionStore) Delete(ctx context.Context, sessionID string) error {
-	return s.client.client.Do(ctx,
-		s.client.client.B().Del().Key(s.key(sessionID)).Build(),
+	return s.client.Do(ctx,
+		s.client.B().Del().Key(s.key(sessionID)).Build(),
 	).Error()
+}
+
+func (s *SessionStore) Close() {
+	s.client.Close()
 }

@@ -13,7 +13,10 @@ import (
 
 	"github.com/failuretoload/datamonster/auth"
 	"github.com/failuretoload/datamonster/server"
-	"github.com/failuretoload/datamonster/store/valkey"
+	"github.com/failuretoload/datamonster/settlement"
+	settlementrepo "github.com/failuretoload/datamonster/settlement/repo"
+	"github.com/failuretoload/datamonster/store/session"
+	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 func main() {
@@ -25,13 +28,10 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	valkeyClient, err := valkey.NewClient(ctx)
+	sessions, err := session.NewSessionStore(ctx)
 	if err != nil {
-		exit(fmt.Errorf("failed to initialize valkey client: %w", err))
+		exit(fmt.Errorf("failed to initialize session store: %w", err))
 	}
-	defer valkeyClient.Close()
-
-	sessions := valkey.NewSessionStore(valkeyClient)
 	authConfig := auth.Config{
 		ClientID:      os.Getenv("CLIENT_ID"),
 		ClientSecret:  os.Getenv("CLIENT_SECRET"),
@@ -62,7 +62,22 @@ func main() {
 		exit(errors.New("CLIENT_URL environment variable is required"))
 	}
 
-	srv, err := server.New(authController, authorizer, []string{clientURL})
+	dbsn := os.Getenv("DBSN")
+	if clientURL == "" {
+		exit(errors.New("DBSN environment variable is required"))
+	}
+
+	pool, err := pgxpool.New(ctx, dbsn)
+	if err != nil {
+		exit(fmt.Errorf("failed to connect to postgres: %w", err))
+	}
+
+	controllers, err := makeControllers(pool)
+	if err != nil {
+		exit(fmt.Errorf("failed to create controller: %w", err))
+	}
+
+	srv, err := server.New(authController, authorizer, []string{clientURL}, controllers)
 	if err != nil {
 		exit(fmt.Errorf("failed to create server: %w", err))
 	}
@@ -92,4 +107,19 @@ func main() {
 func exit(err error) {
 	slog.Error(err.Error())
 	os.Exit(1)
+}
+
+func makeControllers(pool *pgxpool.Pool) ([]server.Controller, error) {
+	settlementRepo, err := settlementrepo.New(pool)
+	if err != nil {
+		return nil, err
+	}
+	settlementController, err := settlement.NewController(settlementRepo)
+	if err != nil {
+		return nil, err
+	}
+
+	return []server.Controller{
+		settlementController,
+	}, nil
 }
