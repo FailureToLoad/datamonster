@@ -15,7 +15,8 @@ import (
 	"github.com/failuretoload/datamonster/server"
 	"github.com/failuretoload/datamonster/settlement"
 	settlementrepo "github.com/failuretoload/datamonster/settlement/repo"
-	"github.com/failuretoload/datamonster/store/session"
+	"github.com/failuretoload/datamonster/store/cache"
+	"github.com/failuretoload/datamonster/store/postgres"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -28,7 +29,7 @@ func main() {
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
 
-	sessions, err := session.NewSessionStore(ctx)
+	sessions, err := cache.NewSessionStore(ctx)
 	if err != nil {
 		exit(fmt.Errorf("failed to initialize session store: %w", err))
 	}
@@ -57,24 +58,19 @@ func main() {
 		exit(fmt.Errorf("failed to initialize authorizer: %w", err))
 	}
 
-	clientURL := os.Getenv("CLIENT_URL")
-	if clientURL == "" {
-		exit(errors.New("CLIENT_URL environment variable is required"))
-	}
-
-	dbsn := os.Getenv("DBSN")
-	if clientURL == "" {
-		exit(errors.New("DBSN environment variable is required"))
-	}
-
-	pool, err := pgxpool.New(ctx, dbsn)
+	pool, err := postgres.NewConnectionPool(ctx)
 	if err != nil {
-		exit(fmt.Errorf("failed to connect to postgres: %w", err))
+		exit(fmt.Errorf("failed to initialize connection pool: %w", err))
 	}
 
 	controllers, err := makeControllers(pool)
 	if err != nil {
 		exit(fmt.Errorf("failed to create controller: %w", err))
+	}
+
+	clientURL := os.Getenv("CLIENT_URL")
+	if clientURL == "" {
+		exit(errors.New("CLIENT_URL environment variable is required"))
 	}
 
 	srv, err := server.New(authController, authorizer, []string{clientURL}, controllers)

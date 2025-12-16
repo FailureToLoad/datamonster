@@ -1,4 +1,4 @@
-package session
+package cache
 
 import (
 	"context"
@@ -9,22 +9,18 @@ import (
 	"github.com/valkey-io/valkey-go"
 )
 
-func getEnvOrDefault(key, defaultValue string) string {
-	if value := os.Getenv(key); value != "" {
-		return value
-	}
-	return defaultValue
-}
-
 type SessionStore struct {
 	client valkey.Client
 	prefix string
 }
 
 func NewSessionStore(ctx context.Context) (*SessionStore, error) {
-	addr := getEnvOrDefault("VALKEY_ADDR", "localhost:6379")
-	password := os.Getenv("VALKEY_PASSWORD")
+	addr := os.Getenv("VALKEY_ADDR")
+	if addr == "" {
+		return nil, fmt.Errorf("cache address is required")
+	}
 
+	password := os.Getenv("VALKEY_PASSWORD")
 	opts := valkey.ClientOption{
 		InitAddress: []string{addr},
 		Password:    password,
