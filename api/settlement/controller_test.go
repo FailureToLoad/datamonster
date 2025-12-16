@@ -15,6 +15,7 @@ import (
 	"github.com/failuretoload/datamonster/settlement/domain"
 	"github.com/failuretoload/datamonster/settlement/repo"
 	"github.com/failuretoload/datamonster/testenv"
+	"github.com/gofrs/uuid/v5"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
 )
@@ -95,6 +96,7 @@ func TestGetSettlements_ReturnsUserSettlements(t *testing.T) {
 	names := map[string]bool{}
 	for _, s := range settlements {
 		names[s.Name] = true
+		assert.NotEqual(t, uuid.Nil, s.ID, "expected settlement to have a valid external_id")
 	}
 	assert.True(t, names["First Settlement"], "expected 'First Settlement' in results")
 	assert.True(t, names["Second Settlement"], "expected 'Second Settlement' in results")
@@ -129,6 +131,7 @@ func TestGetSettlements_IsolatesUserData(t *testing.T) {
 	require.NoError(t, json.NewDecoder(w.Body).Decode(&settlements))
 	require.Len(t, settlements, 1)
 	assert.Equal(t, "User1 Settlement", settlements[0].Name)
+	assert.NotEqual(t, uuid.Nil, settlements[0].ID, "expected settlement to have a valid external_id")
 }
 
 func TestGetSettlements_Unauthorized(t *testing.T) {

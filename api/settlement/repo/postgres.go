@@ -6,18 +6,20 @@ import (
 	"fmt"
 
 	"github.com/failuretoload/datamonster/settlement/domain"
+	"github.com/gofrs/uuid/v5"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
 type settlement struct {
-	ID                  int    `db:"id"`
-	Owner               string `db:"owner"`
-	Name                string `db:"name"`
-	SurvivalLimit       int    `db:"survival_limit"`
-	DepartingSurvival   int    `db:"departing_survival"`
-	CollectiveCognition int    `db:"collective_cognition"`
-	CurrentYear         int    `db:"year"`
+	ID                  int       `db:"id"`
+	ExternalID          uuid.UUID `db:"external_id"`
+	Owner               string    `db:"owner"`
+	Name                string    `db:"name"`
+	SurvivalLimit       int       `db:"survival_limit"`
+	DepartingSurvival   int       `db:"departing_survival"`
+	CollectiveCognition int       `db:"collective_cognition"`
+	CurrentYear         int       `db:"year"`
 }
 
 const (
@@ -86,7 +88,7 @@ func toDTOList(settlements []settlement) []domain.Settlement {
 	var settlementDTOs []domain.Settlement
 	for _, s := range settlements {
 		dto := domain.Settlement{
-			ID:                  s.ID,
+			ID:                  s.ExternalID,
 			Owner:               s.Owner,
 			Name:                s.Name,
 			SurvivalLimit:       s.SurvivalLimit,

@@ -53,6 +53,7 @@ func NewDBContainer(ctx context.Context) (*DBContainer, error) {
 
 		CREATE TABLE campaign.settlement (
 			id SERIAL PRIMARY KEY,
+			external_id UUID NOT NULL DEFAULT gen_random_uuid(),
 			owner VARCHAR(255) NOT NULL,
 			name VARCHAR(255) NOT NULL,
 			survival_limit INTEGER NOT NULL,
