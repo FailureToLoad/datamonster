@@ -214,3 +214,103 @@ func TestCreateSettlement_Unauthorized(t *testing.T) {
 
 	assert.Equal(t, http.StatusUnauthorized, w.Code)
 }
+
+func TestGetSettlement_Success(t *testing.T) {
+	userID := "get-single-user"
+	ctx := context.Background()
+
+	var externalID uuid.UUID
+	err := dbContainer.PGPool.QueryRow(ctx, `
+		INSERT INTO campaign.settlement (owner, name, survival_limit, departing_survival, collective_cognition, year)
+		VALUES ($1, 'Test Settlement', 5, 3, 2, 10)
+		RETURNING external_id
+	`, userID).Scan(&externalID)
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		dbContainer.PGPool.Exec(ctx, "DELETE FROM campaign.settlement WHERE owner = $1", userID)
+	})
+
+	requester.Authorized()
+	requester.ExpectUserID(userID)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/settlements/"+externalID.String(), nil)
+	w := httptest.NewRecorder()
+
+	requester.DoRequest(w, req)
+
+	require.Equal(t, http.StatusOK, w.Code)
+
+	var s domain.Settlement
+	require.NoError(t, json.NewDecoder(w.Body).Decode(&s))
+	assert.Equal(t, externalID, s.ID)
+	assert.Equal(t, "Test Settlement", s.Name)
+	assert.Equal(t, 5, s.SurvivalLimit)
+	assert.Equal(t, 3, s.DepartingSurvival)
+	assert.Equal(t, 2, s.CollectiveCognition)
+	assert.Equal(t, 10, s.CurrentYear)
+}
+
+func TestGetSettlement_NotFound(t *testing.T) {
+	userID := "get-notfound-user"
+
+	requester.Authorized()
+	requester.ExpectUserID(userID)
+
+	nonExistentID := uuid.Must(uuid.NewV4())
+	req := httptest.NewRequest(http.MethodGet, "/api/settlements/"+nonExistentID.String(), nil)
+	w := httptest.NewRecorder()
+
+	requester.DoRequest(w, req)
+
+	assert.Equal(t, http.StatusInternalServerError, w.Code)
+}
+
+func TestGetSettlement_InvalidID(t *testing.T) {
+	requester.Authorized()
+	requester.ExpectUserID("invalid-id-user")
+
+	req := httptest.NewRequest(http.MethodGet, "/api/settlements/not-a-uuid", nil)
+	w := httptest.NewRecorder()
+
+	requester.DoRequest(w, req)
+
+	assert.Equal(t, http.StatusBadRequest, w.Code)
+}
+
+func TestGetSettlement_Unauthorized(t *testing.T) {
+	requester.Unauthorized()
+
+	req := httptest.NewRequest(http.MethodGet, "/api/settlements/"+uuid.Must(uuid.NewV4()).String(), nil)
+	w := httptest.NewRecorder()
+
+	requester.DoRequest(w, req)
+
+	assert.Equal(t, http.StatusUnauthorized, w.Code)
+}
+
+func TestGetSettlement_IsolatesUserData(t *testing.T) {
+	ctx := context.Background()
+	user1 := "get-isolation-user-1"
+	user2 := "get-isolation-user-2"
+
+	var user2SettlementID uuid.UUID
+	err := dbContainer.PGPool.QueryRow(ctx, `
+		INSERT INTO campaign.settlement (owner, name, survival_limit, departing_survival, collective_cognition, year)
+		VALUES ($1, 'User2 Private Settlement', 1, 1, 0, 1)
+		RETURNING external_id
+	`, user2).Scan(&user2SettlementID)
+	require.NoError(t, err)
+	t.Cleanup(func() {
+		dbContainer.PGPool.Exec(ctx, "DELETE FROM campaign.settlement WHERE owner IN ($1, $2)", user1, user2)
+	})
+
+	requester.Authorized()
+	requester.ExpectUserID(user1)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/settlements/"+user2SettlementID.String(), nil)
+	w := httptest.NewRecorder()
+
+	requester.DoRequest(w, req)
+
+	assert.Equal(t, http.StatusInternalServerError, w.Code)
+}

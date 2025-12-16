@@ -26,6 +26,7 @@ const (
 	table               = "campaign.settlement"
 	owner               = "owner"
 	id                  = "id"
+	externalID          = "external_id"
 	name                = "name"
 	survivalLimit       = "survival_limit"
 	departingSurvival   = "departing_survival"
@@ -84,19 +85,39 @@ func (r Postgres) Insert(ctx context.Context, s domain.Settlement) (int, error) 
 	return int(id), err
 }
 
+func (r Postgres) Get(ctx context.Context, userID string, settlementID uuid.UUID) (domain.Settlement, error) {
+	query := fmt.Sprintf("SELECT * FROM %s where %s = $1 AND %s = $2", table, owner, externalID)
+
+	row, err := r.db.Query(ctx, query, userID, settlementID)
+	if err != nil {
+		return domain.Settlement{}, err
+	}
+	defer row.Close()
+
+	s, err := pgx.CollectExactlyOneRow(row, pgx.RowToStructByName[settlement])
+	if err != nil {
+		return domain.Settlement{}, err
+	}
+
+	return toDTO(s), nil
+}
+
 func toDTOList(settlements []settlement) []domain.Settlement {
 	var settlementDTOs []domain.Settlement
 	for _, s := range settlements {
-		dto := domain.Settlement{
-			ID:                  s.ExternalID,
-			Owner:               s.Owner,
-			Name:                s.Name,
-			SurvivalLimit:       s.SurvivalLimit,
-			DepartingSurvival:   s.DepartingSurvival,
-			CollectiveCognition: s.CollectiveCognition,
-			CurrentYear:         s.CurrentYear,
-		}
-		settlementDTOs = append(settlementDTOs, dto)
+		settlementDTOs = append(settlementDTOs, toDTO(s))
 	}
 	return settlementDTOs
+}
+
+func toDTO(s settlement) domain.Settlement {
+	return domain.Settlement{
+		ID:                  s.ExternalID,
+		Owner:               s.Owner,
+		Name:                s.Name,
+		SurvivalLimit:       s.SurvivalLimit,
+		DepartingSurvival:   s.DepartingSurvival,
+		CollectiveCognition: s.CollectiveCognition,
+		CurrentYear:         s.CurrentYear,
+	}
 }

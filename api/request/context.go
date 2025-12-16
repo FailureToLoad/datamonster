@@ -3,9 +3,9 @@ package request
 import (
 	"context"
 	"net/http"
-	"strconv"
 
 	"github.com/go-chi/chi/v5"
+	"github.com/gofrs/uuid/v5"
 )
 
 const (
@@ -27,11 +27,12 @@ func SetUserID(ctx context.Context, id string) context.Context {
 	return context.WithValue(ctx, userIDKey, id)
 }
 
-func IDParam(r *http.Request) (int, error) {
-	id := chi.URLParam(r, "id")
-	val, err := strconv.ParseInt(id, 10, 32)
+func IDParam(r *http.Request) (uuid.UUID, error) {
+	rawID := chi.URLParam(r, "id")
+	id, err := uuid.FromString(rawID)
 	if err != nil {
-		return 0, err
+		return uuid.Nil, err
 	}
-	return int(val), nil
+
+	return id, nil
 }
