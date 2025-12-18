@@ -7,6 +7,7 @@ import (
 	"net/http"
 
 	"github.com/failuretoload/datamonster/server"
+	"github.com/failuretoload/datamonster/store/postgres/migrator"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
@@ -48,26 +49,8 @@ func NewDBContainer(ctx context.Context) (*DBContainer, error) {
 		return nil, fmt.Errorf("failed to connect to postgres: %s", err)
 	}
 
-	schema := `
-		CREATE SCHEMA campaign;
-
-		CREATE TABLE campaign.settlement (
-			id SERIAL PRIMARY KEY,
-			external_id UUID NOT NULL DEFAULT gen_random_uuid(),
-			owner VARCHAR(255) NOT NULL,
-			name VARCHAR(255) NOT NULL,
-			survival_limit INTEGER NOT NULL,
-			departing_survival INTEGER NOT NULL,
-			collective_cognition INTEGER NOT NULL,
-			year INTEGER NOT NULL
-		);
-
-		CREATE INDEX idx_settlement_owner ON campaign.settlement(owner);
-	`
-
-	_, err = pool.Exec(ctx, schema)
-	if err != nil {
-		return nil, fmt.Errorf("failed to execute schema: %w", err)
+	if err := migrator.Migrate(ctx, pool); err != nil {
+		return nil, fmt.Errorf("failed to run migrations: %w", err)
 	}
 
 	return &DBContainer{

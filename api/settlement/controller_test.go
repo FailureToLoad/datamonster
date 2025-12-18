@@ -70,13 +70,13 @@ func TestGetSettlements_ReturnsUserSettlements(t *testing.T) {
 	ctx := context.Background()
 
 	_, err := dbContainer.PGPool.Exec(ctx, `
-		INSERT INTO campaign.settlement (owner, name, survival_limit, departing_survival, collective_cognition, year)
+		INSERT INTO settlement (owner, name, survival_limit, departing_survival, collective_cognition, year)
 		VALUES ($1, 'First Settlement', 1, 1, 0, 1),
 		       ($1, 'Second Settlement', 2, 2, 1, 5)
 	`, userID)
 	require.NoError(t, err)
 	t.Cleanup(func() {
-		dbContainer.PGPool.Exec(ctx, "DELETE FROM campaign.settlement WHERE owner = $1", userID)
+		dbContainer.PGPool.Exec(ctx, "DELETE FROM settlement WHERE owner = $1", userID)
 	})
 
 	requester.Authorized()
@@ -108,13 +108,13 @@ func TestGetSettlements_IsolatesUserData(t *testing.T) {
 	user2 := "isolation-user-2"
 
 	_, err := dbContainer.PGPool.Exec(ctx, `
-		INSERT INTO campaign.settlement (owner, name, survival_limit, departing_survival, collective_cognition, year)
+		INSERT INTO settlement (owner, name, survival_limit, departing_survival, collective_cognition, year)
 		VALUES ($1, 'User1 Settlement', 1, 1, 0, 1),
 		       ($2, 'User2 Settlement', 1, 1, 0, 1)
 	`, user1, user2)
 	require.NoError(t, err)
 	t.Cleanup(func() {
-		dbContainer.PGPool.Exec(ctx, "DELETE FROM campaign.settlement WHERE owner IN ($1, $2)", user1, user2)
+		dbContainer.PGPool.Exec(ctx, "DELETE FROM settlement WHERE owner IN ($1, $2)", user1, user2)
 	})
 
 	requester.Authorized()
@@ -149,7 +149,7 @@ func TestCreateSettlement_Success(t *testing.T) {
 	userID := "create-test-user"
 	ctx := context.Background()
 	t.Cleanup(func() {
-		dbContainer.PGPool.Exec(ctx, "DELETE FROM campaign.settlement WHERE owner = $1", userID)
+		dbContainer.PGPool.Exec(ctx, "DELETE FROM settlement WHERE owner = $1", userID)
 	})
 
 	requester.Authorized()
@@ -169,7 +169,7 @@ func TestCreateSettlement_Success(t *testing.T) {
 	assert.Greater(t, settlementID, 0)
 
 	var name string
-	err := dbContainer.PGPool.QueryRow(ctx, "SELECT name FROM campaign.settlement WHERE id = $1", settlementID).Scan(&name)
+	err := dbContainer.PGPool.QueryRow(ctx, "SELECT name FROM settlement WHERE id = $1", settlementID).Scan(&name)
 	require.NoError(t, err)
 	assert.Equal(t, "New Settlement", name)
 }
@@ -221,13 +221,13 @@ func TestGetSettlement_Success(t *testing.T) {
 
 	var externalID uuid.UUID
 	err := dbContainer.PGPool.QueryRow(ctx, `
-		INSERT INTO campaign.settlement (owner, name, survival_limit, departing_survival, collective_cognition, year)
+		INSERT INTO settlement (owner, name, survival_limit, departing_survival, collective_cognition, year)
 		VALUES ($1, 'Test Settlement', 5, 3, 2, 10)
 		RETURNING external_id
 	`, userID).Scan(&externalID)
 	require.NoError(t, err)
 	t.Cleanup(func() {
-		dbContainer.PGPool.Exec(ctx, "DELETE FROM campaign.settlement WHERE owner = $1", userID)
+		dbContainer.PGPool.Exec(ctx, "DELETE FROM settlement WHERE owner = $1", userID)
 	})
 
 	requester.Authorized()
@@ -295,13 +295,13 @@ func TestGetSettlement_IsolatesUserData(t *testing.T) {
 
 	var user2SettlementID uuid.UUID
 	err := dbContainer.PGPool.QueryRow(ctx, `
-		INSERT INTO campaign.settlement (owner, name, survival_limit, departing_survival, collective_cognition, year)
+		INSERT INTO settlement (owner, name, survival_limit, departing_survival, collective_cognition, year)
 		VALUES ($1, 'User2 Private Settlement', 1, 1, 0, 1)
 		RETURNING external_id
 	`, user2).Scan(&user2SettlementID)
 	require.NoError(t, err)
 	t.Cleanup(func() {
-		dbContainer.PGPool.Exec(ctx, "DELETE FROM campaign.settlement WHERE owner IN ($1, $2)", user1, user2)
+		dbContainer.PGPool.Exec(ctx, "DELETE FROM settlement WHERE owner IN ($1, $2)", user1, user2)
 	})
 
 	requester.Authorized()

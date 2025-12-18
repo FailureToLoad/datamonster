@@ -58,7 +58,12 @@ func main() {
 		exit(fmt.Errorf("failed to initialize authorizer: %w", err))
 	}
 
-	pool, err := postgres.NewConnectionPool(ctx)
+	dbsn := os.Getenv("DBSN")
+	if dbsn == "" {
+		exit(fmt.Errorf("dbsn is required"))
+	}
+
+	pool, err := postgres.NewConnectionPool(ctx, dbsn)
 	if err != nil {
 		exit(fmt.Errorf("failed to initialize connection pool: %w", err))
 	}

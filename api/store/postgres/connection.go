@@ -3,19 +3,13 @@ package postgres
 import (
 	"context"
 	"fmt"
-	"os"
 
 	pgxuuid "github.com/jackc/pgx-gofrs-uuid"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-func NewConnectionPool(ctx context.Context) (*pgxpool.Pool, error) {
-	dbsn := os.Getenv("DBSN")
-	if dbsn == "" {
-		return nil, fmt.Errorf("dbsn is required")
-	}
-
+func NewConnectionPool(ctx context.Context, dbsn string) (*pgxpool.Pool, error) {
 	config, err := pgxpool.ParseConfig(dbsn)
 	if err != nil {
 		return nil, fmt.Errorf("unable to parse db config: %w", err)

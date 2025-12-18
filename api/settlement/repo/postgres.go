@@ -23,7 +23,7 @@ type settlement struct {
 }
 
 const (
-	table               = "campaign.settlement"
+	table               = "settlement"
 	owner               = "owner"
 	id                  = "id"
 	externalID          = "external_id"
