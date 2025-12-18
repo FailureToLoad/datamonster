@@ -1,4 +1,4 @@
-.PHONY: certs clean-certs valkey-new valkey-stop valkey-start valkey-kill authelia-new authelia-stop authelia-start authelia-kill
+.PHONY: certs clean-certs valkey-new valkey-kill authelia-new authelia-kill postgres-new postgres-kill
 
 CERT_DIR := local/.certs
 LOCAL_DIR := $(shell pwd)/local
@@ -43,3 +43,14 @@ authelia-new:
 
 authelia-kill:
 	podman rm -f authelia
+
+postgres-new:
+	podman run -d --name postgres \
+		-p 5432:5432 \
+		-e POSTGRES_USER=datamonster \
+		-e POSTGRES_PASSWORD=datamonster \
+		-e POSTGRES_DB=datamonster \
+		docker.io/postgres:18-alpine
+
+postgres-kill:
+	podman rm -f postgres

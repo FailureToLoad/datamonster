@@ -1,19 +1,19 @@
 import compression from "compression";
 import express from "express";
 import morgan from "morgan";
-import { createProxyMiddleware } from "http-proxy-middleware";
+import { createProxyServer } from "http-proxy-3";
 
 const BUILD_PATH = "./build/server/index.js";
-const API_URL = process.env.API_URL || "http://localhost:8080";
+const API_URL = process.env.API_URL;
 const DEVELOPMENT = process.env.NODE_ENV === "development";
-const PORT = Number.parseInt(process.env.PORT || "3000");
+const PORT = Number.parseInt(process.env.PORT);
 
 const app = express();
+const proxy = createProxyServer();
 
-app.use("/auth", createProxyMiddleware({
-  target: `${API_URL}/auth`,
-  changeOrigin: true,
-}));
+app.use("/auth", (req, res) => {
+  proxy.web(req, res, { target: `${API_URL}/auth` });
+});
 
 app.use(compression());
 app.disable("x-powered-by");

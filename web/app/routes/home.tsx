@@ -1,6 +1,6 @@
 import { redirect } from "react-router";
 import type { Route } from "./+types/home";
-import { checkAuth, AUTH_LOGIN_URL } from "~/lib/auth.server";
+import { checkAuth } from "~/lib/auth.server";
 
 export function meta({}: Route.MetaArgs) {
   return [
@@ -14,16 +14,16 @@ export async function loader({ request }: Route.LoaderArgs) {
   if (isAuthenticated) {
     return redirect("/settlements");
   }
-  return { loginUrl: AUTH_LOGIN_URL };
+  return null;
 }
 
-export default function Home({ loaderData }: Route.ComponentProps) {
+export default function Home() {
   return (
     <div className="flex min-h-screen flex-col items-center justify-center bg-background">
       <h1 className="mb-4 text-5xl font-extrabold leading-none tracking-tight">
         Datamonster
       </h1>
-      <a href={loaderData.loginUrl}>Sign In</a>
+      <a href="/auth/login">Sign In</a>
     </div>
   );
 }
