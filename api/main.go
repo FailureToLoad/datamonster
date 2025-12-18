@@ -17,6 +17,7 @@ import (
 	settlementrepo "github.com/failuretoload/datamonster/settlement/repo"
 	"github.com/failuretoload/datamonster/store/cache"
 	"github.com/failuretoload/datamonster/store/postgres"
+	"github.com/failuretoload/datamonster/store/postgres/migrator"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -66,6 +67,10 @@ func main() {
 	pool, err := postgres.NewConnectionPool(ctx, dbsn)
 	if err != nil {
 		exit(fmt.Errorf("failed to initialize connection pool: %w", err))
+	}
+
+	if err := migrator.Migrate(ctx, pool); err != nil {
+		exit(fmt.Errorf("failed to run migrations: %w", err))
 	}
 
 	controllers, err := makeControllers(pool)
