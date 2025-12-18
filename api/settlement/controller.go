@@ -15,7 +15,7 @@ import (
 type (
 	Repo interface {
 		All(ctx context.Context, userID string) ([]domain.Settlement, error)
-		Insert(ctx context.Context, s domain.Settlement) (int, error)
+		Insert(ctx context.Context, s domain.Settlement) (uuid.UUID, error)
 		Get(ctx context.Context, userID string, settlementID uuid.UUID) (domain.Settlement, error)
 	}
 	Controller struct {
@@ -78,7 +78,7 @@ func (c Controller) createSettlement(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	settlementID, err := c.records.Insert(ctx, domain.Settlement{Name: body.Name})
+	settlementID, err := c.records.Insert(ctx, domain.Settlement{Name: body.Name, Owner: userID})
 	if err != nil {
 		response.InternalServerError(w, "unable to persist settlement", err)
 	} else {

@@ -25,7 +25,6 @@ type settlement struct {
 const (
 	table               = "settlement"
 	owner               = "owner"
-	id                  = "id"
 	externalID          = "external_id"
 	name                = "name"
 	survivalLimit       = "survival_limit"
@@ -66,13 +65,13 @@ func (r Postgres) All(ctx context.Context, userID string) ([]domain.Settlement, 
 	return toDTOList(settlements), nil
 }
 
-func (r Postgres) Insert(ctx context.Context, s domain.Settlement) (int, error) {
+func (r Postgres) Insert(ctx context.Context, s domain.Settlement) (uuid.UUID, error) {
 	query := fmt.Sprintf(
 		"INSERT INTO %s (%s, %s, %s, %s, %s, %s) VALUES ($1, $2, $3, $4, $5, $6) RETURNING %s",
-		table, owner, name, survivalLimit, departingSurvival, collectiveCognition, year, id,
+		table, owner, name, survivalLimit, departingSurvival, collectiveCognition, year, externalID,
 	)
 
-	var id int32
+	var externalID uuid.UUID
 	err := r.db.QueryRow(ctx, query,
 		s.Owner,
 		s.Name,
@@ -80,9 +79,9 @@ func (r Postgres) Insert(ctx context.Context, s domain.Settlement) (int, error) 
 		s.DepartingSurvival,
 		s.CollectiveCognition,
 		s.CurrentYear,
-	).Scan(&id)
+	).Scan(&externalID)
 
-	return int(id), err
+	return externalID, err
 }
 
 func (r Postgres) Get(ctx context.Context, userID string, settlementID uuid.UUID) (domain.Settlement, error) {

@@ -164,12 +164,12 @@ func TestCreateSettlement_Success(t *testing.T) {
 
 	require.Equal(t, http.StatusOK, w.Code)
 
-	var settlementID int
+	var settlementID uuid.UUID
 	require.NoError(t, json.NewDecoder(w.Body).Decode(&settlementID))
-	assert.Greater(t, settlementID, 0)
+	assert.NotEqual(t, uuid.Nil, settlementID)
 
 	var name string
-	err := dbContainer.PGPool.QueryRow(ctx, "SELECT name FROM settlement WHERE id = $1", settlementID).Scan(&name)
+	err := dbContainer.PGPool.QueryRow(ctx, "SELECT name FROM settlement WHERE external_id = $1", settlementID).Scan(&name)
 	require.NoError(t, err)
 	assert.Equal(t, "New Settlement", name)
 }
