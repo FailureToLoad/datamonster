@@ -113,8 +113,6 @@ func (a Authorizer) AuthorizeRequest(next http.Handler) http.Handler {
 func (a Authorizer) checkToken(ctx context.Context, token string) (*Authorization, error) {
 	data := url.Values{}
 	data.Set("token", token)
-	data.Set("client_id", a.clientID)
-	data.Set("client_secret", a.clientSecret)
 
 	req, err := http.NewRequestWithContext(ctx, "POST", a.introspectURL, strings.NewReader(data.Encode()))
 	if err != nil {
@@ -122,6 +120,7 @@ func (a Authorizer) checkToken(ctx context.Context, token string) (*Authorizatio
 	}
 
 	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+	req.SetBasicAuth(a.clientID, a.clientSecret)
 
 	resp, err := a.client.Do(req)
 	if err != nil {
