@@ -17,7 +17,7 @@
     "express": "^5.1.0",
     "http-proxy-3": "^1.23.2",
     "isbot": "^5.1.31",
-    "lucide-react": "^0.562.0",
+    "lucide-react": "0.469.0",
     "morgan": "^1.10.1",
     "react": "^19.2.3",
     "react-dom": "^19.2.3",

@@ -1,20 +1,14 @@
-FROM node:20-alpine AS development-dependencies-env
+FROM node:20-alpine AS build-env
 RUN corepack enable && corepack prepare pnpm@latest --activate
 COPY . /app
 WORKDIR /app
-RUN pnpm install --frozen-lockfile
+RUN pnpm install --frozen-lockfile && pnpm run build
 
 FROM node:20-alpine AS production-dependencies-env
 RUN corepack enable && corepack prepare pnpm@latest --activate
 COPY ./package.json pnpm-lock.yaml /app/
 WORKDIR /app
 RUN pnpm install --frozen-lockfile --prod
-
-FROM node:20-alpine AS build-env
-COPY . /app/
-COPY --from=development-dependencies-env /app/node_modules /app/node_modules
-WORKDIR /app
-RUN npm run build
 
 FROM node:20-alpine
 COPY ./package.json ./server.js /app/
