@@ -1,6 +1,6 @@
 import { redirect, useLoaderData, useRevalidator } from "react-router";
 import type { SettlementId } from "~/lib/types/settlement";
-import { Play } from "lucide-react";
+import Play from "lucide-react/dist/esm/icons/play";
 import { Link } from "react-router";
 import type { Route } from "./+types/page";
 import { checkAuth } from "~/lib/auth.server";

@@ -1,7 +1,7 @@
 import * as z from 'zod';
 import { useForm } from '@tanstack/react-form';
 import { useRef } from 'react';
-import { Plus } from 'lucide-react';
+import Plus from "lucide-react/dist/esm/icons/plus";
 
 const AddSettlementSchema = z.object({
   settlementName: z

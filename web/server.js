@@ -5,7 +5,7 @@ import morgan from "morgan";
 import { createProxyServer } from "http-proxy-3";
 
 const BUILD_PATH = "./build/server/index.js";
-const API_URL = process.env.API_URL;
+const API_HOST = process.env.API_HOST ?? process.env.API_URL;
 const AUTH_DOMAIN = process.env.AUTH_DOMAIN;
 const DEVELOPMENT = process.env.NODE_ENV === "development";
 const PORT = Number.parseInt(process.env.PORT);
@@ -14,7 +14,13 @@ const app = express();
 const proxy = createProxyServer();
 
 app.use("/auth", (req, res) => {
-  proxy.web(req, res, { target: `${API_URL}/auth` });
+  req.url = req.originalUrl;
+  proxy.web(req, res, { target: API_HOST });
+});
+
+app.use("/api", (req, res) => {
+  req.url = req.originalUrl;
+  proxy.web(req, res, { target: API_HOST });
 });
 
 app.use(compression());

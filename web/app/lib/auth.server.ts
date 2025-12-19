@@ -1,10 +1,10 @@
 import { redirect } from "react-router";
 
-const API_BASE_URL = process.env.API_URL;
+const API_URL = process.env.API_URL;
 const AUTH_LOGIN_URL = "/auth/login";
 
 export async function checkAuth(request: Request): Promise<boolean> {
-  const response = await fetch(`${API_BASE_URL}/auth/check`, {
+  const response = await fetch(`${API_URL}/auth/check`, {
     headers: {
       cookie: request.headers.get("cookie") || "",
     },

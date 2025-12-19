@@ -15,6 +15,7 @@ export const app = express.Router();
 const proxy = createProxyServer();
 
 app.use(["/auth", "/api"], (req, res) => {
+  req.url = req.originalUrl;
   proxy.web(req, res, { target: API_HOST });
 });
 
