@@ -1,3 +1,4 @@
+import { randomBytes } from "node:crypto";
 import compression from "compression";
 import express from "express";
 import morgan from "morgan";
@@ -5,6 +6,7 @@ import { createProxyServer } from "http-proxy-3";
 
 const BUILD_PATH = "./build/server/index.js";
 const API_URL = process.env.API_URL;
+const AUTH_DOMAIN = process.env.AUTH_DOMAIN;
 const DEVELOPMENT = process.env.NODE_ENV === "development";
 const PORT = Number.parseInt(process.env.PORT);
 
@@ -17,6 +19,28 @@ app.use("/auth", (req, res) => {
 
 app.use(compression());
 app.disable("x-powered-by");
+
+app.use((_req, res, next) => {
+  res.locals.nonce = randomBytes(16).toString("base64");
+  next();
+});
+
+app.use((_req, res, next) => {
+  const nonce = res.locals.nonce;
+  const csp = [
+    "default-src 'self'",
+    `script-src 'self' 'nonce-${nonce}' 'strict-dynamic'`,
+    "style-src 'self' 'unsafe-inline' https://fonts.googleapis.com",
+    "img-src 'self' data:",
+    "font-src 'self' https://fonts.gstatic.com",
+    `connect-src 'self' ${AUTH_DOMAIN}`,
+    "frame-ancestors 'self'",
+    `form-action 'self' ${AUTH_DOMAIN}`,
+    "base-uri 'self'",
+  ].join("; ");
+  res.setHeader("Content-Security-Policy", csp);
+  next();
+});
 
 if (DEVELOPMENT) {
   console.log("Starting development server");

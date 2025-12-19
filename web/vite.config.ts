@@ -9,6 +9,9 @@ export default defineConfig(({ isSsrBuild }) => ({
       ? { input: "./server/app.ts" }
       : undefined,
   },
+  ssr: {
+    noExternal: ["zod"],
+  },
   plugins: [tailwindcss(), reactRouter(), tsconfigPaths()],
   server: {
     port: 8000,
