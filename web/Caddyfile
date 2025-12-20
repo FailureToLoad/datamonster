@@ -2,6 +2,13 @@
 	root * /srv
 	file_server
 
+	header {
+		Content-Security-Policy "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; img-src 'self' data:; font-src 'self' https://fonts.gstatic.com; connect-src 'self'; frame-ancestors 'self'; form-action 'self'; base-uri 'self'"
+		X-Content-Type-Options "nosniff"
+		X-Frame-Options "SAMEORIGIN"
+		Referrer-Policy "strict-origin-when-cross-origin"
+	}
+
 	handle /auth/* {
 		reverse_proxy datamonster-api:8080
 	}
