@@ -1,6 +1,4 @@
-import type { UUID } from "node:crypto";
-
-export type Settlement =  SettlementId & {
+export type Settlement = SettlementId & {
   survivalLimit: number;
   departingSurvival: number;
   collectiveCognition: number;
@@ -8,6 +6,6 @@ export type Settlement =  SettlementId & {
 };
 
 export type SettlementId = {
-  id: UUID;
+  id: string;
   name: string;
 };

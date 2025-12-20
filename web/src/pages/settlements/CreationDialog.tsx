@@ -1,13 +1,13 @@
-import * as z from 'zod';
-import { useForm } from '@tanstack/react-form';
-import { useRef } from 'react';
+import * as z from "zod";
+import { useForm } from "@tanstack/react-form";
+import { useRef } from "react";
 import Plus from "lucide-react/dist/esm/icons/plus";
 
 const AddSettlementSchema = z.object({
   settlementName: z
     .string()
-    .min(1, 'Settlement name is required')
-    .max(25, 'Settlement name is too long'),
+    .min(1, "Settlement name is required")
+    .max(25, "Settlement name is too long"),
 });
 
 type AddSettlementFields = z.infer<typeof AddSettlementSchema>;
@@ -17,7 +17,7 @@ export function CreateSettlementDialog({ refresh }: { refresh: () => void }) {
 
   const form = useForm({
     defaultValues: {
-      settlementName: '',
+      settlementName: "",
     } as AddSettlementFields,
     onSubmit: async ({ value }) => {
       const parsed = AddSettlementSchema.safeParse(value);
@@ -25,10 +25,11 @@ export function CreateSettlementDialog({ refresh }: { refresh: () => void }) {
         return;
       }
 
-      const response = await fetch('/api/settlements', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+      const response = await fetch("/api/settlements", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ name: parsed.data.settlementName }),
+        credentials: "include",
       });
 
       if (response.ok) {
@@ -42,7 +43,7 @@ export function CreateSettlementDialog({ refresh }: { refresh: () => void }) {
   return (
     <>
       <button
-        className="w-full btn btn-outline"
+        className="w-96 btn btn-outline"
         aria-label="Create Settlement"
         onClick={() => dialogRef.current?.showModal()}
       >
@@ -62,7 +63,8 @@ export function CreateSettlementDialog({ refresh }: { refresh: () => void }) {
               name="settlementName"
               validators={{
                 onChange: ({ value }) => {
-                  const result = AddSettlementSchema.shape.settlementName.safeParse(value);
+                  const result =
+                    AddSettlementSchema.shape.settlementName.safeParse(value);
                   return result.success ? undefined : result.error.issues[0].message;
                 },
               }}

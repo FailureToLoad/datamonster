@@ -1,23 +1,23 @@
-import { reactRouter } from "@react-router/dev/vite";
-import tailwindcss from "@tailwindcss/vite";
 import { defineConfig } from "vite";
-import tsconfigPaths from "vite-tsconfig-paths";
+import react from "@vitejs/plugin-react";
+import tailwindcss from "@tailwindcss/vite";
 
-export default defineConfig(({ isSsrBuild }) => ({
-  build: {
-    rollupOptions: isSsrBuild
-      ? { input: "./server/app.ts" }
-      : undefined,
+export default defineConfig({
+  plugins: [react(), tailwindcss()],
+  resolve: {
+    alias: { "~": "/src" },
   },
-  ssr: {
-    noExternal: ["zod"],
-  },
-  plugins: [tailwindcss(), reactRouter(), tsconfigPaths()],
   server: {
     port: 8000,
     proxy: {
-      "/auth": "http://localhost:8080",
-      "/api": "http://localhost:8080",
+      "/auth": {
+        target: "http://localhost:8080",
+        changeOrigin: true,
+      },
+      "/api": {
+        target: "http://localhost:8080",
+        changeOrigin: true,
+      },
     },
   },
-}));
+});

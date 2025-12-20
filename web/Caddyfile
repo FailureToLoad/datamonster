@@ -1,0 +1,16 @@
+:80 {
+	root * /srv
+	file_server
+
+	handle /auth/* {
+		reverse_proxy datamonster-api:8080
+	}
+
+	handle /api/* {
+		reverse_proxy datamonster-api:8080
+	}
+
+	handle {
+		try_files {path} /index.html
+	}
+}
