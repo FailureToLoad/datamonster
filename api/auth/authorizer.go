@@ -93,27 +93,37 @@ func newAuthorizer(id, secret, introspectURL, tokenURL string, sessions SessionS
 func (a Authorizer) AuthorizeRequest(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		cookie, err := r.Cookie(sessionCookieName)
-		if err != nil || cookie.Value == "" {
-			unauthorized(w, "unable to read cookie", err)
+		if err != nil {
+			response.Unauthorized(w, fmt.Errorf("unable to read cookie: %w", err))
+			return
+		}
+
+		if cookie.Value == "" {
+			response.Unauthorized(w, fmt.Errorf("missing session ID"))
 			return
 		}
 		ctx := r.Context()
 		sessionID := cookie.Value
 		data, err := a.sessions.Get(ctx, sessionID)
-		if err != nil || data == nil {
-			unauthorized(w, "unable to fetch session", err)
+		if err != nil {
+			response.Unauthorized(w, fmt.Errorf("unable to fetch session: %w", err))
+			return
+		}
+
+		if data == nil {
+			response.Unauthorized(w, fmt.Errorf("session not found: %s", sessionID))
 			return
 		}
 
 		var session SessionData
 		if err := json.Unmarshal(data, &session); err != nil {
-			unauthorized(w, "unable to unmarshal sessions data", err)
+			response.Unauthorized(w, fmt.Errorf("unable to unmarshal session data: %w", err))
 			return
 		}
 
 		if !a.isActiveToken(ctx, session.AccessToken) {
 			_ = a.sessions.Delete(ctx, cookie.Value)
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
+			response.Unauthorized(w, fmt.Errorf("session expired"))
 			return
 		}
 
@@ -158,11 +168,6 @@ func (a Authorizer) isActiveToken(ctx context.Context, token string) bool {
 	}
 
 	return authorization.Active
-}
-
-func unauthorized(w http.ResponseWriter, reason string, err error) {
-	slog.Error(reason, slog.Any("error", err))
-	http.Error(w, "Unauthorized", http.StatusUnauthorized)
 }
 
 func (a Authorizer) refreshSession(ctx context.Context, sessionData SessionData, sessionID string) (int, error) {
@@ -223,36 +228,4 @@ func (a Authorizer) refreshSession(ctx context.Context, sessionData SessionData,
 	}
 
 	return expiresInSeconds, nil
-}
-
-func revokeCookie(w http.ResponseWriter, r *http.Request, sessions SessionStore) {
-	cookie, err := r.Cookie(sessionCookieName)
-	if err == nil && cookie.Value != "" {
-		_ = sessions.Delete(r.Context(), cookie.Value)
-	}
-	http.SetCookie(w, &http.Cookie{
-		Name:     sessionCookieName,
-		Value:    "",
-		MaxAge:   -1,
-		HttpOnly: true,
-		Secure:   isSecureCookie(),
-		SameSite: http.SameSiteLaxMode,
-		Path:     "/",
-	})
-}
-
-func setCookie(w http.ResponseWriter, sessionID string, ttl int) {
-	if ttl <= 0 {
-		ttl = 3600
-	}
-
-	http.SetCookie(w, &http.Cookie{
-		Name:     sessionCookieName,
-		Value:    sessionID,
-		MaxAge:   ttl,
-		HttpOnly: true,
-		Secure:   isSecureCookie(),
-		SameSite: http.SameSiteLaxMode,
-		Path:     "/",
-	})
 }

@@ -2,23 +2,15 @@ package auth
 
 import (
 	"context"
-	"crypto/rand"
-	"encoding/base64"
 	"encoding/json"
 	"log/slog"
 	"net/http"
-	"os"
 	"time"
 
 	"github.com/coreos/go-oidc/v3/oidc"
+	"github.com/failuretoload/datamonster/response"
 	"github.com/go-chi/chi/v5"
 	"golang.org/x/oauth2"
-)
-
-const (
-	stateCookieName   = "oauth_state"
-	stateCookieAge    = 300
-	sessionCookieName = "dm_session"
 )
 
 type Claims struct {
@@ -134,17 +126,14 @@ func (c Controller) RegisterAuthRoutes(r *chi.Mux) {
 
 func (c *Controller) callbackHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		slog.Debug("callback handler invoked", "url", r.URL.String())
-
 		stateCookie, err := r.Cookie(stateCookieName)
 		if err != nil {
-			slog.Error("missing state cookie", "error", err)
-			http.Error(w, "Missing state cookie", http.StatusBadRequest)
+			response.BadRequest(w, "missing state cookie", err)
 			return
 		}
 
 		if r.URL.Query().Get("state") != stateCookie.Value {
-			http.Error(w, "Invalid state parameter", http.StatusBadRequest)
+			response.BadRequest(w, "invalid state parameter", nil)
 			return
 		}
 
@@ -160,7 +149,7 @@ func (c *Controller) callbackHandler() http.HandlerFunc {
 
 		code := r.URL.Query().Get("code")
 		if code == "" {
-			http.Error(w, "Missing authorization code", http.StatusBadRequest)
+			response.BadRequest(w, "missing authorization code", nil)
 			return
 		}
 
@@ -168,33 +157,31 @@ func (c *Controller) callbackHandler() http.HandlerFunc {
 		token, err := c.oauth2Config.Exchange(r.Context(), code)
 		slog.Debug("exchange complete", "error", err)
 		if err != nil {
-			slog.Error("token exchange failed", "error", err)
-			http.Error(w, "Failed to exchange token", http.StatusInternalServerError)
+			response.InternalServerError(w, "token exchange failed", err)
 			return
 		}
 
 		rawIDToken, ok := token.Extra("id_token").(string)
 		if !ok {
-			http.Error(w, "No id_token in response", http.StatusInternalServerError)
+			response.InternalServerError(w, "no id token in response", nil)
 			return
 		}
 
 		idToken, err := c.verifier.Verify(r.Context(), rawIDToken)
 		if err != nil {
-			slog.Error("failed to verify ID token", "error", err)
-			http.Error(w, "Failed to verify ID token", http.StatusInternalServerError)
+			response.InternalServerError(w, "verifying ID token", err)
 			return
 		}
 
 		var claims Claims
 		if err := idToken.Claims(&claims); err != nil {
-			http.Error(w, "Failed to parse claims", http.StatusInternalServerError)
+			response.InternalServerError(w, "parsing token claims", err)
 			return
 		}
 
 		sessionID, err := generateSessionID()
 		if err != nil {
-			http.Error(w, "Failed to generate session", http.StatusInternalServerError)
+			response.InternalServerError(w, "generating session id", err)
 			return
 		}
 
@@ -207,13 +194,13 @@ func (c *Controller) callbackHandler() http.HandlerFunc {
 
 		data, err := json.Marshal(sessionData)
 		if err != nil {
-			http.Error(w, "Failed to serialize session", http.StatusInternalServerError)
+			response.InternalServerError(w, "serializing session data", err)
 			return
 		}
 
 		ttl := time.Until(token.Expiry)
 		if err := c.sessions.Set(r.Context(), sessionID, data, ttl); err != nil {
-			http.Error(w, "Failed to store session", http.StatusInternalServerError)
+			response.InternalServerError(w, "saving session", err)
 			return
 		}
 
@@ -233,7 +220,7 @@ func (c *Controller) callbackHandler() http.HandlerFunc {
 
 func (c *Controller) logoutHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		revokeCookie(w, r, c.sessions)
+		expireCookie(w, r, c.sessions)
 
 		postLogoutRedirect := r.URL.Query().Get("redirect_uri")
 		if postLogoutRedirect == "" {
@@ -248,23 +235,15 @@ func (c *Controller) logoutHandler() http.HandlerFunc {
 
 func (c *Controller) loginHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		state, err := generateSessionID()
+		sessionID, err := generateSessionID()
 		if err != nil {
 			http.Error(w, "Failed to generate state", http.StatusInternalServerError)
 			return
 		}
 
-		http.SetCookie(w, &http.Cookie{
-			Name:     stateCookieName,
-			Value:    state,
-			MaxAge:   stateCookieAge,
-			HttpOnly: true,
-			Secure:   true,
-			SameSite: http.SameSiteLaxMode,
-			Path:     "/",
-		})
+		setCookie(w, sessionID, stateCookieAge)
 
-		authURL := c.oauth2Config.AuthCodeURL(state)
+		authURL := c.oauth2Config.AuthCodeURL(sessionID)
 		http.Redirect(w, r, authURL, http.StatusTemporaryRedirect)
 	}
 }
@@ -285,17 +264,4 @@ func (c *Controller) checkHandler() http.HandlerFunc {
 
 		w.WriteHeader(http.StatusOK)
 	}
-}
-
-func isSecureCookie() bool {
-	return os.Getenv("COOKIE_SECURE") != "false"
-}
-
-func generateSessionID() (string, error) {
-	b := make([]byte, 32)
-	_, err := rand.Read(b)
-	if err != nil {
-		return "", err
-	}
-	return base64.URLEncoding.EncodeToString(b), nil
 }
