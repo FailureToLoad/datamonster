@@ -121,15 +121,16 @@ func (a Authorizer) AuthorizeRequest(next http.Handler) http.Handler {
 			return
 		}
 
-		if !a.isActiveToken(ctx, session.AccessToken) {
-			_ = a.sessions.Delete(ctx, cookie.Value)
-			response.Unauthorized(ctx, w, fmt.Errorf("session expired"))
+		if a.isActiveToken(ctx, session.AccessToken) {
+			ctx = request.SetUserID(ctx, session.UserID)
+			next.ServeHTTP(w, r.WithContext(ctx))
 			return
 		}
 
 		age, err := a.refreshSession(ctx, session, sessionID)
 		if err != nil {
-			response.InternalServerError(ctx, w, fmt.Errorf("unable to refresh access token: %w", err))
+			_ = a.sessions.Delete(ctx, cookie.Value)
+			response.Unauthorized(ctx, w, fmt.Errorf("session expired"))
 			return
 		}
 

@@ -234,15 +234,23 @@ func (c *Controller) logoutHandler() http.HandlerFunc {
 
 func (c *Controller) loginHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		sessionID, err := generateSessionID()
+		state, err := generateSessionID()
 		if err != nil {
 			response.InternalServerError(r.Context(), w, fmt.Errorf("failed to generate state: %w", err))
 			return
 		}
 
-		setCookie(w, sessionID, stateCookieAge)
+		http.SetCookie(w, &http.Cookie{
+			Name:     stateCookieName,
+			Value:    state,
+			MaxAge:   300,
+			HttpOnly: true,
+			Secure:   isSecureCookie(),
+			SameSite: http.SameSiteLaxMode,
+			Path:     "/",
+		})
 
-		authURL := c.oauth2Config.AuthCodeURL(sessionID)
+		authURL := c.oauth2Config.AuthCodeURL(state)
 		http.Redirect(w, r, authURL, http.StatusTemporaryRedirect)
 	}
 }

@@ -8,9 +8,8 @@ import (
 )
 
 const (
-	stateCookieName       = "oauth_state"
-	stateCookieAge    int = 300
-	sessionCookieName     = "dm_session"
+	stateCookieName   = "oauth_state"
+	sessionCookieName = "dm_session"
 )
 
 func isSecureCookie() bool {
