@@ -9,6 +9,10 @@
 		Referrer-Policy "strict-origin-when-cross-origin"
 	}
 
+	handle /healthz {
+		respond "OK" 200
+	}
+
 	handle /auth/* {
 		reverse_proxy datamonster-api:8080
 	}
