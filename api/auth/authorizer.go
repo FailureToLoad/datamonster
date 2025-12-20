@@ -92,44 +92,44 @@ func newAuthorizer(id, secret, introspectURL, tokenURL string, sessions SessionS
 
 func (a Authorizer) AuthorizeRequest(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
 		cookie, err := r.Cookie(sessionCookieName)
 		if err != nil {
-			response.Unauthorized(w, fmt.Errorf("unable to read cookie: %w", err))
+			response.Unauthorized(ctx, w, fmt.Errorf("unable to read cookie: %w", err))
 			return
 		}
 
 		if cookie.Value == "" {
-			response.Unauthorized(w, fmt.Errorf("missing session ID"))
+			response.Unauthorized(ctx, w, fmt.Errorf("missing session ID"))
 			return
 		}
-		ctx := r.Context()
 		sessionID := cookie.Value
 		data, err := a.sessions.Get(ctx, sessionID)
 		if err != nil {
-			response.Unauthorized(w, fmt.Errorf("unable to fetch session: %w", err))
+			response.Unauthorized(ctx, w, fmt.Errorf("unable to fetch session: %w", err))
 			return
 		}
 
 		if data == nil {
-			response.Unauthorized(w, fmt.Errorf("session not found: %s", sessionID))
+			response.Unauthorized(ctx, w, fmt.Errorf("session not found: %s", sessionID))
 			return
 		}
 
 		var session SessionData
 		if err := json.Unmarshal(data, &session); err != nil {
-			response.Unauthorized(w, fmt.Errorf("unable to unmarshal session data: %w", err))
+			response.Unauthorized(ctx, w, fmt.Errorf("unable to unmarshal session data: %w", err))
 			return
 		}
 
 		if !a.isActiveToken(ctx, session.AccessToken) {
 			_ = a.sessions.Delete(ctx, cookie.Value)
-			response.Unauthorized(w, fmt.Errorf("session expired"))
+			response.Unauthorized(ctx, w, fmt.Errorf("session expired"))
 			return
 		}
 
 		age, err := a.refreshSession(ctx, session, sessionID)
 		if err != nil {
-			response.InternalServerError(w, "unable to refresh access token", err)
+			response.InternalServerError(ctx, w, fmt.Errorf("unable to refresh access token: %w", err))
 			return
 		}
 

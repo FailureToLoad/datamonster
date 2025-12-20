@@ -3,7 +3,7 @@ package auth
 import (
 	"context"
 	"encoding/json"
-	"log/slog"
+	"fmt"
 	"net/http"
 	"time"
 
@@ -126,14 +126,15 @@ func (c Controller) RegisterAuthRoutes(r *chi.Mux) {
 
 func (c *Controller) callbackHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
 		stateCookie, err := r.Cookie(stateCookieName)
 		if err != nil {
-			response.BadRequest(w, "missing state cookie", err)
+			response.BadRequest(ctx, w, fmt.Errorf("missing state cookie: %w", err))
 			return
 		}
 
 		if r.URL.Query().Get("state") != stateCookie.Value {
-			response.BadRequest(w, "invalid state parameter", nil)
+			response.BadRequest(ctx, w, fmt.Errorf("state mismatch in callback handler"))
 			return
 		}
 
@@ -149,39 +150,37 @@ func (c *Controller) callbackHandler() http.HandlerFunc {
 
 		code := r.URL.Query().Get("code")
 		if code == "" {
-			response.BadRequest(w, "missing authorization code", nil)
+			response.BadRequest(ctx, w, fmt.Errorf("missing authorization code"))
 			return
 		}
 
-		slog.Debug("exchanging code for token", "code_prefix", code[:10])
 		token, err := c.oauth2Config.Exchange(r.Context(), code)
-		slog.Debug("exchange complete", "error", err)
 		if err != nil {
-			response.InternalServerError(w, "token exchange failed", err)
+			response.InternalServerError(ctx, w, fmt.Errorf("token exchange failed: %w", err))
 			return
 		}
 
 		rawIDToken, ok := token.Extra("id_token").(string)
 		if !ok {
-			response.InternalServerError(w, "no id token in response", nil)
+			response.InternalServerError(ctx, w, fmt.Errorf("no id token in response"))
 			return
 		}
 
 		idToken, err := c.verifier.Verify(r.Context(), rawIDToken)
 		if err != nil {
-			response.InternalServerError(w, "verifying ID token", err)
+			response.InternalServerError(ctx, w, fmt.Errorf("verifying ID token: %w", err))
 			return
 		}
 
 		var claims Claims
 		if err := idToken.Claims(&claims); err != nil {
-			response.InternalServerError(w, "parsing token claims", err)
+			response.InternalServerError(ctx, w, fmt.Errorf("parsing token claims: %w", err))
 			return
 		}
 
 		sessionID, err := generateSessionID()
 		if err != nil {
-			response.InternalServerError(w, "generating session id", err)
+			response.InternalServerError(ctx, w, fmt.Errorf("generating session id: %w", err))
 			return
 		}
 
@@ -194,13 +193,13 @@ func (c *Controller) callbackHandler() http.HandlerFunc {
 
 		data, err := json.Marshal(sessionData)
 		if err != nil {
-			response.InternalServerError(w, "serializing session data", err)
+			response.InternalServerError(ctx, w, fmt.Errorf("serializing session data: %w", err))
 			return
 		}
 
 		ttl := time.Until(token.Expiry)
 		if err := c.sessions.Set(r.Context(), sessionID, data, ttl); err != nil {
-			response.InternalServerError(w, "saving session", err)
+			response.InternalServerError(ctx, w, fmt.Errorf("saving session: %w", err))
 			return
 		}
 
@@ -237,7 +236,7 @@ func (c *Controller) loginHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		sessionID, err := generateSessionID()
 		if err != nil {
-			http.Error(w, "Failed to generate state", http.StatusInternalServerError)
+			response.InternalServerError(r.Context(), w, fmt.Errorf("failed to generate state: %w", err))
 			return
 		}
 
@@ -250,18 +249,6 @@ func (c *Controller) loginHandler() http.HandlerFunc {
 
 func (c *Controller) checkHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		cookie, err := r.Cookie(sessionCookieName)
-		if err != nil || cookie.Value == "" {
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
-			return
-		}
-
-		exists, err := c.sessions.Exists(r.Context(), cookie.Value)
-		if err != nil || !exists {
-			http.Error(w, "Unauthorized", http.StatusUnauthorized)
-			return
-		}
-
 		w.WriteHeader(http.StatusOK)
 	}
 }

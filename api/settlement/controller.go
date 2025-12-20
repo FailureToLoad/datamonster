@@ -2,7 +2,7 @@ package settlement
 
 import (
 	"context"
-	"errors"
+	"fmt"
 	"net/http"
 
 	"github.com/failuretoload/datamonster/request"
@@ -28,7 +28,7 @@ type (
 
 func NewController(r Repo) (*Controller, error) {
 	if r == nil {
-		return nil, errors.New("repo cannot be nil")
+		return nil, fmt.Errorf("repo cannot be nil")
 	}
 
 	return &Controller{records: r}, nil
@@ -44,12 +44,12 @@ func (c Controller) getSettlements(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	userID := request.UserID(ctx)
 	if userID == "" {
-		msg := "userID is required"
-		response.BadRequest(w, msg, errors.New(msg))
+		response.BadRequest(ctx, w, fmt.Errorf("userID is required"))
+		return
 	}
 	settlements, repoErr := c.records.All(ctx, userID)
 	if repoErr != nil {
-		response.InternalServerError(w, "unable to retrieve settlements", repoErr)
+		response.InternalServerError(ctx, w, fmt.Errorf("unable to retrieve settlements: %w", repoErr))
 		return
 	}
 
@@ -57,54 +57,54 @@ func (c Controller) getSettlements(w http.ResponseWriter, r *http.Request) {
 		settlements = []domain.Settlement{}
 	}
 
-	response.OK(w, settlements)
+	response.OK(ctx, w, settlements)
 }
 
 func (c Controller) createSettlement(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	userID := request.UserID(ctx)
 	if userID == "" {
-		msg := "userID is required"
-		response.BadRequest(w, msg, errors.New(msg))
+		response.BadRequest(ctx, w, fmt.Errorf("userID is required"))
+		return
 	}
 	var body CreateSettlementRequest
 	err := request.DecodeJSONRequest(r.Body, &body)
 	if err != nil {
-		response.BadRequest(w, "invalid request body", err)
+		response.BadRequest(ctx, w, fmt.Errorf("invalid request body: %w", err))
 		return
 	}
 	if body.Name == "" {
-		response.BadRequest(w, "name is required", nil)
+		response.BadRequest(ctx, w, fmt.Errorf("name is required"))
 		return
 	}
 
 	settlementID, err := c.records.Insert(ctx, domain.Settlement{Name: body.Name, Owner: userID})
 	if err != nil {
-		response.InternalServerError(w, "unable to persist settlement", err)
+		response.InternalServerError(ctx, w, fmt.Errorf("unable to persist settlement: %w", err))
 	} else {
-		response.OK(w, settlementID)
+		response.OK(ctx, w, settlementID)
 	}
-
 }
 
 func (c Controller) getSettlement(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	userID := request.UserID(ctx)
 	if userID == "" {
-		msg := "userID is required"
-		response.BadRequest(w, msg, errors.New(msg))
+		response.BadRequest(ctx, w, fmt.Errorf("userID is required"))
+		return
 	}
 
 	settlementID, err := request.IDParam(r)
 	if err != nil {
-		response.BadRequest(w, "invalid settlement id", err)
+		response.BadRequest(ctx, w, fmt.Errorf("invalid settlement id: %w", err))
+		return
 	}
 
 	settlement, repoErr := c.records.Get(ctx, userID, settlementID)
 	if repoErr != nil {
-		response.InternalServerError(w, "unable to retrieve settlement", repoErr)
+		response.InternalServerError(ctx, w, fmt.Errorf("unable to retrieve settlement: %w", repoErr))
 		return
 	}
 
-	response.OK(w, settlement)
+	response.OK(ctx, w, settlement)
 }
