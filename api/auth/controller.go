@@ -5,7 +5,6 @@ import (
 	"crypto/rand"
 	"encoding/base64"
 	"encoding/json"
-	"errors"
 	"log/slog"
 	"net/http"
 	"os"
@@ -33,46 +32,60 @@ type Config struct {
 	RedirectURL   string
 	IntrospectURL string
 	ClientURL     string
+	TokenURL      string
 	Sessions      SessionStore
 }
 
 func (c Config) Validate() error {
 	if c.ClientID == "" {
-		return errors.New("client ID is required")
+		return ErrFieldMissing("clientID")
 	}
 
 	if c.ClientSecret == "" {
-		return errors.New("client secret is required")
+		return ErrFieldMissing("clientSecret")
 	}
 
 	if c.IssuerURL == "" {
-		return errors.New("issuer URL is required")
+		return ErrFieldMissing("issuerURL")
 	}
 
 	if c.RedirectURL == "" {
-		return errors.New("redirect URL is required")
+		return ErrFieldMissing("redirectURL")
 	}
 
 	if c.IntrospectURL == "" {
-		return errors.New("introspect URL is required")
+		return ErrFieldMissing("introspectURL")
 	}
 
 	if c.ClientURL == "" {
-		return errors.New("client URL is required")
+		return ErrFieldMissing("clientURL")
 	}
 
 	if c.Sessions == nil {
-		return errors.New("session storage is required")
+		return ErrFieldMissing("sessions")
+	}
+
+	if c.TokenURL == "" {
+		return ErrFieldMissing("tokenURL")
 	}
 
 	return nil
+}
+
+func (c Config) Authorizer() (Authorizer, error) {
+	return newAuthorizer(
+		c.ClientID,
+		c.ClientSecret,
+		c.IntrospectURL,
+		c.TokenURL,
+		c.Sessions,
+	)
 }
 
 type Controller struct {
 	clientID     string
 	clientSecret string
 	issuerURL    string
-	CallbackURL  string
 	clientURL    string
 	oauth2Config *oauth2.Config
 	verifier     *oidc.IDTokenVerifier
@@ -80,29 +93,9 @@ type Controller struct {
 	sessions     SessionStore
 }
 
-func NewController(c Config) (*Controller, error) {
-	if c.ClientID == "" {
-		return nil, errors.New("client ID is required")
-	}
-
-	if c.ClientSecret == "" {
-		return nil, errors.New("client secret is required")
-	}
-
-	if c.IssuerURL == "" {
-		return nil, errors.New("issuer URL is required")
-	}
-
-	if c.RedirectURL == "" {
-		return nil, errors.New("redirect URL is required")
-	}
-
-	if c.ClientURL == "" {
-		return nil, errors.New("client URL is required")
-	}
-
-	if c.Sessions == nil {
-		return nil, errors.New("session storage is required")
+func (c Config) Controller() (*Controller, error) {
+	if err := c.Validate(); err != nil {
+		return nil, err
 	}
 
 	ctx := context.Background()
@@ -121,15 +114,6 @@ func NewController(c Config) (*Controller, error) {
 
 	verifier := provider.Verifier(&oidc.Config{ClientID: c.ClientID})
 
-	httpClient := &http.Client{
-		Timeout: 10 * time.Second,
-		Transport: &http.Transport{
-			MaxIdleConns:        100,
-			MaxIdleConnsPerHost: 10,
-			IdleConnTimeout:     90 * time.Second,
-		},
-	}
-
 	return &Controller{
 		clientID:     c.ClientID,
 		clientSecret: c.ClientSecret,
@@ -137,7 +121,6 @@ func NewController(c Config) (*Controller, error) {
 		clientURL:    c.ClientURL,
 		oauth2Config: oauth2Config,
 		verifier:     verifier,
-		httpClient:   httpClient,
 		sessions:     c.Sessions,
 	}, nil
 }
@@ -250,20 +233,7 @@ func (c *Controller) callbackHandler() http.HandlerFunc {
 
 func (c *Controller) logoutHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		cookie, err := r.Cookie(sessionCookieName)
-		if err == nil && cookie.Value != "" {
-			_ = c.sessions.Delete(r.Context(), cookie.Value)
-		}
-
-		http.SetCookie(w, &http.Cookie{
-			Name:     sessionCookieName,
-			Value:    "",
-			MaxAge:   -1,
-			HttpOnly: true,
-			Secure:   isSecureCookie(),
-			SameSite: http.SameSiteLaxMode,
-			Path:     "/",
-		})
+		revokeCookie(w, r, c.sessions)
 
 		postLogoutRedirect := r.URL.Query().Get("redirect_uri")
 		if postLogoutRedirect == "" {

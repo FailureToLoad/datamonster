@@ -40,21 +40,17 @@ func main() {
 		IssuerURL:     os.Getenv("ISSUER_URL"),
 		RedirectURL:   os.Getenv("REDIRECT_URL"),
 		IntrospectURL: os.Getenv("INTROSPECT_URL"),
+		TokenURL:      os.Getenv("TOKEN_URL"),
 		ClientURL:     os.Getenv("CLIENT_URL"),
 		Sessions:      sessions,
 	}
 
-	authController, err := auth.NewController(authConfig)
+	authController, err := authConfig.Controller()
 	if err != nil {
 		exit(fmt.Errorf("failed to initialize auth controller: %w", err))
 	}
 
-	authorizer, err := auth.NewAuthorizer(
-		authConfig.ClientID,
-		authConfig.ClientSecret,
-		authConfig.IntrospectURL,
-		sessions,
-	)
+	authorizer, err := authConfig.Authorizer()
 	if err != nil {
 		exit(fmt.Errorf("failed to initialize authorizer: %w", err))
 	}

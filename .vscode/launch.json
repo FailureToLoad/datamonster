@@ -14,6 +14,7 @@
         "ISSUER_URL": "https://127.0.0.1:9091",
         "REDIRECT_URL": "http://localhost:3000/auth/callback",
         "INTROSPECT_URL": "https://127.0.0.1:9091/api/oidc/introspection",
+        "TOKEN_URL":"https://127.0.0.1:9091/api/oidc/tokenn",
         "CLIENT_URL": "http://localhost:3000/",
         "DBSN": "postgres://datamonster:datamonster@localhost:5432/datamonster?sslmode=disable",
         "COOKIE_SECURE": "false",
