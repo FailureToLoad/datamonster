@@ -2,6 +2,6 @@
   "go.lintTool": "golangci-lint",
   "go.lintFlags": ["--fast"],
   "gopls": {
-    "build.directoryFilters": ["-*", "+api"]
+    "build.directoryFilters": ["-local", "-web", "-.vscode", "-.github"]
   }
 }
