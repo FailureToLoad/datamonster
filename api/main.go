@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/failuretoload/datamonster/auth"
+	"github.com/failuretoload/datamonster/logger"
 	"github.com/failuretoload/datamonster/server"
 	"github.com/failuretoload/datamonster/settlement"
 	settlementrepo "github.com/failuretoload/datamonster/settlement/repo"
@@ -22,10 +23,7 @@ import (
 )
 
 func main() {
-	logger := slog.New(slog.NewTextHandler(os.Stdout, &slog.HandlerOptions{
-		Level: slog.LevelDebug,
-	}))
-	slog.SetDefault(logger)
+	logger.Setup()
 
 	ctx, stop := signal.NotifyContext(context.Background(), os.Interrupt, syscall.SIGTERM)
 	defer stop()
