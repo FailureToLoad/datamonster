@@ -9,7 +9,8 @@ import (
 )
 
 const (
-	userIDKey contextKey = "userId"
+	userIDKey        contextKey = "userId"
+	correlationIDKey contextKey = "correlationID"
 )
 
 type (
@@ -35,4 +36,28 @@ func IDParam(r *http.Request) (uuid.UUID, error) {
 	}
 
 	return id, nil
+}
+
+func CorrelationID(ctx context.Context) string {
+	if val, ok := ctx.Value(correlationIDKey).(string); ok {
+		return val
+	}
+	return ""
+}
+
+func CorrelationIDMiddleware(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		if CorrelationID(ctx) == "" {
+			unique, err := uuid.NewV4()
+			if err == nil {
+				ctx = context.WithValue(ctx, correlationIDKey, unique.String())
+			}
+
+			next.ServeHTTP(w, r.WithContext(ctx))
+			return
+		}
+
+		next.ServeHTTP(w, r)
+	})
 }
