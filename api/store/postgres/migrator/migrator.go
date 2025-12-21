@@ -17,6 +17,7 @@ type migration interface {
 
 var migrations = []migration{
 	internal.CreateSettlementTable{},
+	internal.CreateSurvivorTable{},
 }
 
 func Migrate(ctx context.Context, pool *pgxpool.Pool) error {

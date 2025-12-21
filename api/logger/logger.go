@@ -14,18 +14,29 @@ func Setup() {
 	slog.SetDefault(logger)
 }
 
-func Debug(ctx context.Context, msg string) {
-	slog.DebugContext(ctx, msg)
+func attrsToAny(fields []slog.Attr) []any {
+	if len(fields) == 0 {
+		return nil
+	}
+	args := make([]any, len(fields))
+	for i := range fields {
+		args[i] = fields[i]
+	}
+	return args
 }
 
-func Info(ctx context.Context, msg string) {
-	slog.InfoContext(ctx, msg)
+func Debug(ctx context.Context, msg string, fields ...slog.Attr) {
+	slog.DebugContext(ctx, msg, attrsToAny(fields)...)
 }
 
-func Warn(ctx context.Context, msg string) {
-	slog.WarnContext(ctx, msg)
+func Info(ctx context.Context, msg string, fields ...slog.Attr) {
+	slog.InfoContext(ctx, msg, attrsToAny(fields)...)
 }
 
-func Error(ctx context.Context, msg string) {
-	slog.ErrorContext(ctx, msg)
+func Warn(ctx context.Context, msg string, fields ...slog.Attr) {
+	slog.WarnContext(ctx, msg, attrsToAny(fields)...)
+}
+
+func Error(ctx context.Context, msg string, fields ...slog.Attr) {
+	slog.ErrorContext(ctx, msg, attrsToAny(fields)...)
 }

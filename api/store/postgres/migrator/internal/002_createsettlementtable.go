@@ -24,7 +24,7 @@ func (CreateSettlementTable) Apply(ctx context.Context, tx pgx.Tx) error {
 			year INTEGER NOT NULL
 		);
 
-		CREATE INDEX idx_settlement_owner ON settlement(owner);
+		CREATE INDEX IF NOT EXISTS idx_settlement_owner ON settlement(owner);
 	`
 
 	_, err := tx.Exec(ctx, create)
