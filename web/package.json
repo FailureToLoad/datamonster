@@ -16,7 +16,7 @@
     "react": "^19.2.0",
     "react-dom": "^19.2.0",
     "react-router": "^7.11.0",
-    "zod": "^4.2.1"
+    "arktype": "^2.1.20"
   },
   "devDependencies": {
     "@eslint/js": "^9.39.1",

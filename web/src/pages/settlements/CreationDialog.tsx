@@ -1,16 +1,15 @@
-import * as z from "zod";
+import { type } from "arktype";
 import { useForm } from "@tanstack/react-form";
 import { useRef } from "react";
 import Plus from "lucide-react/dist/esm/icons/plus";
 
-const AddSettlementSchema = z.object({
-  settlementName: z
-    .string()
-    .min(1, "Settlement name is required")
-    .max(25, "Settlement name is too long"),
+const settlementNameValidator = type("5 <= string <= 25");
+
+const AddSettlementSchema = type({
+  settlementName: settlementNameValidator,
 });
 
-type AddSettlementFields = z.infer<typeof AddSettlementSchema>;
+type AddSettlementFields = typeof AddSettlementSchema.infer;
 
 export function CreateSettlementDialog({ refresh }: { refresh: () => void }) {
   const dialogRef = useRef<HTMLDialogElement>(null);
@@ -20,15 +19,15 @@ export function CreateSettlementDialog({ refresh }: { refresh: () => void }) {
       settlementName: "",
     } as AddSettlementFields,
     onSubmit: async ({ value }) => {
-      const parsed = AddSettlementSchema.safeParse(value);
-      if (!parsed.success) {
+      const parsed = AddSettlementSchema(value);
+      if (parsed instanceof type.errors) {
         return;
       }
 
       const response = await fetch("/api/settlements", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: parsed.data.settlementName }),
+        body: JSON.stringify({ name: parsed.settlementName }),
         credentials: "include",
       });
 
@@ -63,9 +62,8 @@ export function CreateSettlementDialog({ refresh }: { refresh: () => void }) {
               name="settlementName"
               validators={{
                 onChange: ({ value }) => {
-                  const result =
-                    AddSettlementSchema.shape.settlementName.safeParse(value);
-                  return result.success ? undefined : result.error.issues[0].message;
+                  const result = settlementNameValidator(value);
+                  return result instanceof type.errors ? result.summary : undefined;
                 },
               }}
             >
@@ -80,15 +78,7 @@ export function CreateSettlementDialog({ refresh }: { refresh: () => void }) {
                     className="input input-bordered w-full"
                     value={field.state.value}
                     onChange={(e) => field.handleChange(e.target.value)}
-                    onBlur={field.handleBlur}
                   />
-                  {field.state.meta.errors.length > 0 && (
-                    <div className="label">
-                      <span className="label-text-alt text-error">
-                        {field.state.meta.errors[0]}
-                      </span>
-                    </div>
-                  )}
                 </label>
               )}
             </form.Field>
