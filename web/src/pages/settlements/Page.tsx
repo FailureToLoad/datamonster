@@ -1,6 +1,6 @@
 import { useLoaderData, useRevalidator, Link } from "react-router";
 import type { SettlementId } from "~/lib/types/settlement";
-import Play from "lucide-react/dist/esm/icons/play";
+import {PlayIcon} from "@phosphor-icons/react";
 import { CreateSettlementDialog } from "./CreationDialog";
 
 function SettlementCard({ settlement }: { settlement: SettlementId }) {
@@ -14,7 +14,7 @@ function SettlementCard({ settlement }: { settlement: SettlementId }) {
           to={"/settlements/" + settlement.id}
           className="basis-1/3 py-6 flex items-center justify-center border-l border-base-300 hover:bg-base-200 transition-colors"
         >
-          <Play size={24} />
+          <PlayIcon size={24} />
         </Link>
       </div>
     </div>

@@ -1,7 +1,7 @@
 import { type } from "arktype";
 import { useForm } from "@tanstack/react-form";
 import { useRef } from "react";
-import Plus from "lucide-react/dist/esm/icons/plus";
+import {PlusIcon} from "@phosphor-icons/react";
 
 const settlementNameValidator = type("5 <= string <= 25");
 
@@ -46,7 +46,7 @@ export function CreateSettlementDialog({ refresh }: { refresh: () => void }) {
         aria-label="Create Settlement"
         onClick={() => dialogRef.current?.showModal()}
       >
-        <Plus className="h-6 w-6" />
+        <PlusIcon className="h-6 w-6" />
       </button>
       <dialog ref={dialogRef} className="modal">
         <div className="modal-box">

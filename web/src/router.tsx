@@ -1,7 +1,12 @@
 import { createBrowserRouter, redirect } from "react-router";
 import App from "./App";
 import Home from "./pages/Home";
-import Settlements from "./pages/settlements/Page";
+import SettlementsPage from "./pages/settlements/Page";
+import SettlementPage from './pages/settlement/Page.tsx';
+import PopulationTab from './pages/settlement/Population.tsx';
+import StorageTab from './pages/settlement/SettlementStorage.tsx';
+import ProtectedLayout from './components/ProtectedLayout.tsx';
+import TimelineTab from './pages/settlement/Timeline.tsx';
 import { ErrorBoundary } from "./components/ErrorBoundary";
 import { checkAuth } from "./lib/auth";
 
@@ -20,15 +25,34 @@ export const router = createBrowserRouter([
         },
       },
       {
-        path: "settlements",
-        element: <Settlements />,
+        element: <ProtectedLayout />,
         loader: async () => {
           if (!(await checkAuth())) return redirect("/");
-          const res = await fetch("/api/settlements", { credentials: "include" });
-          if (res.status === 401) return redirect("/");
-          if (!res.ok) throw new Response("Failed to load", { status: res.status });
-          return res.json();
+          return null;
         },
+        children: [
+          {
+            path: '/settlements',
+            element: <SettlementsPage />,
+            loader: async () => {
+              const res = await fetch("/api/settlements", { credentials: "include" });
+              if (res.status === 401) 
+                return redirect("/");
+              if (!res.ok) 
+                throw new Response("Failed to load", { status: res.status });
+              return res.json();
+          },
+          },
+          {
+            path: '/settlements/:settlementId',
+            element: <SettlementPage />,
+            children: [
+              {path: 'population', element: <PopulationTab />},
+              {path: 'storage', element: <StorageTab />},
+              {path: 'timeline', element: <TimelineTab />},
+            ],
+          },
+        ],
       },
     ],
   },
