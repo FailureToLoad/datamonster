@@ -42,7 +42,7 @@ export function CreateSettlementDialog({ refresh }: { refresh: () => void }) {
   return (
     <>
       <button
-        className="w-96 btn btn-outline"
+        className="w-96 btn btn-neutral"
         aria-label="Create Settlement"
         onClick={() => dialogRef.current?.showModal()}
       >

@@ -25,7 +25,7 @@ function LeftNav() {
 
   return(
     <div className="h-screen absolute grid top-0 left-0 p-4">
-        <ul className="menu bg-base-200 rounded-box mt-6">
+        <ul className="menu bg-base-300 rounded-box mt-6">
           <li>
             <Link to={timelineKey} color="foreground" className="tooltip tooltip-right" data-tip="Timeline">
               <HourglassMediumIcon {...getProps(pathname.includes(timelineKey))} />
