@@ -8,7 +8,11 @@ import StorageTab from './pages/settlement/SettlementStorage.tsx';
 import ProtectedLayout from './components/ProtectedLayout.tsx';
 import TimelineTab from './pages/settlement/Timeline.tsx';
 import { ErrorBoundary } from "./components/ErrorBoundary";
-import { checkAuth } from "./lib/auth";
+
+async function checkAuth(): Promise<boolean> {
+  const response = await fetch("/api/me", { credentials: "include" });
+  return response.ok;
+}
 
 export const router = createBrowserRouter([
   {
