@@ -3,7 +3,7 @@ import App from "./App";
 import Home from "./pages/Home";
 import SettlementsPage from "./pages/settlements/Page";
 import SettlementPage from './pages/settlement/Page.tsx';
-import PopulationTab from './pages/settlement/Population.tsx';
+import PopulationTab from './pages/settlement/population/index.tsx';
 import StorageTab from './pages/settlement/SettlementStorage.tsx';
 import ProtectedLayout from './components/ProtectedLayout.tsx';
 import TimelineTab from './pages/settlement/Timeline.tsx';
@@ -51,7 +51,18 @@ export const router = createBrowserRouter([
             path: '/settlements/:settlementId',
             element: <SettlementPage />,
             children: [
-              {path: 'population', element: <PopulationTab />},
+              {
+                path: 'population',
+                element: <PopulationTab />,
+                loader: async ({params}) => {
+                  const res = await fetch(`/api/settlements/${params.settlementId}/survivors`, {
+                    credentials: 'include',
+                  });
+                  if (res.status === 401) return redirect('/');
+                  if (!res.ok) throw new Response('Failed to load survivors', {status: res.status});
+                  return res.json();
+                },
+              },
               {path: 'storage', element: <StorageTab />},
               {path: 'timeline', element: <TimelineTab />},
             ],

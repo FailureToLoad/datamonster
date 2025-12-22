@@ -4,7 +4,9 @@
   "version": "0.0.0",
   "type": "module",
   "pnpm": {
-    "onlyBuiltDependencies": ["esbuild"]
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
   },
   "scripts": {
     "dev": "vite",
@@ -15,6 +17,7 @@
   "dependencies": {
     "@phosphor-icons/react": "^2.1.10",
     "@tanstack/react-form": "^1.27.5",
+    "@tanstack/react-table": "^8.21.3",
     "arktype": "^2.1.20",
     "daisyui": "^5.5.14",
     "react": "^19.2.0",
