@@ -40,6 +40,8 @@ jobs:
           containerfiles: ./web/Containerfile
           context: ./web
           platforms: linux/arm64
+          extra-args: |
+            --ulimit nofile=65536:65536
 
       - name: Push image
         uses: redhat-actions/push-to-registry@v2
