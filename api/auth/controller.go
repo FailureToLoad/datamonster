@@ -5,9 +5,12 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
+	"strings"
 	"time"
 
 	"github.com/coreos/go-oidc/v3/oidc"
+	"github.com/failuretoload/datamonster/logger"
 	"github.com/failuretoload/datamonster/response"
 	"github.com/go-chi/chi/v5"
 	"golang.org/x/oauth2"
@@ -219,16 +222,60 @@ func (c *Controller) callbackHandler() http.HandlerFunc {
 
 func (c *Controller) logoutHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		expireCookie(w, r, c.sessions)
+		ctx := r.Context()
+		cookie, err := r.Cookie(sessionCookieName)
+		if err != nil {
+			response.InternalServerError(ctx, w, err)
+		}
+		w.WriteHeader(http.StatusNoContent)
 
-		postLogoutRedirect := r.URL.Query().Get("redirect_uri")
-		if postLogoutRedirect == "" {
-			postLogoutRedirect = c.clientURL
+		if cookie.Value == "" {
+			return
+		}
+		expireCookie(w)
+
+		sessionBytes, err := c.sessions.Get(r.Context(), cookie.Value)
+		if err != nil {
+			logger.Warn(ctx, "fetching session for logout", logger.ErrorField(err))
+			return
+		}
+		if len(sessionBytes) == 0 {
+			logger.Warn(ctx, "logout: session is empty")
+			return
 		}
 
-		logoutURL := c.issuerURL + "/api/oidc/revocation"
-		fullLogoutURL := logoutURL + "?post_logout_redirect_uri=" + postLogoutRedirect
-		http.Redirect(w, r, fullLogoutURL, http.StatusTemporaryRedirect)
+		var sessionData SessionData
+		if err := json.Unmarshal(sessionBytes, &sessionData); err != nil {
+			logger.Warn(ctx, "unmarshaling session for logout", logger.ErrorField(err))
+			return
+		}
+		if sessionData.AccessToken != "" {
+			c.revokeToken(r.Context(), sessionData.AccessToken)
+		}
+
+		if err := c.sessions.Delete(ctx, cookie.Value); err != nil {
+			logger.Warn(ctx, "logout: failed to delete session", logger.ErrorField(err))
+		}
+	}
+}
+
+func (c *Controller) revokeToken(ctx context.Context, token string) {
+	data := url.Values{}
+	data.Set("token", token)
+	data.Set("client_id", c.clientID)
+	data.Set("client_secret", c.clientSecret)
+
+	revocationURL := c.issuerURL + "/api/oidc/revocation"
+	req, err := http.NewRequestWithContext(ctx, "POST", revocationURL, strings.NewReader(data.Encode()))
+	if err != nil {
+		logger.Warn(ctx, "creating token revocation request", logger.ErrorField(err))
+		return
+	}
+
+	req.Header.Set("Content-Type", "application/x-www-form-urlencoded")
+
+	if _, err := c.httpClient.Do(req); err != nil {
+		logger.Warn(ctx, "executing token revocation request", logger.ErrorField(err))
 	}
 }
 

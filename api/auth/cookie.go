@@ -25,11 +25,7 @@ func generateSessionID() (string, error) {
 	return base64.URLEncoding.EncodeToString(b), nil
 }
 
-func expireCookie(w http.ResponseWriter, r *http.Request, sessions SessionStore) {
-	cookie, err := r.Cookie(sessionCookieName)
-	if err == nil && cookie.Value != "" {
-		_ = sessions.Delete(r.Context(), cookie.Value)
-	}
+func expireCookie(w http.ResponseWriter) {
 	http.SetCookie(w, &http.Cookie{
 		Name:     sessionCookieName,
 		Value:    "",

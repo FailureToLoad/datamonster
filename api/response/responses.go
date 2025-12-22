@@ -31,19 +31,19 @@ func NoContent(rw http.ResponseWriter) {
 }
 
 func OK(ctx context.Context, rw http.ResponseWriter, data any) {
+	rw.WriteHeader(http.StatusOK)
+	rw.Header().Set("Content-Type", "application/json")
 	js, jsonErr := json.Marshal(data)
 	if jsonErr != nil {
 		InternalServerError(ctx, rw, jsonErr)
 		return
 	}
 
-	rw.Header().Set("Content-Type", "application/json")
 	_, writeErr := rw.Write(js)
 	if writeErr != nil {
 		InternalServerError(ctx, rw, writeErr)
 		return
 	}
-	rw.WriteHeader(http.StatusOK)
 }
 
 type errorResponse struct {
