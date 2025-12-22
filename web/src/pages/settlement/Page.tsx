@@ -3,12 +3,15 @@ import {
   PersonIcon,
   type IconProps,
   HourglassMediumIcon,
+  TentIcon,
+  SignOutIcon,
 } from "@phosphor-icons/react";
-import { Link, Outlet, useLocation } from "react-router";
+import { Link, Outlet, useLocation, useNavigate } from "react-router";
 
 
 function LeftNav() {
   const { pathname } = useLocation();
+  const navigate = useNavigate();
   const timelineKey = "timeline";
   const populationKey = "population";
   const storageKey = "storage";
@@ -23,9 +26,15 @@ function LeftNav() {
     return props;
   };
 
-  return(
-    <div className="h-screen absolute grid top-0 left-0 p-4">
-        <ul className="menu bg-base-300 rounded-box mt-6">
+  const handleLogout = async () => {
+    await fetch("/api/auth/logout", { credentials: "include" });
+    navigate("/");
+  };
+
+  return (
+    <div className="absolute left-0 top-0 grid h-screen p-4">
+      <ul className="menu mt-6 justify-between rounded-box bg-base-300">
+        <div>
           <li>
             <Link to={timelineKey} color="foreground" className="tooltip tooltip-right" data-tip="Timeline">
               <HourglassMediumIcon {...getProps(pathname.includes(timelineKey))} />
@@ -41,8 +50,21 @@ function LeftNav() {
               <ArchiveIcon {...getProps(pathname.includes(storageKey))} />
             </Link>
           </li>
-        </ul>
-      </div>
+        </div>
+        <div>
+          <li>
+            <Link to="/settlements" className="tooltip tooltip-right" data-tip="Settlements">
+              <TentIcon size={32} />
+            </Link>
+          </li>
+          <li>
+            <button onClick={handleLogout} className="tooltip tooltip-right" data-tip="Logout">
+              <SignOutIcon size={32} />
+            </button>
+          </li>
+        </div>
+      </ul>
+    </div>
   );
 }
 
