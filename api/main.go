@@ -19,6 +19,8 @@ import (
 	"github.com/failuretoload/datamonster/store/cache"
 	"github.com/failuretoload/datamonster/store/postgres"
 	"github.com/failuretoload/datamonster/store/postgres/migrator"
+	"github.com/failuretoload/datamonster/survivor"
+	survivorrepo "github.com/failuretoload/datamonster/survivor/repo"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
@@ -119,7 +121,18 @@ func makeControllers(pool *pgxpool.Pool) ([]server.Controller, error) {
 		return nil, err
 	}
 
+	survivorRepo, err := survivorrepo.New(pool)
+	if err != nil {
+		return nil, err
+	}
+
+	survivorController, err := survivor.NewController(survivorRepo)
+	if err != nil {
+		return nil, err
+	}
+
 	return []server.Controller{
 		settlementController,
+		survivorController,
 	}, nil
 }

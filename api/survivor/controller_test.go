@@ -49,7 +49,10 @@ func TestMain(m *testing.M) {
 	if err != nil {
 		log.Fatal(err)
 	}
-	survivorController := survivor.NewController(survivorRepo)
+	survivorController, err := survivor.NewController(survivorRepo)
+	if err != nil {
+		log.Fatal(err)
+	}
 
 	requester, err = testenv.NewRequester([]server.Controller{settlementController, survivorController})
 	if err != nil {

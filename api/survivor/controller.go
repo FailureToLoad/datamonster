@@ -23,8 +23,11 @@ type Controller struct {
 	db Repo
 }
 
-func NewController(r Repo) *Controller {
-	return &Controller{db: r}
+func NewController(r Repo) (*Controller, error) {
+	if r == nil {
+		return nil, fmt.Errorf("repo cannot be nil")
+	}
+	return &Controller{db: r}, nil
 }
 
 func (c Controller) RegisterRoutes(r chi.Router) {
