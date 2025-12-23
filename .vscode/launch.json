@@ -12,10 +12,10 @@
         "CLIENT_ID": "datamonster",
         "CLIENT_SECRET": "dev-local-secret",
         "ISSUER_URL": "https://127.0.0.1:9091",
-        "REDIRECT_URL": "http://localhost:3000/auth/callback",
+        "REDIRECT_URL": "http://localhost:8080/auth/callback",
         "INTROSPECT_URL": "https://127.0.0.1:9091/api/oidc/introspection",
         "TOKEN_URL":"https://127.0.0.1:9091/api/oidc/token",
-        "CLIENT_URL": "http://localhost:3000/",
+        "CLIENT_URL": "http://localhost:8000/",
         "DBSN": "postgres://datamonster:datamonster@localhost:5432/datamonster?sslmode=disable",
         "COOKIE_SECURE": "false",
         "VALKEY_ADDR": "localhost:6379"
