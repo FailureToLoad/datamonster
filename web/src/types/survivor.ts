@@ -1,24 +1,24 @@
 
 export type Survivor = {
-  accuracy: number;
-  born: number;
-  courage: number;
-  evasion: number;
-  gender: SurvivorGender;
-  huntxp: number;
   id: string;
-  insanity: number;
-  luck: number;
-  lumi: number;
-  movement: number;
   name: string;
-  settlementID: string;
+  gender: SurvivorGender;
+  born: number;
+  huntxp: number;
+  movement: number;
   speed: number;
   strength: number;
-  survival: number;
+  accuracy: number;
+  evasion: number;
+  luck: number;
   systemicpressure: number;
   torment: number;
+  courage: number;
   understanding: number;
+  survival: number;
+  insanity: number;
+  lumi: number;
+  settlementID: string;
 };
 
 
