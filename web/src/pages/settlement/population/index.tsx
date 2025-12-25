@@ -3,9 +3,10 @@ import NewSurvivorDialog from './survivorDialog';
 import {type Survivor} from '~/types/survivor';
 import {useLoaderData, useParams, useRevalidator} from 'react-router';
 
+
 export default function PopulationTab() {
   const {settlementId} = useParams();
-  const survivors = useLoaderData() as Survivor[];
+  const survivors = (useLoaderData() as Survivor[]) ?? [];
   const revalidator = useRevalidator();
 
   if (!settlementId) {
@@ -13,7 +14,7 @@ export default function PopulationTab() {
   }
 
   return (
-    <div id="population" className="max-w-fit py-4">
+    <div id="population" className="flex flex-col w-fill py-4">
       <div className="flex flex-row-reverse items-center py-4">
         <NewSurvivorDialog
           settlementId={settlementId}

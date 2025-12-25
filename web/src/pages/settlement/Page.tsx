@@ -32,7 +32,7 @@ function LeftNav() {
   };
 
   return (
-    <div className="absolute left-0 top-0 grid h-screen p-4">
+    <div className="left-0 top-0 grid h-screen w-fit p-4">
       <ul className="menu mt-6 justify-between rounded-box bg-base-300">
         <div>
           <li>
@@ -70,13 +70,11 @@ function LeftNav() {
 
 export default function SettlementPage() {
   return (
-    <>
+    <div className="flex h-screen">
       <LeftNav />
-      <div className="flex h-screen w-full flex-col justify-center overflow-auto">
-        <div className="p-16 flex flex-1 justify-center">
-          <Outlet />
-        </div>
+      <div className="flex-1 overflow-auto p-16">
+        <Outlet />
       </div>
-    </>
+    </div>
   );
 }
