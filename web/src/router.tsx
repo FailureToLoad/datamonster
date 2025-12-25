@@ -8,6 +8,7 @@ import StorageTab from './pages/settlement/SettlementStorage.tsx';
 import ProtectedLayout from './components/ProtectedLayout.tsx';
 import TimelineTab from './pages/settlement/Timeline.tsx';
 import { ErrorBoundary } from "./components/ErrorBoundary";
+import { Get } from "./lib/request.tsx";
 
 async function checkAuth(): Promise<boolean> {
   const response = await fetch("/api/me", { credentials: "include" });
@@ -39,7 +40,7 @@ export const router = createBrowserRouter([
             path: '/settlements',
             element: <SettlementsPage />,
             loader: async () => {
-              const res = await fetch("/api/settlements", { credentials: "include" });
+              const res = await Get("/api/settlements");
               if (res.status === 401) 
                 return redirect("/");
               if (!res.ok) 
@@ -55,9 +56,7 @@ export const router = createBrowserRouter([
                 path: 'population',
                 element: <PopulationTab />,
                 loader: async ({params}) => {
-                  const res = await fetch(`/api/settlements/${params.settlementId}/survivors`, {
-                    credentials: 'include',
-                  });
+                  const res = await Get(`/api/settlements/${params.settlementId}/survivors`)
                   if (res.status === 401) return redirect('/');
                   if (!res.ok) throw new Response('Failed to load survivors', {status: res.status});
                   return res.json();

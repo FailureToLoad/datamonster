@@ -3,6 +3,7 @@ import {useRef} from 'react';
 import {PlusIcon} from '@phosphor-icons/react';
 import {SurvivorGender} from '~/types/survivor';
 import {type} from 'arktype';
+import { PostJSON } from '~/lib/request';
 
 const survivorNameValidator = type('1 <= string <= 50');
 const isInteger = type('number.integer');
@@ -57,10 +58,8 @@ export default function NewSurvivorDialog({settlementId, onSuccess}: SurvivorDia
         return;
       }
 
-      const response = await fetch(`/api/settlements/${settlementId}/survivors`, {
-        method: 'POST',
-        headers: {'Content-Type': 'application/json'},
-        body: JSON.stringify({
+      const response = await PostJSON(`/api/settlements/${settlementId}/survivors`, 
+        {
           name: parsed.name,
           gender: parsed.gender,
           survival: parsed.survival,
@@ -79,10 +78,7 @@ export default function NewSurvivorDialog({settlementId, onSuccess}: SurvivorDia
           courage: 0,
           understanding: 0,
           settlementID: settlementId,
-        }),
-        credentials: 'include',
-      });
-
+        })
       if (response.ok) {
         dialogRef.current?.close();
         form.reset();

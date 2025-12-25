@@ -2,6 +2,7 @@ import { type } from "arktype";
 import { useForm } from "@tanstack/react-form";
 import { useRef } from "react";
 import {PlusIcon} from "@phosphor-icons/react";
+import { PostJSON } from "~/lib/request.tsx";
 
 const settlementNameValidator = type("5 <= string <= 25");
 
@@ -24,12 +25,7 @@ export function CreateSettlementDialog({ refresh }: { refresh: () => void }) {
         return;
       }
 
-      const response = await fetch("/api/settlements", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({ name: parsed.settlementName }),
-        credentials: "include",
-      });
+      const response = await PostJSON("/api/settlements", { name: parsed.settlementName })
 
       if (response.ok) {
         refresh();
