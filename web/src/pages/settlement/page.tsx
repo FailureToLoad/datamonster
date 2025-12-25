@@ -68,7 +68,7 @@ function LeftNav() {
   );
 }
 
-export default function SettlementPage() {
+export function SettlementPage() {
   return (
     <div className="flex h-screen">
       <LeftNav />

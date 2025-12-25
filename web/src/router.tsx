@@ -1,14 +1,16 @@
 import { createBrowserRouter, redirect } from "react-router";
-import App from "./App";
-import Home from "./pages/Home";
-import SettlementsPage from "./pages/settlements/Page";
-import SettlementPage from './pages/settlement/Page.tsx';
-import PopulationTab from './pages/settlement/population/index.tsx';
-import StorageTab from './pages/settlement/SettlementStorage.tsx';
-import ProtectedLayout from './components/ProtectedLayout.tsx';
-import TimelineTab from './pages/settlement/Timeline.tsx';
-import { ErrorBoundary } from "./components/ErrorBoundary";
-import { Get } from "./lib/request.tsx";
+import App from "~/App";
+import Home from "~/pages/Home";
+import {SelectSettlement, loadSettlements } from "~/pages/selection/index";
+import { 
+  SettlementPage, 
+  TimelineTab, 
+  PopulationTab, 
+  StorageTab, 
+  loadSurvivors  
+} from '~/pages/settlement/index.ts';
+import ProtectedLayout from '~/components/ProtectedLayout';
+import { ErrorBoundary } from "~/components/ErrorBoundary";
 
 async function checkAuth(): Promise<boolean> {
   const response = await fetch("/api/me", { credentials: "include" });
@@ -38,15 +40,8 @@ export const router = createBrowserRouter([
         children: [
           {
             path: '/settlements',
-            element: <SettlementsPage />,
-            loader: async () => {
-              const res = await Get("/api/settlements");
-              if (res.status === 401) 
-                return redirect("/");
-              if (!res.ok) 
-                throw new Response("Failed to load", { status: res.status });
-              return res.json();
-          },
+            element: <SelectSettlement />,
+            loader: loadSettlements,
           },
           {
             path: '/settlements/:settlementId',
@@ -55,12 +50,7 @@ export const router = createBrowserRouter([
               {
                 path: 'population',
                 element: <PopulationTab />,
-                loader: async ({params}) => {
-                  const res = await Get(`/api/settlements/${params.settlementId}/survivors`)
-                  if (res.status === 401) return redirect('/');
-                  if (!res.ok) throw new Response('Failed to load survivors', {status: res.status});
-                  return res.json();
-                },
+                loader: loadSurvivors,
               },
               {path: 'storage', element: <StorageTab />},
               {path: 'timeline', element: <TimelineTab />},

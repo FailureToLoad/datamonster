@@ -1,4 +1,4 @@
-export default function StorageTab() {
+export function StorageTab() {
   return (
     <div id="storage" className="max-w-fit py-4">
       Storage

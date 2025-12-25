@@ -1,7 +1,7 @@
 import { useLoaderData, useRevalidator, Link } from "react-router";
 import type { SettlementId } from "~/types/settlement";
 import {PlayIcon} from "@phosphor-icons/react";
-import { CreateSettlementDialog } from "./CreationDialog";
+import { CreateSettlementDialog } from "./dialog";
 
 function SettlementCard({ settlement }: { settlement: SettlementId }) {
   return (
@@ -22,7 +22,7 @@ function SettlementCard({ settlement }: { settlement: SettlementId }) {
   );
 }
 
-export default function SettlementsPage() {
+export function SelectSettlement() {
   const settlements = useLoaderData() as SettlementId[];
   const revalidator = useRevalidator();
 

@@ -4,7 +4,7 @@ import {type Survivor} from '~/types/survivor';
 import {useLoaderData, useParams, useRevalidator} from 'react-router';
 
 
-export default function PopulationTab() {
+export function PopulationTab() {
   const {settlementId} = useParams();
   const survivors = (useLoaderData() as Survivor[]) ?? [];
   const revalidator = useRevalidator();
@@ -25,3 +25,4 @@ export default function PopulationTab() {
     </div>
   );
 }
+
