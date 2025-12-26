@@ -6,9 +6,7 @@ import (
 	"fmt"
 	"log"
 	"net/http"
-	"net/http/httptest"
 	"os"
-	"strings"
 	"testing"
 
 	"github.com/failuretoload/datamonster/server"
@@ -107,14 +105,10 @@ func TestGetSurvivors_InvalidSettlementID(t *testing.T) {
 }
 
 func TestGetSurvivors_Unauthorized(t *testing.T) {
-	requester.Unauthorized()
+	t.Cleanup(requester.Unauthorized())
+	_, status := requester.GetSurvivors("unauthorized", testenv.ValidUUID())
 
-	req := httptest.NewRequest(http.MethodGet, "/api/settlements/"+uuid.Must(uuid.NewV4()).String()+"/survivors", nil)
-	w := httptest.NewRecorder()
-
-	requester.DoRequest(w, req)
-
-	assert.Equal(t, http.StatusUnauthorized, w.Code)
+	assert.Equal(t, http.StatusUnauthorized, status)
 }
 
 func TestCreateSurvivor_Success(t *testing.T) {
@@ -158,16 +152,10 @@ func TestCreateSurvivor_InvalidSettlementID(t *testing.T) {
 }
 
 func TestCreateSurvivor_Unauthorized(t *testing.T) {
-	requester.Unauthorized()
+	t.Cleanup(requester.Unauthorized())
+	_, status := requester.CreateSurvivorWithBody("unauthorized", testenv.ValidUUID(), `{"name":"Unauthorized Survivor"}`)
 
-	body := `{"name":"Unauthorized Survivor"}`
-	req := httptest.NewRequest(http.MethodPost, "/api/settlements/"+uuid.Must(uuid.NewV4()).String()+"/survivors", strings.NewReader(body))
-	req.Header.Set("Content-Type", "application/json")
-	w := httptest.NewRecorder()
-
-	requester.DoRequest(w, req)
-
-	assert.Equal(t, http.StatusUnauthorized, w.Code)
+	assert.Equal(t, http.StatusUnauthorized, status)
 }
 
 func TestCreateSurvivor_DuplicateName(t *testing.T) {
@@ -263,14 +251,8 @@ func TestUpsertSurvivor_InvalidSettlementID(t *testing.T) {
 }
 
 func TestUpsertSurvivor_Unauthorized(t *testing.T) {
-	requester.Unauthorized()
+	t.Cleanup(requester.Unauthorized())
+	_, status := requester.UpsertSurvivor("unauthorized", testenv.ValidUUID(), `{"name":"Unauthorized Survivor"}`)
 
-	body := `{"name":"Unauthorized Survivor"}`
-	req := httptest.NewRequest(http.MethodPut, "/api/settlements/"+uuid.Must(uuid.NewV4()).String()+"/survivors", strings.NewReader(body))
-	req.Header.Set("Content-Type", "application/json")
-	w := httptest.NewRecorder()
-
-	requester.DoRequest(w, req)
-
-	assert.Equal(t, http.StatusUnauthorized, w.Code)
+	assert.Equal(t, http.StatusUnauthorized, status)
 }

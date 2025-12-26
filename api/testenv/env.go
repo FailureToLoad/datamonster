@@ -12,6 +12,7 @@ import (
 
 	"github.com/failuretoload/datamonster/server"
 	"github.com/failuretoload/datamonster/store/postgres/migrator"
+	"github.com/gofrs/uuid/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
@@ -71,7 +72,9 @@ func (e *DBContainer) Cleanup() {
 }
 
 func NewRequester(controllers []server.Controller) (*Requester, error) {
-	authorizer := &AuthorizerFake{}
+	authorizer := &AuthorizerFake{
+		authorized: true,
+	}
 	srv, err := server.New(AuthControllerFake{}, authorizer, []string{"localhost"}, controllers)
 	if err != nil {
 		return nil, err
@@ -83,12 +86,12 @@ func NewRequester(controllers []server.Controller) (*Requester, error) {
 	}, nil
 }
 
-func (r Requester) Authorized() {
-	r.authorizer.SetAuthorized(true)
-}
-
-func (r Requester) Unauthorized() {
+func (r Requester) Unauthorized() func() {
 	r.authorizer.SetAuthorized(false)
+
+	return func() {
+		r.authorizer.SetAuthorized(true)
+	}
 }
 
 func (r Requester) DoRequest(w http.ResponseWriter, req *http.Request) {
@@ -109,7 +112,6 @@ func (r Requester) CreateSettlement(userID string) (string, error) {
 }
 
 func (r Requester) CreateSettlementWithBody(userID, body string) (*bytes.Buffer, int) {
-	r.Authorized()
 	r.authorizer.ExpectUserID(userID)
 
 	req := httptest.NewRequest(http.MethodPost, "/api/settlements", strings.NewReader(body))
@@ -122,7 +124,6 @@ func (r Requester) CreateSettlementWithBody(userID, body string) (*bytes.Buffer,
 }
 
 func (r Requester) GetSettlements(userID string) (*bytes.Buffer, int) {
-	r.Authorized()
 	r.authorizer.ExpectUserID(userID)
 
 	req := httptest.NewRequest(http.MethodGet, "/api/settlements", nil)
@@ -133,7 +134,6 @@ func (r Requester) GetSettlements(userID string) (*bytes.Buffer, int) {
 }
 
 func (r Requester) GetSettlement(userID string, settlementID string) (*bytes.Buffer, int) {
-	r.Authorized()
 	r.authorizer.ExpectUserID(userID)
 
 	req := httptest.NewRequest(http.MethodGet, "/api/settlements/"+settlementID, nil)
@@ -149,7 +149,6 @@ func (r Requester) CreateSurvivor(userID string, settlementID string, name strin
 }
 
 func (r Requester) CreateSurvivorWithBody(userID string, settlementID string, body string) (*bytes.Buffer, int) {
-	r.Authorized()
 	r.authorizer.ExpectUserID(userID)
 
 	req := httptest.NewRequest(http.MethodPost, "/api/settlements/"+settlementID+"/survivors", strings.NewReader(body))
@@ -161,7 +160,6 @@ func (r Requester) CreateSurvivorWithBody(userID string, settlementID string, bo
 }
 
 func (r Requester) GetSurvivors(userID string, settlementID string) (*bytes.Buffer, int) {
-	r.Authorized()
 	r.authorizer.ExpectUserID(userID)
 
 	req := httptest.NewRequest(http.MethodGet, "/api/settlements/"+settlementID+"/survivors", nil)
@@ -172,7 +170,6 @@ func (r Requester) GetSurvivors(userID string, settlementID string) (*bytes.Buff
 }
 
 func (r Requester) UpsertSurvivor(userID string, settlementID string, body string) (*bytes.Buffer, int) {
-	r.Authorized()
 	r.authorizer.ExpectUserID(userID)
 
 	req := httptest.NewRequest(http.MethodPut, "/api/settlements/"+settlementID+"/survivors", strings.NewReader(body))
@@ -181,4 +178,8 @@ func (r Requester) UpsertSurvivor(userID string, settlementID string, body strin
 	r.DoRequest(w, req)
 
 	return w.Body, w.Code
+}
+
+func ValidUUID() string {
+	return uuid.Must(uuid.NewV4()).String()
 }

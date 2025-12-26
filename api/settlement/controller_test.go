@@ -5,9 +5,7 @@ import (
 	"encoding/json"
 	"log"
 	"net/http"
-	"net/http/httptest"
 	"os"
-	"strings"
 	"testing"
 
 	"github.com/failuretoload/datamonster/server"
@@ -105,14 +103,10 @@ func TestGetSettlements_IsolatesUserData(t *testing.T) {
 }
 
 func TestGetSettlements_Unauthorized(t *testing.T) {
-	requester.Unauthorized()
+	t.Cleanup(requester.Unauthorized())
+	_, status := requester.GetSettlements("unauthorized")
 
-	req := httptest.NewRequest(http.MethodGet, "/api/settlements", nil)
-	w := httptest.NewRecorder()
-
-	requester.DoRequest(w, req)
-
-	assert.Equal(t, http.StatusUnauthorized, w.Code)
+	assert.Equal(t, http.StatusUnauthorized, status)
 }
 
 func TestCreateSettlement_Success(t *testing.T) {
@@ -143,16 +137,10 @@ func TestCreateSettlement_InvalidJSON(t *testing.T) {
 }
 
 func TestCreateSettlement_Unauthorized(t *testing.T) {
-	requester.Unauthorized()
+	t.Cleanup(requester.Unauthorized())
+	_, status := requester.CreateSettlementWithBody("unauthorized", `{"name":"Unauthorized Settlement"}`)
 
-	body := `{"name":"Unauthorized Settlement"}`
-	req := httptest.NewRequest(http.MethodPost, "/api/settlements", strings.NewReader(body))
-	req.Header.Set("Content-Type", "application/json")
-	w := httptest.NewRecorder()
-
-	requester.DoRequest(w, req)
-
-	assert.Equal(t, http.StatusUnauthorized, w.Code)
+	assert.Equal(t, http.StatusUnauthorized, status)
 }
 
 func TestGetSettlement_Success(t *testing.T) {
@@ -171,8 +159,7 @@ func TestGetSettlement_Success(t *testing.T) {
 }
 
 func TestGetSettlement_NotFound(t *testing.T) {
-	nonExistentID := uuid.Must(uuid.NewV4())
-	_, status := requester.GetSettlement("get-notfound-user", nonExistentID.String())
+	_, status := requester.GetSettlement("get-notfound-user", testenv.ValidUUID())
 	assert.Equal(t, http.StatusNotFound, status)
 }
 
@@ -182,14 +169,10 @@ func TestGetSettlement_InvalidID(t *testing.T) {
 }
 
 func TestGetSettlement_Unauthorized(t *testing.T) {
-	requester.Unauthorized()
+	t.Cleanup(requester.Unauthorized())
+	_, status := requester.GetSettlement("unauthorized", testenv.ValidUUID())
 
-	req := httptest.NewRequest(http.MethodGet, "/api/settlements/"+uuid.Must(uuid.NewV4()).String(), nil)
-	w := httptest.NewRecorder()
-
-	requester.DoRequest(w, req)
-
-	assert.Equal(t, http.StatusUnauthorized, w.Code)
+	assert.Equal(t, http.StatusUnauthorized, status)
 }
 
 func TestGetSettlement_IsolatesUserData(t *testing.T) {
