@@ -5,6 +5,7 @@ import (
 	"log/slog"
 
 	"github.com/failuretoload/datamonster/request"
+	"github.com/gofrs/uuid/v5"
 )
 
 type ContextHandler struct {
@@ -31,6 +32,11 @@ func (h *ContextHandler) Handle(ctx context.Context, record slog.Record) error {
 	userID := request.UserID(ctx)
 	if userID != "" {
 		record.AddAttrs(slog.String("userID", userID))
+	}
+
+	settlementID := request.SettlementID(ctx)
+	if settlementID != uuid.Nil {
+		record.AddAttrs(slog.String("settlementID", settlementID.String()))
 	}
 
 	return h.next.Handle(ctx, record)

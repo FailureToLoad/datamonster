@@ -68,7 +68,7 @@ func (c Controller) createSettlement(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 	var body CreateSettlementRequest
-	err := request.DecodeJSONRequest(r.Body, &body)
+	err := request.DecodeJSON(r.Body, &body)
 	if err != nil {
 		response.BadRequest(ctx, w, fmt.Errorf("invalid request body: %w", err))
 		return
@@ -94,9 +94,9 @@ func (c Controller) getSettlement(w http.ResponseWriter, r *http.Request) {
 		return
 	}
 
-	settlementID, err := request.IDParam(r)
+	settlementID, err := request.SettlementIDFromURL(r)
 	if err != nil {
-		response.BadRequest(ctx, w, fmt.Errorf("invalid settlement id: %w", err))
+		response.BadRequest(ctx, w, err)
 		return
 	}
 

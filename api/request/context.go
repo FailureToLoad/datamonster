@@ -2,6 +2,7 @@ package request
 
 import (
 	"context"
+	"fmt"
 	"net/http"
 
 	"github.com/go-chi/chi/v5"
@@ -11,6 +12,7 @@ import (
 const (
 	userIDKey        contextKey = "userId"
 	correlationIDKey contextKey = "correlationID"
+	settlementIDKey  contextKey = "settlementID"
 )
 
 type (
@@ -28,11 +30,27 @@ func SetUserID(ctx context.Context, id string) context.Context {
 	return context.WithValue(ctx, userIDKey, id)
 }
 
-func IDParam(r *http.Request) (uuid.UUID, error) {
+func SettlementID(ctx context.Context) uuid.UUID {
+	if val, ok := ctx.Value(settlementIDKey).(uuid.UUID); ok {
+		return val
+	}
+
+	return uuid.Nil
+}
+
+func SetSettlementID(ctx context.Context, id uuid.UUID) context.Context {
+	return context.WithValue(ctx, settlementIDKey, id)
+}
+
+func SettlementIDFromURL(r *http.Request) (uuid.UUID, error) {
 	rawID := chi.URLParam(r, "id")
 	id, err := uuid.FromString(rawID)
 	if err != nil {
-		return uuid.Nil, err
+		return uuid.Nil, fmt.Errorf("unable to parse settlement id from URL: %w", err)
+	}
+
+	if id == uuid.Nil {
+		return id, fmt.Errorf("settlement id is required")
 	}
 
 	return id, nil

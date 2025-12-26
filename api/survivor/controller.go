@@ -2,10 +2,10 @@ package survivor
 
 import (
 	"context"
-	"encoding/json"
 	"fmt"
 	"net/http"
 
+	"github.com/failuretoload/datamonster/request"
 	"github.com/failuretoload/datamonster/survivor/domain"
 	"github.com/gofrs/uuid/v5"
 
@@ -17,6 +17,7 @@ import (
 type Repo interface {
 	All(ctx context.Context, settlementID uuid.UUID) ([]domain.Survivor, error)
 	Create(ctx context.Context, d domain.Survivor) (domain.Survivor, error)
+	Upsert(ctx context.Context, d domain.Survivor) (domain.Survivor, error)
 }
 
 type Controller struct {
@@ -31,18 +32,17 @@ func NewController(r Repo) (*Controller, error) {
 }
 
 func (c Controller) RegisterRoutes(r chi.Router) {
-	r.Get("/settlements/{id}/survivors", c.getSurvivors)
-	r.Post("/settlements/{id}/survivors", c.createSurvivor)
+	r.Group(func(gr chi.Router) {
+		gr.Use(settlementIDToContext)
+		gr.Get("/settlements/{id}/survivors", c.getSurvivors)
+		gr.Post("/settlements/{id}/survivors", c.createSurvivor)
+		gr.Put("/settlements/{id}/survivors", c.upsertSurvivor)
+	})
 }
 
 func (c Controller) getSurvivors(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	param := chi.URLParam(r, "id")
-	settlementID, convErr := uuid.FromString(param)
-	if convErr != nil {
-		response.InternalServerError(ctx, w, fmt.Errorf("unable to convert query param: %w", convErr))
-		return
-	}
+	settlementID := request.SettlementID(ctx)
 	survivors, err := c.db.All(ctx, settlementID)
 	if err != nil {
 		response.InternalServerError(ctx, w, fmt.Errorf("error retrieving survivors: %w", err))
@@ -53,19 +53,20 @@ func (c Controller) getSurvivors(w http.ResponseWriter, r *http.Request) {
 }
 
 func (c Controller) createSurvivor(w http.ResponseWriter, r *http.Request) {
-	param := chi.URLParam(r, "id")
 	ctx := r.Context()
-	settlementID, convErr := uuid.FromString(param)
-	if convErr != nil {
-		response.InternalServerError(ctx, w, fmt.Errorf("invalid settlement id: %w", convErr))
-		return
-	}
 	survivorDTO := domain.Survivor{}
-	decodeErr := json.NewDecoder(r.Body).Decode(&survivorDTO)
-	if decodeErr != nil || survivorDTO.Name == "" {
+	decodeErr := request.DecodeJSON(r.Body, &survivorDTO)
+	if decodeErr != nil {
 		response.InternalServerError(ctx, w, fmt.Errorf("unable to decode request body: %w", decodeErr))
 		return
 	}
+
+	if survivorDTO.Name == "" {
+		response.BadRequest(ctx, w, fmt.Errorf("survivor name is required"))
+		return
+	}
+
+	settlementID := request.SettlementID(ctx)
 	survivorDTO.Settlement = settlementID
 	survivor, err := c.db.Create(ctx, survivorDTO)
 	if err != nil {
@@ -74,4 +75,43 @@ func (c Controller) createSurvivor(w http.ResponseWriter, r *http.Request) {
 	}
 
 	response.OK(ctx, w, survivor)
+}
+
+func (c Controller) upsertSurvivor(w http.ResponseWriter, r *http.Request) {
+	ctx := r.Context()
+	survivorDTO := domain.Survivor{}
+	decodeErr := request.DecodeJSON(r.Body, &survivorDTO)
+	if decodeErr != nil {
+		response.InternalServerError(ctx, w, fmt.Errorf("unable to decode request body: %w", decodeErr))
+		return
+	}
+
+	if survivorDTO.Name == "" {
+		response.BadRequest(ctx, w, fmt.Errorf("survivor name is required"))
+		return
+	}
+
+	settlementID := request.SettlementID(ctx)
+	survivorDTO.Settlement = settlementID
+	survivor, err := c.db.Upsert(ctx, survivorDTO)
+	if err != nil {
+		response.InternalServerError(ctx, w, fmt.Errorf("error updating survivor: %w", err))
+		return
+	}
+
+	response.OK(ctx, w, survivor)
+}
+
+func settlementIDToContext(next http.Handler) http.Handler {
+	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
+		ctx := r.Context()
+		id, err := request.SettlementIDFromURL(r)
+		if err != nil {
+			response.InternalServerError(ctx, w, err)
+			return
+		}
+
+		ctx = request.SetSettlementID(ctx, id)
+		next.ServeHTTP(w, r.WithContext(ctx))
+	})
 }

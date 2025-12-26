@@ -10,7 +10,7 @@ import (
 
 const maxRequestBodySize = 1 << 20 // 1 MB
 
-func DecodeJSONRequest(rc io.ReadCloser, data any) error {
+func DecodeJSON(rc io.ReadCloser, data any) error {
 	defer func(rc io.ReadCloser) {
 		err := rc.Close()
 		if err != nil {

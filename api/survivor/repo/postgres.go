@@ -13,28 +13,6 @@ import (
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-const (
-	table            = "survivor"
-	settlementID     = "settlement_id"
-	name             = "name"
-	birth            = "birth"
-	gender           = "gender"
-	huntXP           = "hunt_xp"
-	survival         = "survival"
-	movement         = "movement"
-	accuracy         = "accuracy"
-	strength         = "strength"
-	evasion          = "evasion"
-	luck             = "luck"
-	speed            = "speed"
-	insanity         = "insanity"
-	systemicPressure = "systemic_pressure"
-	torment          = "torment"
-	lumi             = "lumi"
-	courage          = "courage"
-	understanding    = "understanding"
-)
-
 func ErrDuplicateName(name string) error {
 	return fmt.Errorf("survivor with name %s already exists", name)
 }
@@ -52,31 +30,8 @@ func New(p *pgxpool.Pool) (*Postgres, error) {
 
 func (r Postgres) Create(ctx context.Context, d domain.Survivor) (domain.Survivor, error) {
 	s := fromDTO(d)
-	query := fmt.Sprintf(`INSERT INTO %s (%s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s, %s)
-		VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11, $12, $13, $14, $15, $16, $17, $18)
-		RETURNING *`,
-		table,
-		settlementID,
-		name,
-		birth,
-		gender,
-		huntXP,
-		survival,
-		movement,
-		accuracy,
-		strength,
-		evasion,
-		luck,
-		speed,
-		insanity,
-		systemicPressure,
-		torment,
-		lumi,
-		courage,
-		understanding,
-	)
 
-	rows, err := r.db.Query(ctx, query,
+	rows, err := r.db.Query(ctx, createSurvivor,
 		s.Settlement,
 		s.Name,
 		s.Birth,
@@ -126,10 +81,57 @@ func (r Postgres) Create(ctx context.Context, d domain.Survivor) (domain.Survivo
 	return toDTO(inserted), nil
 }
 
-func (r Postgres) All(ctx context.Context, settlement uuid.UUID) ([]domain.Survivor, error) {
-	query := fmt.Sprintf("SELECT * FROM %s where %s = $1", table, settlementID)
+func (r Postgres) Upsert(ctx context.Context, d domain.Survivor) (domain.Survivor, error) {
+	if d.ID == uuid.Nil {
+		return r.Create(ctx, d)
+	}
 
-	rows, err := r.db.Query(ctx, query, settlement)
+	s := fromDTO(d)
+	rows, err := r.db.Query(ctx, upsertSurvivor,
+		s.Settlement,
+		s.Name,
+		s.Birth,
+		s.Gender,
+		s.HuntXP,
+		s.Survival,
+		s.Movement,
+		s.Accuracy,
+		s.Strength,
+		s.Evasion,
+		s.Luck,
+		s.Speed,
+		s.Insanity,
+		s.SystemicPressure,
+		s.Torment,
+		s.Lumi,
+		s.Courage,
+		s.Understanding,
+	)
+	if err != nil {
+		safeErr := fmt.Errorf("unable to create survivor")
+		logger.Error(ctx, safeErr.Error(),
+			logger.SettlementID(s.Settlement.String()),
+			logger.ErrorField(err),
+		)
+		return domain.Survivor{}, safeErr
+	}
+
+	inserted, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[survivor])
+	if err != nil {
+		safeErr := fmt.Errorf("unable to read upsert result")
+		logger.Error(ctx, safeErr.Error(),
+			logger.SettlementID(s.Settlement.String()),
+			logger.ErrorField(err),
+		)
+
+		return domain.Survivor{}, safeErr
+	}
+
+	return toDTO(inserted), nil
+}
+
+func (r Postgres) All(ctx context.Context, settlement uuid.UUID) ([]domain.Survivor, error) {
+	rows, err := r.db.Query(ctx, getAll, settlement)
 	if err != nil {
 		safeErr := fmt.Errorf("unable to query survivors for settlement")
 		logger.Error(ctx, safeErr.Error(),
