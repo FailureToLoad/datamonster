@@ -84,21 +84,25 @@ func (r Postgres) Insert(ctx context.Context, s domain.Settlement) (uuid.UUID, e
 	return externalID, err
 }
 
-func (r Postgres) Get(ctx context.Context, userID string, settlementID uuid.UUID) (domain.Settlement, error) {
+func (r Postgres) Get(ctx context.Context, userID string, settlementID uuid.UUID) (*domain.Settlement, error) {
 	query := fmt.Sprintf("SELECT * FROM %s where %s = $1 AND %s = $2", table, owner, externalID)
 
 	row, err := r.db.Query(ctx, query, userID, settlementID)
 	if err != nil {
-		return domain.Settlement{}, err
+		return nil, err
 	}
 	defer row.Close()
 
 	s, err := pgx.CollectExactlyOneRow(row, pgx.RowToStructByName[settlement])
+	if errors.Is(err, pgx.ErrNoRows) {
+		return nil, nil
+	}
 	if err != nil {
-		return domain.Settlement{}, err
+		return nil, err
 	}
 
-	return toDTO(s), nil
+	result := toDTO(s)
+	return &result, nil
 }
 
 func toDTOList(settlements []settlement) []domain.Settlement {

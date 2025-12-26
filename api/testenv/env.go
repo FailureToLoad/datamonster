@@ -87,11 +87,11 @@ func NewRequester(controllers []server.Controller) (*Requester, error) {
 }
 
 func (r Requester) Authorized() {
-	r.authorizer.Authorized()
+	r.authorizer.SetAuthorized(true)
 }
 
 func (r Requester) Unauthorized() {
-	r.authorizer.Unauthorized()
+	r.authorizer.SetAuthorized(false)
 }
 
 func (r Requester) ExpectUserID(userID string) {
@@ -103,10 +103,14 @@ func (r Requester) DoRequest(w http.ResponseWriter, req *http.Request) {
 }
 
 func (r Requester) CreateSettlement(t *testing.T, userID string) uuid.UUID {
+	return r.CreateSettlementWithName(t, userID, "Test Settlement")
+}
+
+func (r Requester) CreateSettlementWithName(t *testing.T, userID, name string) uuid.UUID {
 	r.Authorized()
 	r.ExpectUserID(userID)
 
-	body := `{"name":"Test Settlement"}`
+	body := fmt.Sprintf(`{"name":"%s"}`, name)
 	req := httptest.NewRequest(http.MethodPost, "/api/settlements", strings.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
@@ -117,6 +121,36 @@ func (r Requester) CreateSettlement(t *testing.T, userID string) uuid.UUID {
 	var settlementID uuid.UUID
 	require.NoError(t, json.NewDecoder(w.Body).Decode(&settlementID))
 	return settlementID
+}
+
+func (r Requester) GetSettlements(t *testing.T, userID string) *bytes.Buffer {
+	r.Authorized()
+	r.ExpectUserID(userID)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/settlements", nil)
+	w := httptest.NewRecorder()
+
+	r.DoRequest(w, req)
+
+	require.Equal(t, http.StatusOK, w.Code)
+
+	return w.Body
+}
+
+func (r Requester) GetSettlement(t *testing.T, userID string, settlementID uuid.UUID) *bytes.Buffer {
+	require.NotEqual(t, uuid.Nil, settlementID)
+
+	r.Authorized()
+	r.ExpectUserID(userID)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/settlements/"+settlementID.String(), nil)
+	w := httptest.NewRecorder()
+
+	r.DoRequest(w, req)
+
+	require.Equal(t, http.StatusOK, w.Code)
+
+	return w.Body
 }
 
 func (r Requester) CreateSurvivor(t *testing.T, userID string, settlementID uuid.UUID, name string) *bytes.Buffer {

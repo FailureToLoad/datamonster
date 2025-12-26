@@ -12,7 +12,7 @@ import (
 )
 
 func BadRequest(ctx context.Context, rw http.ResponseWriter, err error) {
-	logger.Error(ctx, err.Error())
+	logger.Error(ctx, "bad request", slog.Any("error", err))
 	writeError(ctx, rw, http.StatusBadRequest)
 }
 
@@ -24,6 +24,11 @@ func InternalServerError(ctx context.Context, rw http.ResponseWriter, err error)
 func Unauthorized(ctx context.Context, rw http.ResponseWriter, err error) {
 	slog.Error("unauthorized", slog.Any("error", err))
 	writeError(ctx, rw, http.StatusUnauthorized)
+}
+
+func NotFound(ctx context.Context, rw http.ResponseWriter, err error) {
+	slog.Error("not found", slog.Any("error", err))
+	writeError(ctx, rw, http.StatusNotFound)
 }
 
 func NoContent(rw http.ResponseWriter) {

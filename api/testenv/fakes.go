@@ -22,12 +22,8 @@ func NewAuthorizerFake() AuthorizerFake {
 	}
 }
 
-func (m *AuthorizerFake) Authorized() {
-	m.authorized = true
-}
-
-func (m *AuthorizerFake) Unauthorized() {
-	m.authorized = false
+func (m *AuthorizerFake) SetAuthorized(state bool) {
+	m.authorized = state
 }
 
 func (m *AuthorizerFake) ExpectUserID(id string) {

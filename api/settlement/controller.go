@@ -16,7 +16,7 @@ type (
 	Repo interface {
 		All(ctx context.Context, userID string) ([]domain.Settlement, error)
 		Insert(ctx context.Context, s domain.Settlement) (uuid.UUID, error)
-		Get(ctx context.Context, userID string, settlementID uuid.UUID) (domain.Settlement, error)
+		Get(ctx context.Context, userID string, settlementID uuid.UUID) (*domain.Settlement, error)
 	}
 	Controller struct {
 		records Repo
@@ -103,6 +103,10 @@ func (c Controller) getSettlement(w http.ResponseWriter, r *http.Request) {
 	settlement, repoErr := c.records.Get(ctx, userID, settlementID)
 	if repoErr != nil {
 		response.InternalServerError(ctx, w, fmt.Errorf("unable to retrieve settlement: %w", repoErr))
+		return
+	}
+	if settlement == nil {
+		response.NotFound(ctx, w, fmt.Errorf("settlement not found"))
 		return
 	}
 
