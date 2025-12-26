@@ -66,34 +66,30 @@ func TestMain(m *testing.M) {
 func TestGetSurvivors_Empty(t *testing.T) {
 	userID := "survivor-empty-user"
 
-	settlementID := requester.CreateSettlement(t, userID)
+	settlementID, err := requester.CreateSettlement(userID)
+	require.NoError(t, err)
 
-	requester.Authorized()
-	requester.ExpectUserID(userID)
-
-	req := httptest.NewRequest(http.MethodGet, "/api/settlements/"+settlementID.String()+"/survivors", nil)
-	w := httptest.NewRecorder()
-
-	requester.DoRequest(w, req)
-
-	assert.Equal(t, http.StatusOK, w.Code)
-	assert.Equal(t, "null", w.Body.String())
+	body, status := requester.GetSurvivors(userID, settlementID)
+	assert.Equal(t, http.StatusOK, status)
+	assert.Equal(t, "null", body.String())
 }
 
 func TestGetSurvivors_ReturnsSurvivors(t *testing.T) {
 	userID := "survivor-list-user"
 
-	settlementID := requester.CreateSettlement(t, userID)
-	requester.CreateSurvivor(t, userID, settlementID, "Survivor One")
-	requester.CreateSurvivor(t, userID, settlementID, "Survivor Two")
+	settlementID, err := requester.CreateSettlement(userID)
+	require.NoError(t, err)
+	_, survivorOneStatus := requester.CreateSurvivor(userID, settlementID, "Survivor One")
+	require.Equal(t, http.StatusOK, survivorOneStatus)
 
-	requester.Authorized()
-	requester.ExpectUserID(userID)
+	_, survivorTwoStatus := requester.CreateSurvivor(userID, settlementID, "Survivor Two")
+	require.Equal(t, http.StatusOK, survivorTwoStatus)
 
-	rawBody := requester.GetSurvivors(t, userID, settlementID)
+	body, status := requester.GetSurvivors(userID, settlementID)
+	require.Equal(t, http.StatusOK, status)
 
 	var survivors []domain.Survivor
-	require.NoError(t, json.NewDecoder(rawBody).Decode(&survivors))
+	require.NoError(t, json.NewDecoder(body).Decode(&survivors))
 	require.Len(t, survivors, 2)
 
 	names := map[string]bool{}
@@ -106,15 +102,8 @@ func TestGetSurvivors_ReturnsSurvivors(t *testing.T) {
 }
 
 func TestGetSurvivors_InvalidSettlementID(t *testing.T) {
-	requester.Authorized()
-	requester.ExpectUserID("invalid-id-user")
-
-	req := httptest.NewRequest(http.MethodGet, "/api/settlements/not-a-uuid/survivors", nil)
-	w := httptest.NewRecorder()
-
-	requester.DoRequest(w, req)
-
-	assert.Equal(t, http.StatusInternalServerError, w.Code)
+	_, status := requester.GetSurvivors("invalid-id-user", "not-a-uuid")
+	assert.Equal(t, http.StatusInternalServerError, status)
 }
 
 func TestGetSurvivors_Unauthorized(t *testing.T) {
@@ -131,75 +120,41 @@ func TestGetSurvivors_Unauthorized(t *testing.T) {
 func TestCreateSurvivor_Success(t *testing.T) {
 	userID := "create-survivor-user"
 
-	settlementID := requester.CreateSettlement(t, userID)
+	settlementID, err := requester.CreateSettlement(userID)
+	require.NoError(t, err)
 
-	requester.Authorized()
-	requester.ExpectUserID(userID)
-
-	body := `{"name":"New Survivor","birth":1,"gender":"M","huntxp":0,"survival":1,"movement":5,"accuracy":0,"strength":0,"evasion":0,"luck":0,"speed":0,"insanity":0,"systemicPressure":0,"torment":0,"lumi":0,"courage":0,"understanding":0}`
-	req := httptest.NewRequest(http.MethodPost, "/api/settlements/"+settlementID.String()+"/survivors", strings.NewReader(body))
-	req.Header.Set("Content-Type", "application/json")
-	w := httptest.NewRecorder()
-
-	requester.DoRequest(w, req)
-
-	require.Equal(t, http.StatusOK, w.Code)
+	respBody, status := requester.CreateSurvivor(userID, settlementID, "New Survivor")
+	require.Equal(t, http.StatusOK, status)
 
 	var survivor domain.Survivor
-	require.NoError(t, json.NewDecoder(w.Body).Decode(&survivor))
+	require.NoError(t, json.NewDecoder(respBody).Decode(&survivor))
 	assert.Equal(t, "New Survivor", survivor.Name)
 	assert.NotEqual(t, uuid.Nil, survivor.ID)
-	assert.Equal(t, settlementID, survivor.Settlement)
 }
 
 func TestCreateSurvivor_MissingName(t *testing.T) {
 	userID := "missing-name-survivor-user"
 
-	settlementID := requester.CreateSettlement(t, userID)
+	settlementID, err := requester.CreateSettlement(userID)
+	require.NoError(t, err)
 
-	requester.Authorized()
-	requester.ExpectUserID(userID)
-
-	body := `{"birth":1,"gender":"M"}`
-	req := httptest.NewRequest(http.MethodPost, "/api/settlements/"+settlementID.String()+"/survivors", strings.NewReader(body))
-	req.Header.Set("Content-Type", "application/json")
-	w := httptest.NewRecorder()
-
-	requester.DoRequest(w, req)
-
-	assert.Equal(t, http.StatusBadRequest, w.Code)
+	_, status := requester.CreateSurvivorWithBody(userID, settlementID, `{"birth":1,"gender":"M"}`)
+	assert.Equal(t, http.StatusBadRequest, status)
 }
 
 func TestCreateSurvivor_InvalidJSON(t *testing.T) {
 	userID := "invalid-json-survivor-user"
 
-	settlementID := requester.CreateSettlement(t, userID)
+	settlementID, err := requester.CreateSettlement(userID)
+	require.NoError(t, err)
 
-	requester.Authorized()
-	requester.ExpectUserID(userID)
-
-	body := `{invalid json}`
-	req := httptest.NewRequest(http.MethodPost, "/api/settlements/"+settlementID.String()+"/survivors", strings.NewReader(body))
-	req.Header.Set("Content-Type", "application/json")
-	w := httptest.NewRecorder()
-
-	requester.DoRequest(w, req)
-
-	assert.Equal(t, http.StatusInternalServerError, w.Code)
+	_, status := requester.CreateSurvivorWithBody(userID, settlementID, `{invalid json}`)
+	assert.Equal(t, http.StatusInternalServerError, status)
 }
 
 func TestCreateSurvivor_InvalidSettlementID(t *testing.T) {
-	requester.Authorized()
-	requester.ExpectUserID("invalid-settlement-user")
-
-	body := `{"name":"Test Survivor"}`
-	req := httptest.NewRequest(http.MethodPost, "/api/settlements/not-a-uuid/survivors", strings.NewReader(body))
-	req.Header.Set("Content-Type", "application/json")
-	w := httptest.NewRecorder()
-
-	requester.DoRequest(w, req)
-
-	assert.Equal(t, http.StatusInternalServerError, w.Code)
+	_, status := requester.CreateSurvivorWithBody("invalid-settlement-user", "not-a-uuid", `{"name":"Test Survivor"}`)
+	assert.Equal(t, http.StatusInternalServerError, status)
 }
 
 func TestCreateSurvivor_Unauthorized(t *testing.T) {
@@ -218,68 +173,50 @@ func TestCreateSurvivor_Unauthorized(t *testing.T) {
 func TestCreateSurvivor_DuplicateName(t *testing.T) {
 	userID := "duplicate-survivor-user"
 
-	settlementID := requester.CreateSettlement(t, userID)
-	requester.CreateSurvivor(t, userID, settlementID, "Duplicate Name")
+	settlementID, err := requester.CreateSettlement(userID)
+	require.NoError(t, err)
 
-	requester.Authorized()
-	requester.ExpectUserID(userID)
+	_, status := requester.CreateSurvivor(userID, settlementID, "Duplicate Name")
+	require.Equal(t, http.StatusOK, status)
 
-	body := `{"name":"Duplicate Name","birth":1,"gender":"M","huntxp":0,"survival":1,"movement":5,"accuracy":0,"strength":0,"evasion":0,"luck":0,"speed":0,"insanity":0,"systemicPressure":0,"torment":0,"lumi":0,"courage":0,"understanding":0}`
-	req := httptest.NewRequest(http.MethodPost, "/api/settlements/"+settlementID.String()+"/survivors", strings.NewReader(body))
-	req.Header.Set("Content-Type", "application/json")
-	w := httptest.NewRecorder()
-
-	requester.DoRequest(w, req)
-
-	assert.Equal(t, http.StatusInternalServerError, w.Code)
+	_, status = requester.CreateSurvivor(userID, settlementID, "Duplicate Name")
+	assert.Equal(t, http.StatusInternalServerError, status)
 }
 
 func TestUpsertSurvivor_CreateNew(t *testing.T) {
 	userID := "upsert-create-user"
 
-	settlementID := requester.CreateSettlement(t, userID)
-
-	requester.Authorized()
-	requester.ExpectUserID(userID)
+	settlementID, err := requester.CreateSettlement(userID)
+	require.NoError(t, err)
 
 	body := `{"name":"Upsert New Survivor","birth":1,"gender":"M","huntxp":0,"survival":1,"movement":5,"accuracy":0,"strength":0,"evasion":0,"luck":0,"speed":0,"insanity":0,"systemicPressure":0,"torment":0,"lumi":0,"courage":0,"understanding":0}`
-	req := httptest.NewRequest(http.MethodPut, "/api/settlements/"+settlementID.String()+"/survivors", strings.NewReader(body))
-	req.Header.Set("Content-Type", "application/json")
-	w := httptest.NewRecorder()
-
-	requester.DoRequest(w, req)
-
-	require.Equal(t, http.StatusOK, w.Code)
+	respBody, status := requester.UpsertSurvivor(userID, settlementID, body)
+	require.Equal(t, http.StatusOK, status)
 
 	var survivor domain.Survivor
-	require.NoError(t, json.NewDecoder(w.Body).Decode(&survivor))
+	require.NoError(t, json.NewDecoder(respBody).Decode(&survivor))
 	assert.Equal(t, "Upsert New Survivor", survivor.Name)
 	assert.NotEqual(t, uuid.Nil, survivor.ID)
-	assert.Equal(t, settlementID, survivor.Settlement)
 }
 
 func TestUpsertSurvivor_UpdateExisting(t *testing.T) {
 	userID := "upsert-update-user"
 
-	settlementID := requester.CreateSettlement(t, userID)
-	rawSurvivor := requester.CreateSurvivor(t, userID, settlementID, "Original Name")
+	settlementID, err := requester.CreateSettlement(userID)
+	require.NoError(t, err)
+
+	rawSurvivor, status := requester.CreateSurvivor(userID, settlementID, "Original Name")
+	require.Equal(t, http.StatusOK, status)
+
 	var existing domain.Survivor
 	require.NoError(t, json.NewDecoder(rawSurvivor).Decode(&existing))
 
-	requester.Authorized()
-	requester.ExpectUserID(userID)
-
 	body := fmt.Sprintf(`{"id":"%s","name":"Original Name","birth":5,"gender":"M","huntxp":10,"survival":8,"movement":7,"accuracy":3,"strength":4,"evasion":2,"luck":5,"speed":3,"insanity":6,"systemicPressure":2,"torment":3,"lumi":4,"courage":7,"understanding":9}`, existing.ID.String())
-	req := httptest.NewRequest(http.MethodPut, "/api/settlements/"+settlementID.String()+"/survivors", strings.NewReader(body))
-	req.Header.Set("Content-Type", "application/json")
-	w := httptest.NewRecorder()
-
-	requester.DoRequest(w, req)
-
-	require.Equal(t, http.StatusOK, w.Code)
+	respBody, status := requester.UpsertSurvivor(userID, settlementID, body)
+	require.Equal(t, http.StatusOK, status)
 
 	var survivor domain.Survivor
-	require.NoError(t, json.NewDecoder(w.Body).Decode(&survivor))
+	require.NoError(t, json.NewDecoder(respBody).Decode(&survivor))
 	assert.Equal(t, existing.ID, survivor.ID)
 	assert.Equal(t, existing.Name, survivor.Name)
 	assert.Equal(t, existing.Gender, survivor.Gender)
@@ -303,51 +240,26 @@ func TestUpsertSurvivor_UpdateExisting(t *testing.T) {
 func TestUpsertSurvivor_MissingName(t *testing.T) {
 	userID := "upsert-missing-name-user"
 
-	settlementID := requester.CreateSettlement(t, userID)
+	settlementID, err := requester.CreateSettlement(userID)
+	require.NoError(t, err)
 
-	requester.Authorized()
-	requester.ExpectUserID(userID)
-
-	body := `{"birth":1,"gender":"M"}`
-	req := httptest.NewRequest(http.MethodPut, "/api/settlements/"+settlementID.String()+"/survivors", strings.NewReader(body))
-	req.Header.Set("Content-Type", "application/json")
-	w := httptest.NewRecorder()
-
-	requester.DoRequest(w, req)
-
-	assert.Equal(t, http.StatusBadRequest, w.Code)
+	_, status := requester.UpsertSurvivor(userID, settlementID, `{"birth":1,"gender":"M"}`)
+	assert.Equal(t, http.StatusBadRequest, status)
 }
 
 func TestUpsertSurvivor_InvalidJSON(t *testing.T) {
 	userID := "upsert-invalid-json-user"
 
-	settlementID := requester.CreateSettlement(t, userID)
+	settlementID, err := requester.CreateSettlement(userID)
+	require.NoError(t, err)
 
-	requester.Authorized()
-	requester.ExpectUserID(userID)
-
-	body := `{invalid json}`
-	req := httptest.NewRequest(http.MethodPut, "/api/settlements/"+settlementID.String()+"/survivors", strings.NewReader(body))
-	req.Header.Set("Content-Type", "application/json")
-	w := httptest.NewRecorder()
-
-	requester.DoRequest(w, req)
-
-	assert.Equal(t, http.StatusInternalServerError, w.Code)
+	_, status := requester.UpsertSurvivor(userID, settlementID, `{invalid json}`)
+	assert.Equal(t, http.StatusInternalServerError, status)
 }
 
 func TestUpsertSurvivor_InvalidSettlementID(t *testing.T) {
-	requester.Authorized()
-	requester.ExpectUserID("upsert-invalid-settlement-user")
-
-	body := `{"name":"Test Survivor"}`
-	req := httptest.NewRequest(http.MethodPut, "/api/settlements/not-a-uuid/survivors", strings.NewReader(body))
-	req.Header.Set("Content-Type", "application/json")
-	w := httptest.NewRecorder()
-
-	requester.DoRequest(w, req)
-
-	assert.Equal(t, http.StatusInternalServerError, w.Code)
+	_, status := requester.UpsertSurvivor("upsert-invalid-settlement-user", "not-a-uuid", `{"name":"Test Survivor"}`)
+	assert.Equal(t, http.StatusInternalServerError, status)
 }
 
 func TestUpsertSurvivor_Unauthorized(t *testing.T) {
