@@ -180,6 +180,10 @@ func (r Requester) UpsertSurvivor(userID string, settlementID string, body strin
 	return w.Body, w.Code
 }
 
-func ValidUUID() string {
-	return uuid.Must(uuid.NewV4()).String()
+func UUIDString() string {
+	return UUID().String()
+}
+
+func UUID() uuid.UUID {
+	return uuid.Must(uuid.NewV4())
 }

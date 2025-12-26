@@ -159,7 +159,7 @@ func TestGetSettlement_Success(t *testing.T) {
 }
 
 func TestGetSettlement_NotFound(t *testing.T) {
-	_, status := requester.GetSettlement("get-notfound-user", testenv.ValidUUID())
+	_, status := requester.GetSettlement("get-notfound-user", testenv.UUIDString())
 	assert.Equal(t, http.StatusNotFound, status)
 }
 
@@ -170,7 +170,7 @@ func TestGetSettlement_InvalidID(t *testing.T) {
 
 func TestGetSettlement_Unauthorized(t *testing.T) {
 	t.Cleanup(requester.Unauthorized())
-	_, status := requester.GetSettlement("unauthorized", testenv.ValidUUID())
+	_, status := requester.GetSettlement("unauthorized", testenv.UUIDString())
 
 	assert.Equal(t, http.StatusUnauthorized, status)
 }

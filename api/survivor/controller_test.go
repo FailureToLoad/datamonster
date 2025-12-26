@@ -106,7 +106,7 @@ func TestGetSurvivors_InvalidSettlementID(t *testing.T) {
 
 func TestGetSurvivors_Unauthorized(t *testing.T) {
 	t.Cleanup(requester.Unauthorized())
-	_, status := requester.GetSurvivors("unauthorized", testenv.ValidUUID())
+	_, status := requester.GetSurvivors("unauthorized", testenv.UUIDString())
 
 	assert.Equal(t, http.StatusUnauthorized, status)
 }
@@ -153,7 +153,7 @@ func TestCreateSurvivor_InvalidSettlementID(t *testing.T) {
 
 func TestCreateSurvivor_Unauthorized(t *testing.T) {
 	t.Cleanup(requester.Unauthorized())
-	_, status := requester.CreateSurvivorWithBody("unauthorized", testenv.ValidUUID(), `{"name":"Unauthorized Survivor"}`)
+	_, status := requester.CreateSurvivorWithBody("unauthorized", testenv.UUIDString(), `{"name":"Unauthorized Survivor"}`)
 
 	assert.Equal(t, http.StatusUnauthorized, status)
 }
@@ -252,7 +252,7 @@ func TestUpsertSurvivor_InvalidSettlementID(t *testing.T) {
 
 func TestUpsertSurvivor_Unauthorized(t *testing.T) {
 	t.Cleanup(requester.Unauthorized())
-	_, status := requester.UpsertSurvivor("unauthorized", testenv.ValidUUID(), `{"name":"Unauthorized Survivor"}`)
+	_, status := requester.UpsertSurvivor("unauthorized", testenv.UUIDString(), `{"name":"Unauthorized Survivor"}`)
 
 	assert.Equal(t, http.StatusUnauthorized, status)
 }
