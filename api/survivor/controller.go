@@ -17,7 +17,7 @@ import (
 type Repo interface {
 	All(ctx context.Context, settlementID uuid.UUID) ([]domain.Survivor, error)
 	Create(ctx context.Context, d domain.Survivor) (domain.Survivor, error)
-	Upsert(ctx context.Context, d domain.Survivor) (domain.Survivor, error)
+	Update(ctx context.Context, d domain.Survivor) (domain.Survivor, error)
 }
 
 type Controller struct {
@@ -36,7 +36,7 @@ func (c Controller) RegisterRoutes(r chi.Router) {
 		gr.Use(settlementIDToContext)
 		gr.Get("/settlements/{id}/survivors", c.getSurvivors)
 		gr.Post("/settlements/{id}/survivors", c.createSurvivor)
-		gr.Put("/settlements/{id}/survivors", c.upsertSurvivor)
+		gr.Put("/settlements/{id}/survivors/{survivorID}", c.updateSurvivor)
 	})
 }
 
@@ -77,7 +77,7 @@ func (c Controller) createSurvivor(w http.ResponseWriter, r *http.Request) {
 	response.OK(ctx, w, survivor)
 }
 
-func (c Controller) upsertSurvivor(w http.ResponseWriter, r *http.Request) {
+func (c Controller) updateSurvivor(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
 	survivorDTO := domain.Survivor{}
 	decodeErr := request.DecodeJSON(r.Body, &survivorDTO)
@@ -93,7 +93,7 @@ func (c Controller) upsertSurvivor(w http.ResponseWriter, r *http.Request) {
 
 	settlementID := request.SettlementID(ctx)
 	survivorDTO.Settlement = settlementID
-	survivor, err := c.db.Upsert(ctx, survivorDTO)
+	survivor, err := c.db.Update(ctx, survivorDTO)
 	if err != nil {
 		response.InternalServerError(ctx, w, fmt.Errorf("error updating survivor: %w", err))
 		return

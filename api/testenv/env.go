@@ -169,10 +169,10 @@ func (r Requester) GetSurvivors(userID string, settlementID string) (*bytes.Buff
 	return w.Body, w.Code
 }
 
-func (r Requester) UpsertSurvivor(userID string, settlementID string, body string) (*bytes.Buffer, int) {
+func (r Requester) UpdateSurvivor(userID, settlementID, survivorID string, body string) (*bytes.Buffer, int) {
 	r.authorizer.ExpectUserID(userID)
 
-	req := httptest.NewRequest(http.MethodPut, "/api/settlements/"+settlementID+"/survivors", strings.NewReader(body))
+	req := httptest.NewRequest(http.MethodPut, "/api/settlements/"+settlementID+"/survivors/"+survivorID, strings.NewReader(body))
 	req.Header.Set("Content-Type", "application/json")
 	w := httptest.NewRecorder()
 	r.DoRequest(w, req)

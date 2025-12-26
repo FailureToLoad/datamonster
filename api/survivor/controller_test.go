@@ -171,23 +171,7 @@ func TestCreateSurvivor_DuplicateName(t *testing.T) {
 	assert.Equal(t, http.StatusInternalServerError, status)
 }
 
-func TestUpsertSurvivor_CreateNew(t *testing.T) {
-	userID := "upsert-create-user"
-
-	settlementID, err := requester.CreateSettlement(userID)
-	require.NoError(t, err)
-
-	body := `{"name":"Upsert New Survivor","birth":1,"gender":"M","huntxp":0,"survival":1,"movement":5,"accuracy":0,"strength":0,"evasion":0,"luck":0,"speed":0,"insanity":0,"systemicPressure":0,"torment":0,"lumi":0,"courage":0,"understanding":0}`
-	respBody, status := requester.UpsertSurvivor(userID, settlementID, body)
-	require.Equal(t, http.StatusOK, status)
-
-	var survivor domain.Survivor
-	require.NoError(t, json.NewDecoder(respBody).Decode(&survivor))
-	assert.Equal(t, "Upsert New Survivor", survivor.Name)
-	assert.NotEqual(t, uuid.Nil, survivor.ID)
-}
-
-func TestUpsertSurvivor_UpdateExisting(t *testing.T) {
+func TestUpdateSurvivor_UpdateExisting(t *testing.T) {
 	userID := "upsert-update-user"
 
 	settlementID, err := requester.CreateSettlement(userID)
@@ -199,8 +183,12 @@ func TestUpsertSurvivor_UpdateExisting(t *testing.T) {
 	var existing domain.Survivor
 	require.NoError(t, json.NewDecoder(rawSurvivor).Decode(&existing))
 
-	body := fmt.Sprintf(`{"id":"%s","name":"Original Name","birth":5,"gender":"M","huntxp":10,"survival":8,"movement":7,"accuracy":3,"strength":4,"evasion":2,"luck":5,"speed":3,"insanity":6,"systemicPressure":2,"torment":3,"lumi":4,"courage":7,"understanding":9}`, existing.ID.String())
-	respBody, status := requester.UpsertSurvivor(userID, settlementID, body)
+	body := fmt.Sprintf(`{"id":"%s","name":"Original Name","huntxp":10,"survival":8,"movement":7,"accuracy":3,"strength":4,"evasion":2,"luck":5,"speed":3,"insanity":6,"systemicPressure":2,"torment":3,"lumi":4,"courage":7,"understanding":9}`, existing.ID.String())
+	respBody, status := requester.UpdateSurvivor(userID,
+		settlementID,
+		existing.ID.String(),
+		body,
+	)
 	require.Equal(t, http.StatusOK, status)
 
 	var survivor domain.Survivor
@@ -208,7 +196,7 @@ func TestUpsertSurvivor_UpdateExisting(t *testing.T) {
 	assert.Equal(t, existing.ID, survivor.ID)
 	assert.Equal(t, existing.Name, survivor.Name)
 	assert.Equal(t, existing.Gender, survivor.Gender)
-	assert.Equal(t, 5, survivor.Birth)
+	assert.Equal(t, existing.Birth, survivor.Birth)
 	assert.Equal(t, 10, survivor.HuntXP)
 	assert.Equal(t, 8, survivor.Survival)
 	assert.Equal(t, 7, survivor.Movement)
@@ -225,34 +213,48 @@ func TestUpsertSurvivor_UpdateExisting(t *testing.T) {
 	assert.Equal(t, 9, survivor.Understanding)
 }
 
-func TestUpsertSurvivor_MissingName(t *testing.T) {
+func TestUpdateSurvivor_MissingName(t *testing.T) {
 	userID := "upsert-missing-name-user"
 
 	settlementID, err := requester.CreateSettlement(userID)
 	require.NoError(t, err)
+	survivorID := testenv.UUIDString()
 
-	_, status := requester.UpsertSurvivor(userID, settlementID, `{"birth":1,"gender":"M"}`)
+	_, status := requester.UpdateSurvivor(userID,
+		settlementID,
+		survivorID,
+		`{"birth":1,"gender":"M"}`,
+	)
 	assert.Equal(t, http.StatusBadRequest, status)
 }
 
-func TestUpsertSurvivor_InvalidJSON(t *testing.T) {
+func TestUpdateSurvivor_InvalidJSON(t *testing.T) {
 	userID := "upsert-invalid-json-user"
 
 	settlementID, err := requester.CreateSettlement(userID)
 	require.NoError(t, err)
+	survivorID := testenv.UUIDString()
 
-	_, status := requester.UpsertSurvivor(userID, settlementID, `{invalid json}`)
+	_, status := requester.UpdateSurvivor(userID,
+		settlementID,
+		survivorID,
+		`{invalid json}`,
+	)
 	assert.Equal(t, http.StatusInternalServerError, status)
 }
 
-func TestUpsertSurvivor_InvalidSettlementID(t *testing.T) {
-	_, status := requester.UpsertSurvivor("upsert-invalid-settlement-user", "not-a-uuid", `{"name":"Test Survivor"}`)
+func TestUpdateSurvivor_InvalidSettlementID(t *testing.T) {
+	_, status := requester.UpdateSurvivor("upsert-invalid-settlement-user",
+		"not-a-uuid",
+		testenv.UUIDString(),
+		`{"name":"Test Survivor"}`,
+	)
 	assert.Equal(t, http.StatusInternalServerError, status)
 }
 
-func TestUpsertSurvivor_Unauthorized(t *testing.T) {
+func TestUpdateSurvivor_Unauthorized(t *testing.T) {
 	t.Cleanup(requester.Unauthorized())
-	_, status := requester.UpsertSurvivor("unauthorized", testenv.UUIDString(), `{"name":"Unauthorized Survivor"}`)
+	_, status := requester.UpdateSurvivor("unauthorized", testenv.UUIDString(), testenv.UUIDString(), `{"name":"Unauthorized Survivor"}`)
 
 	assert.Equal(t, http.StatusUnauthorized, status)
 }

@@ -81,17 +81,9 @@ func (r Postgres) Create(ctx context.Context, d domain.Survivor) (domain.Survivo
 	return toDTO(inserted), nil
 }
 
-func (r Postgres) Upsert(ctx context.Context, d domain.Survivor) (domain.Survivor, error) {
-	if d.ID == uuid.Nil {
-		return r.Create(ctx, d)
-	}
-
+func (r Postgres) Update(ctx context.Context, d domain.Survivor) (domain.Survivor, error) {
 	s := fromDTO(d)
-	rows, err := r.db.Query(ctx, upsertSurvivor,
-		s.Settlement,
-		s.Name,
-		s.Birth,
-		s.Gender,
+	rows, err := r.db.Query(ctx, updateSurvivor, s.ExternalID,
 		s.HuntXP,
 		s.Survival,
 		s.Movement,
