@@ -4,7 +4,7 @@ import "github.com/gofrs/uuid/v5"
 
 type Survivor struct {
 	ID               uuid.UUID `json:"id"`
-	Settlement       uuid.UUID `json:"settlement"`
+	SettlementID     uuid.UUID `json:"settlementId"`
 	Name             string    `json:"name"`
 	Birth            int       `json:"birth"`
 	Gender           string    `json:"gender"`

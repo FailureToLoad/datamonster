@@ -73,11 +73,11 @@ export default function NewSurvivorDialog({settlementId, onSuccess}: SurvivorDia
           lumi: parsed.lumi,
           insanity: parsed.insanity,
           torment: parsed.torment,
-          born: 1,
+          birth: 1,
           huntxp: 0,
           courage: 0,
           understanding: 0,
-          settlementID: settlementId,
+          settlementId: settlementId,
         })
       if (response.ok) {
         dialogRef.current?.close();

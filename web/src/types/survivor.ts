@@ -3,7 +3,7 @@ export type Survivor = {
   id: string;
   name: string;
   gender: SurvivorGender;
-  born: number;
+  birth: number;
   huntxp: number;
   movement: number;
   speed: number;
@@ -18,7 +18,7 @@ export type Survivor = {
   survival: number;
   insanity: number;
   lumi: number;
-  settlementID: string;
+  settlementId: string;
 };
 
 
@@ -33,7 +33,7 @@ export type SurvivorGender = typeof SurvivorGender[keyof typeof SurvivorGender];
 export type CreateSurvivorRequest = {
   settlementID: string;
   name: string;
-  born?: number;
+  birth?: number;
   gender?: SurvivorGender;
   huntxp?: number;
   survival?: number;

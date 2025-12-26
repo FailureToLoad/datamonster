@@ -32,7 +32,7 @@ func (r Postgres) Create(ctx context.Context, d domain.Survivor) (domain.Survivo
 	s := fromDTO(d)
 
 	rows, err := r.db.Query(ctx, createSurvivor,
-		s.Settlement,
+		s.SettlementID,
 		s.Name,
 		s.Birth,
 		s.Gender,
@@ -54,14 +54,14 @@ func (r Postgres) Create(ctx context.Context, d domain.Survivor) (domain.Survivo
 	if err != nil {
 		if IsDuplicateKeyError(err) {
 			logger.Error(ctx, fmt.Sprintf("survivor named %s exists", s.Name),
-				logger.SettlementID(s.Settlement.String()),
+				logger.SettlementID(s.SettlementID.String()),
 			)
 			return domain.Survivor{}, ErrDuplicateName(s.Name)
 		}
 
 		safeErr := fmt.Errorf("unable to create survivor")
 		logger.Error(ctx, safeErr.Error(),
-			logger.SettlementID(s.Settlement.String()),
+			logger.SettlementID(s.SettlementID.String()),
 			logger.ErrorField(err),
 		)
 		return domain.Survivor{}, safeErr
@@ -71,7 +71,7 @@ func (r Postgres) Create(ctx context.Context, d domain.Survivor) (domain.Survivo
 	if err != nil {
 		safeErr := fmt.Errorf("unable to read creation result")
 		logger.Error(ctx, safeErr.Error(),
-			logger.SettlementID(s.Settlement.String()),
+			logger.SettlementID(s.SettlementID.String()),
 			logger.ErrorField(err),
 		)
 
@@ -81,45 +81,67 @@ func (r Postgres) Create(ctx context.Context, d domain.Survivor) (domain.Survivo
 	return toDTO(inserted), nil
 }
 
-func (r Postgres) Update(ctx context.Context, d domain.Survivor) (domain.Survivor, error) {
-	s := fromDTO(d)
-	rows, err := r.db.Query(ctx, updateSurvivor, s.ExternalID,
-		s.HuntXP,
-		s.Survival,
-		s.Movement,
-		s.Accuracy,
-		s.Strength,
-		s.Evasion,
-		s.Luck,
-		s.Speed,
-		s.Insanity,
-		s.SystemicPressure,
-		s.Torment,
-		s.Lumi,
-		s.Courage,
-		s.Understanding,
-	)
+var jsonToColumn = map[string]string{
+	"huntxp":           "hunt_xp",
+	"survival":         "survival",
+	"movement":         "movement",
+	"accuracy":         "accuracy",
+	"strength":         "strength",
+	"evasion":          "evasion",
+	"luck":             "luck",
+	"speed":            "speed",
+	"insanity":         "insanity",
+	"systemicpressure": "systemic_pressure",
+	"torment":          "torment",
+	"lumi":             "lumi",
+	"courage":          "courage",
+	"understanding":    "understanding",
+}
+
+func (r Postgres) Update(ctx context.Context, settlementID, survivorID uuid.UUID, updates map[string]int) (domain.Survivor, error) {
+	if len(updates) == 0 {
+		return domain.Survivor{}, fmt.Errorf("no fields to update")
+	}
+
+	var setClauses []string
+	args := []any{settlementID, survivorID}
+	paramIdx := 3
+
+	for jsonKey, value := range updates {
+		col, ok := jsonToColumn[jsonKey]
+		if !ok {
+			continue
+		}
+		setClauses = append(setClauses, fmt.Sprintf("%s = $%d", col, paramIdx))
+		args = append(args, value)
+		paramIdx++
+	}
+
+	if len(setClauses) == 0 {
+		return domain.Survivor{}, fmt.Errorf("no valid fields to update")
+	}
+
+	query := fmt.Sprintf("UPDATE survivor SET %s WHERE settlement_id = $1 AND external_id = $2 RETURNING *", strings.Join(setClauses, ", "))
+
+	rows, err := r.db.Query(ctx, query, args...)
 	if err != nil {
-		safeErr := fmt.Errorf("unable to create survivor")
+		safeErr := fmt.Errorf("unable to update survivor")
 		logger.Error(ctx, safeErr.Error(),
-			logger.SettlementID(s.Settlement.String()),
 			logger.ErrorField(err),
 		)
 		return domain.Survivor{}, safeErr
 	}
 
-	inserted, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[survivor])
+	updated, err := pgx.CollectExactlyOneRow(rows, pgx.RowToStructByName[survivor])
 	if err != nil {
-		safeErr := fmt.Errorf("unable to read upsert result")
+		safeErr := fmt.Errorf("unable to read update result")
 		logger.Error(ctx, safeErr.Error(),
-			logger.SettlementID(s.Settlement.String()),
 			logger.ErrorField(err),
 		)
-
 		return domain.Survivor{}, safeErr
 	}
 
-	return toDTO(inserted), nil
+	return toDTO(updated), nil
 }
 
 func (r Postgres) All(ctx context.Context, settlement uuid.UUID) ([]domain.Survivor, error) {
@@ -162,7 +184,7 @@ func IsDuplicateKeyError(err error) bool {
 type survivor struct {
 	ID               int       `db:"id"`
 	ExternalID       uuid.UUID `db:"external_id"`
-	Settlement       uuid.UUID `db:"settlement_id"`
+	SettlementID     uuid.UUID `db:"settlement_id"`
 	Name             string    `db:"name"`
 	Birth            int       `db:"birth"`
 	Gender           string    `db:"gender"`
@@ -185,7 +207,7 @@ type survivor struct {
 func toDTO(s survivor) domain.Survivor {
 	return domain.Survivor{
 		ID:               s.ExternalID,
-		Settlement:       s.Settlement,
+		SettlementID:     s.SettlementID,
 		Name:             s.Name,
 		Birth:            s.Birth,
 		Gender:           s.Gender,
@@ -219,7 +241,7 @@ func toDTOList(survivors []survivor) []domain.Survivor {
 func fromDTO(s domain.Survivor) survivor {
 	return survivor{
 		ExternalID:       s.ID,
-		Settlement:       s.Settlement,
+		SettlementID:     s.SettlementID,
 		Name:             s.Name,
 		Birth:            s.Birth,
 		Gender:           s.Gender,

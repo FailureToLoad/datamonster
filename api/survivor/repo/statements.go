@@ -43,22 +43,5 @@ VALUES (
 )
 RETURNING *
 `
-	getAll         = "SELECT * FROM survivor where settlement_id = $1"
-	updateSurvivor = `UPDATE survivor SET hunt_xp = $2,
-	survival = $3,
-	movement = $4,
-	accuracy = $5,
-	strength = $6,
-	evasion = $7,
-	luck = $8,
-	speed = $9,
-	insanity = $10,
-	systemic_pressure = $11,
-	torment = $12,
-	lumi = $13,
-	courage = $14,
-	understanding = $15
-WHERE external_id = $1
-RETURNING *
-`
+	getAll = "SELECT * FROM survivor where settlement_id = $1"
 )

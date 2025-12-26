@@ -3,7 +3,6 @@ package survivor_test
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -183,7 +182,7 @@ func TestUpdateSurvivor_UpdateExisting(t *testing.T) {
 	var existing domain.Survivor
 	require.NoError(t, json.NewDecoder(rawSurvivor).Decode(&existing))
 
-	body := fmt.Sprintf(`{"id":"%s","name":"Original Name","huntxp":10,"survival":8,"movement":7,"accuracy":3,"strength":4,"evasion":2,"luck":5,"speed":3,"insanity":6,"systemicPressure":2,"torment":3,"lumi":4,"courage":7,"understanding":9}`, existing.ID.String())
+	body := `{"huntxp":10,"survival":8,"movement":7,"accuracy":3,"strength":4,"evasion":2,"luck":5,"speed":3,"insanity":6,"systemicpressure":2,"torment":3,"lumi":4,"courage":7,"understanding":9}`
 	respBody, status := requester.UpdateSurvivor(userID,
 		settlementID,
 		existing.ID.String(),
@@ -213,8 +212,8 @@ func TestUpdateSurvivor_UpdateExisting(t *testing.T) {
 	assert.Equal(t, 9, survivor.Understanding)
 }
 
-func TestUpdateSurvivor_MissingName(t *testing.T) {
-	userID := "upsert-missing-name-user"
+func TestUpdateSurvivor_NoValidFields(t *testing.T) {
+	userID := "update-no-valid-fields-user"
 
 	settlementID, err := requester.CreateSettlement(userID)
 	require.NoError(t, err)
@@ -223,22 +222,7 @@ func TestUpdateSurvivor_MissingName(t *testing.T) {
 	_, status := requester.UpdateSurvivor(userID,
 		settlementID,
 		survivorID,
-		`{"birth":1,"gender":"M"}`,
-	)
-	assert.Equal(t, http.StatusBadRequest, status)
-}
-
-func TestUpdateSurvivor_InvalidJSON(t *testing.T) {
-	userID := "upsert-invalid-json-user"
-
-	settlementID, err := requester.CreateSettlement(userID)
-	require.NoError(t, err)
-	survivorID := testenv.UUIDString()
-
-	_, status := requester.UpdateSurvivor(userID,
-		settlementID,
-		survivorID,
-		`{invalid json}`,
+		`{"notafield":99}`,
 	)
 	assert.Equal(t, http.StatusInternalServerError, status)
 }
@@ -247,14 +231,14 @@ func TestUpdateSurvivor_InvalidSettlementID(t *testing.T) {
 	_, status := requester.UpdateSurvivor("upsert-invalid-settlement-user",
 		"not-a-uuid",
 		testenv.UUIDString(),
-		`{"name":"Test Survivor"}`,
+		`{"huntxp":5}`,
 	)
 	assert.Equal(t, http.StatusInternalServerError, status)
 }
 
 func TestUpdateSurvivor_Unauthorized(t *testing.T) {
 	t.Cleanup(requester.Unauthorized())
-	_, status := requester.UpdateSurvivor("unauthorized", testenv.UUIDString(), testenv.UUIDString(), `{"name":"Unauthorized Survivor"}`)
+	_, status := requester.UpdateSurvivor("unauthorized", testenv.UUIDString(), testenv.UUIDString(), `{"huntxp":5}`)
 
 	assert.Equal(t, http.StatusUnauthorized, status)
 }
