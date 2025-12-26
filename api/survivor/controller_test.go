@@ -63,27 +63,10 @@ func TestMain(m *testing.M) {
 	os.Exit(exitCode)
 }
 
-func createTestSettlement(t *testing.T, userID string) uuid.UUID {
-	requester.Authorized()
-	requester.ExpectUserID(userID)
-
-	body := `{"name":"Test Settlement"}`
-	req := httptest.NewRequest(http.MethodPost, "/api/settlements", strings.NewReader(body))
-	req.Header.Set("Content-Type", "application/json")
-	w := httptest.NewRecorder()
-
-	requester.DoRequest(w, req)
-	require.Equal(t, http.StatusOK, w.Code)
-
-	var settlementID uuid.UUID
-	require.NoError(t, json.NewDecoder(w.Body).Decode(&settlementID))
-	return settlementID
-}
-
 func TestGetSurvivors_Empty(t *testing.T) {
 	userID := "survivor-empty-user"
 
-	settlementID := createTestSettlement(t, userID)
+	settlementID := requester.CreateSettlement(t, userID)
 
 	requester.Authorized()
 	requester.ExpectUserID(userID)
@@ -97,42 +80,20 @@ func TestGetSurvivors_Empty(t *testing.T) {
 	assert.Equal(t, "null", w.Body.String())
 }
 
-func createTestSurvivor(t *testing.T, userID string, settlementID uuid.UUID, name string) domain.Survivor {
-	requester.Authorized()
-	requester.ExpectUserID(userID)
-
-	body := fmt.Sprintf(`{"name":"%s","birth":1,"gender":"M","huntxp":0,"survival":1,"movement":5,"accuracy":0,"strength":0,"evasion":0,"luck":0,"speed":0,"insanity":0,"systemicPressure":0,"torment":0,"lumi":0,"courage":0,"understanding":0}`, name)
-	req := httptest.NewRequest(http.MethodPost, "/api/settlements/"+settlementID.String()+"/survivors", strings.NewReader(body))
-	req.Header.Set("Content-Type", "application/json")
-	w := httptest.NewRecorder()
-
-	requester.DoRequest(w, req)
-	require.Equal(t, http.StatusOK, w.Code)
-
-	var survivor domain.Survivor
-	require.NoError(t, json.NewDecoder(w.Body).Decode(&survivor))
-	return survivor
-}
-
 func TestGetSurvivors_ReturnsSurvivors(t *testing.T) {
 	userID := "survivor-list-user"
 
-	settlementID := createTestSettlement(t, userID)
-	createTestSurvivor(t, userID, settlementID, "Survivor One")
-	createTestSurvivor(t, userID, settlementID, "Survivor Two")
+	settlementID := requester.CreateSettlement(t, userID)
+	requester.CreateSurvivor(t, userID, settlementID, "Survivor One")
+	requester.CreateSurvivor(t, userID, settlementID, "Survivor Two")
 
 	requester.Authorized()
 	requester.ExpectUserID(userID)
 
-	req := httptest.NewRequest(http.MethodGet, "/api/settlements/"+settlementID.String()+"/survivors", nil)
-	w := httptest.NewRecorder()
-
-	requester.DoRequest(w, req)
-
-	require.Equal(t, http.StatusOK, w.Code)
+	rawBody := requester.GetSurvivors(t, userID, settlementID)
 
 	var survivors []domain.Survivor
-	require.NoError(t, json.NewDecoder(w.Body).Decode(&survivors))
+	require.NoError(t, json.NewDecoder(rawBody).Decode(&survivors))
 	require.Len(t, survivors, 2)
 
 	names := map[string]bool{}
@@ -170,7 +131,7 @@ func TestGetSurvivors_Unauthorized(t *testing.T) {
 func TestCreateSurvivor_Success(t *testing.T) {
 	userID := "create-survivor-user"
 
-	settlementID := createTestSettlement(t, userID)
+	settlementID := requester.CreateSettlement(t, userID)
 
 	requester.Authorized()
 	requester.ExpectUserID(userID)
@@ -194,7 +155,7 @@ func TestCreateSurvivor_Success(t *testing.T) {
 func TestCreateSurvivor_MissingName(t *testing.T) {
 	userID := "missing-name-survivor-user"
 
-	settlementID := createTestSettlement(t, userID)
+	settlementID := requester.CreateSettlement(t, userID)
 
 	requester.Authorized()
 	requester.ExpectUserID(userID)
@@ -212,7 +173,7 @@ func TestCreateSurvivor_MissingName(t *testing.T) {
 func TestCreateSurvivor_InvalidJSON(t *testing.T) {
 	userID := "invalid-json-survivor-user"
 
-	settlementID := createTestSettlement(t, userID)
+	settlementID := requester.CreateSettlement(t, userID)
 
 	requester.Authorized()
 	requester.ExpectUserID(userID)
@@ -257,8 +218,8 @@ func TestCreateSurvivor_Unauthorized(t *testing.T) {
 func TestCreateSurvivor_DuplicateName(t *testing.T) {
 	userID := "duplicate-survivor-user"
 
-	settlementID := createTestSettlement(t, userID)
-	createTestSurvivor(t, userID, settlementID, "Duplicate Name")
+	settlementID := requester.CreateSettlement(t, userID)
+	requester.CreateSurvivor(t, userID, settlementID, "Duplicate Name")
 
 	requester.Authorized()
 	requester.ExpectUserID(userID)
@@ -276,7 +237,7 @@ func TestCreateSurvivor_DuplicateName(t *testing.T) {
 func TestUpsertSurvivor_CreateNew(t *testing.T) {
 	userID := "upsert-create-user"
 
-	settlementID := createTestSettlement(t, userID)
+	settlementID := requester.CreateSettlement(t, userID)
 
 	requester.Authorized()
 	requester.ExpectUserID(userID)
@@ -300,8 +261,10 @@ func TestUpsertSurvivor_CreateNew(t *testing.T) {
 func TestUpsertSurvivor_UpdateExisting(t *testing.T) {
 	userID := "upsert-update-user"
 
-	settlementID := createTestSettlement(t, userID)
-	existing := createTestSurvivor(t, userID, settlementID, "Original Name")
+	settlementID := requester.CreateSettlement(t, userID)
+	rawSurvivor := requester.CreateSurvivor(t, userID, settlementID, "Original Name")
+	var existing domain.Survivor
+	require.NoError(t, json.NewDecoder(rawSurvivor).Decode(&existing))
 
 	requester.Authorized()
 	requester.ExpectUserID(userID)
@@ -340,7 +303,7 @@ func TestUpsertSurvivor_UpdateExisting(t *testing.T) {
 func TestUpsertSurvivor_MissingName(t *testing.T) {
 	userID := "upsert-missing-name-user"
 
-	settlementID := createTestSettlement(t, userID)
+	settlementID := requester.CreateSettlement(t, userID)
 
 	requester.Authorized()
 	requester.ExpectUserID(userID)
@@ -358,7 +321,7 @@ func TestUpsertSurvivor_MissingName(t *testing.T) {
 func TestUpsertSurvivor_InvalidJSON(t *testing.T) {
 	userID := "upsert-invalid-json-user"
 
-	settlementID := createTestSettlement(t, userID)
+	settlementID := requester.CreateSettlement(t, userID)
 
 	requester.Authorized()
 	requester.ExpectUserID(userID)

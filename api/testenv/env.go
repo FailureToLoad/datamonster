@@ -1,14 +1,21 @@
 package testenv
 
 import (
+	"bytes"
 	"context"
+	"encoding/json"
 	"fmt"
 	"log"
 	"net/http"
+	"net/http/httptest"
+	"strings"
+	"testing"
 
 	"github.com/failuretoload/datamonster/server"
 	"github.com/failuretoload/datamonster/store/postgres/migrator"
+	"github.com/gofrs/uuid/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
+	"github.com/stretchr/testify/require"
 	"github.com/testcontainers/testcontainers-go"
 	"github.com/testcontainers/testcontainers-go/modules/postgres"
 	"github.com/testcontainers/testcontainers-go/wait"
@@ -93,4 +100,49 @@ func (r Requester) ExpectUserID(userID string) {
 
 func (r Requester) DoRequest(w http.ResponseWriter, req *http.Request) {
 	r.handler.ServeHTTP(w, req)
+}
+
+func (r Requester) CreateSettlement(t *testing.T, userID string) uuid.UUID {
+	r.Authorized()
+	r.ExpectUserID(userID)
+
+	body := `{"name":"Test Settlement"}`
+	req := httptest.NewRequest(http.MethodPost, "/api/settlements", strings.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+
+	r.DoRequest(w, req)
+	require.Equal(t, http.StatusOK, w.Code)
+
+	var settlementID uuid.UUID
+	require.NoError(t, json.NewDecoder(w.Body).Decode(&settlementID))
+	return settlementID
+}
+
+func (r Requester) CreateSurvivor(t *testing.T, userID string, settlementID uuid.UUID, name string) *bytes.Buffer {
+	r.Authorized()
+	r.ExpectUserID(userID)
+
+	body := fmt.Sprintf(`{"name":"%s","birth":1,"gender":"M","huntxp":0,"survival":1,"movement":5,"accuracy":0,"strength":0,"evasion":0,"luck":0,"speed":0,"insanity":0,"systemicPressure":0,"torment":0,"lumi":0,"courage":0,"understanding":0}`, name)
+	req := httptest.NewRequest(http.MethodPost, "/api/settlements/"+settlementID.String()+"/survivors", strings.NewReader(body))
+	req.Header.Set("Content-Type", "application/json")
+	w := httptest.NewRecorder()
+
+	r.DoRequest(w, req)
+	require.Equal(t, http.StatusOK, w.Code)
+
+	return w.Body
+}
+
+func (r Requester) GetSurvivors(t *testing.T, userID string, settlementID uuid.UUID) *bytes.Buffer {
+	r.Authorized()
+	r.ExpectUserID(userID)
+
+	req := httptest.NewRequest(http.MethodGet, "/api/settlements/"+settlementID.String()+"/survivors", nil)
+	w := httptest.NewRecorder()
+
+	r.DoRequest(w, req)
+	require.Equal(t, http.StatusOK, w.Code)
+
+	return w.Body
 }
