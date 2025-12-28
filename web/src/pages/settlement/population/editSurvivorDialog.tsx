@@ -177,7 +177,7 @@ export default function EditSurvivorDialog({survivor, onClose, onSuccess}: EditS
             </div>
             <div className="flex flex-row items-center justify-between col-span-2 border border-black h-full gap-2">
               <div className="flex flex-row ml-4 m-2 gap-2 w-fill items-center">
-                <p className="text-lg font-serif font-light tracking-wide">
+                <p className="text-lg">
                   Born: {survivor.birth}
                 </p>
               </div>
