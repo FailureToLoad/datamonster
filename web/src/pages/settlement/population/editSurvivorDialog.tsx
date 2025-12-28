@@ -169,6 +169,11 @@ export default function EditSurvivorDialog({survivor, onClose, onSuccess}: EditS
                   </p>
                   <span className="badge badge-outline">Born year {survivor.birth}</span>
                   <span className="badge badge-outline">{survivor.gender === SurvivorGender.M ? 'Male' : 'Female'}</span>
+                  <form.Subscribe selector={(state) => state.values.insanity}>
+                    {(insanity) => insanity >= 3 && (
+                      <span className="badge badge-neutral font-bold">Insane</span>
+                    )}
+                  </form.Subscribe>
                 </div>
                 <form.Field
                   name="status"
@@ -367,7 +372,7 @@ export default function EditSurvivorDialog({survivor, onClose, onSuccess}: EditS
               </form.Field>
             </div>
 
-            <div className="flex flex-row items-center col-span-2 border border-black h-full gap-2">
+            <div className="flex flex-row items-center col-span-2 border border-black gap-2">
               <form.Field name="insanity">
                 {(field) => (
                   <StatBox
@@ -380,18 +385,10 @@ export default function EditSurvivorDialog({survivor, onClose, onSuccess}: EditS
                 )}
               </form.Field>
               <div className="divider divider-horizontal bg-black m-0 w-px" />
-              <div className="my-4 flex flex-col flex-1 h-20 items-start justify-between">
-                <div className="w-full flex flex-row justify-between">
-                  <p className="text-2xl font-serif font-light tracking-wide">
-                    Brain
-                  </p>
-                </div>
-
-                <div className="flex w-full">
-                  <p className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
-                    If your insanity is 3+, you are <b>insane</b>
-                  </p>
-                </div>
+              <div className="my-4 flex flex-col flex-1 items-start justify-center">
+                <p className="text-2xl font-serif font-light tracking-wide">
+                  Brain
+                </p>
               </div>
               <div className="divider divider-horizontal bg-black m-0 w-px" />
               <form.Field name="torment">
