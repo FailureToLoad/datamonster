@@ -17,7 +17,7 @@ import (
 type Repo interface {
 	All(ctx context.Context, settlementID uuid.UUID) ([]domain.Survivor, error)
 	Create(ctx context.Context, d domain.Survivor) (domain.Survivor, error)
-	Update(ctx context.Context, settlementID, survivorID uuid.UUID, updates map[string]int) (domain.Survivor, error)
+	Update(ctx context.Context, settlementID, survivorID uuid.UUID, updates domain.SurvivorUpdate) (domain.Survivor, error)
 }
 
 type Controller struct {
@@ -78,9 +78,14 @@ func (c Controller) createSurvivor(w http.ResponseWriter, r *http.Request) {
 
 func (c Controller) updateSurvivor(w http.ResponseWriter, r *http.Request) {
 	ctx := r.Context()
-	var updates map[string]int
+	var updates domain.SurvivorUpdate
 	if err := request.DecodeJSON(r.Body, &updates); err != nil {
 		response.BadRequest(ctx, w, fmt.Errorf("unable to decode request body: %w", err))
+		return
+	}
+
+	if updates.StatusUpdate != nil && !domain.ValidStatus(string(*updates.StatusUpdate)) {
+		response.BadRequest(ctx, w, fmt.Errorf("invalid status value: %s", *updates.StatusUpdate))
 		return
 	}
 

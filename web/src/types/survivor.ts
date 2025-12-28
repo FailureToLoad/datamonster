@@ -4,6 +4,7 @@ export type Survivor = {
   name: string;
   gender: SurvivorGender;
   birth: number;
+  status: SurvivorStatus
   huntxp: number;
   movement: number;
   speed: number;
@@ -11,7 +12,7 @@ export type Survivor = {
   accuracy: number;
   evasion: number;
   luck: number;
-  systemicpressure: number;
+  systemicPressure: number;
   torment: number;
   courage: number;
   understanding: number;
@@ -29,6 +30,15 @@ export const SurvivorGender = {
 
 export type SurvivorGender = typeof SurvivorGender[keyof typeof SurvivorGender];
 
+export const SurvivorStatus = {
+  Alive: "Alive",
+  CeasedToExist: "Ceased to exist",
+  CannotDepart:"Cannot depart",
+  Dead: "Dead",
+  Retired:"Retired"
+} as const;
+
+export type SurvivorStatus = typeof SurvivorStatus[keyof typeof SurvivorStatus];
 
 export type CreateSurvivorRequest = {
   settlementID: string;

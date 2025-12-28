@@ -182,7 +182,7 @@ func TestUpdateSurvivor_UpdateExisting(t *testing.T) {
 	var existing domain.Survivor
 	require.NoError(t, json.NewDecoder(rawSurvivor).Decode(&existing))
 
-	body := `{"huntxp":10,"survival":8,"movement":7,"accuracy":3,"strength":4,"evasion":2,"luck":5,"speed":3,"insanity":6,"systemicpressure":2,"torment":3,"lumi":4,"courage":7,"understanding":9}`
+	body := `{"statUpdates":{"huntxp":10,"survival":8,"movement":7,"accuracy":3,"strength":4,"evasion":2,"luck":5,"speed":3,"insanity":6,"systemicPressure":2,"torment":3,"lumi":4,"courage":7,"understanding":9}}`
 	respBody, status := requester.UpdateSurvivor(userID,
 		settlementID,
 		existing.ID.String(),
@@ -212,6 +212,80 @@ func TestUpdateSurvivor_UpdateExisting(t *testing.T) {
 	assert.Equal(t, 9, survivor.Understanding)
 }
 
+func TestUpdateSurvivor_UpdateStatus(t *testing.T) {
+	userID := "update-status-user"
+
+	settlementID, err := requester.CreateSettlement(userID)
+	require.NoError(t, err)
+
+	rawSurvivor, status := requester.CreateSurvivor(userID, settlementID, "Status Test")
+	require.Equal(t, http.StatusOK, status)
+
+	var existing domain.Survivor
+	require.NoError(t, json.NewDecoder(rawSurvivor).Decode(&existing))
+	assert.Equal(t, domain.StatusAlive, existing.Status)
+
+	body := `{"statusUpdate":"Dead"}`
+	respBody, status := requester.UpdateSurvivor(userID,
+		settlementID,
+		existing.ID.String(),
+		body,
+	)
+	require.Equal(t, http.StatusOK, status)
+
+	var survivor domain.Survivor
+	require.NoError(t, json.NewDecoder(respBody).Decode(&survivor))
+	assert.Equal(t, domain.StatusDead, survivor.Status)
+}
+
+func TestUpdateSurvivor_UpdateStatusAndStats(t *testing.T) {
+	userID := "update-status-and-stats-user"
+
+	settlementID, err := requester.CreateSettlement(userID)
+	require.NoError(t, err)
+
+	rawSurvivor, status := requester.CreateSurvivor(userID, settlementID, "Combined Test")
+	require.Equal(t, http.StatusOK, status)
+
+	var existing domain.Survivor
+	require.NoError(t, json.NewDecoder(rawSurvivor).Decode(&existing))
+
+	body := `{"statUpdates":{"huntxp":5,"courage":3},"statusUpdate":"Retired"}`
+	respBody, status := requester.UpdateSurvivor(userID,
+		settlementID,
+		existing.ID.String(),
+		body,
+	)
+	require.Equal(t, http.StatusOK, status)
+
+	var survivor domain.Survivor
+	require.NoError(t, json.NewDecoder(respBody).Decode(&survivor))
+	assert.Equal(t, domain.StatusRetired, survivor.Status)
+	assert.Equal(t, 5, survivor.HuntXP)
+	assert.Equal(t, 3, survivor.Courage)
+}
+
+func TestUpdateSurvivor_InvalidStatus(t *testing.T) {
+	userID := "update-invalid-status-user"
+
+	settlementID, err := requester.CreateSettlement(userID)
+	require.NoError(t, err)
+
+	rawSurvivor, status := requester.CreateSurvivor(userID, settlementID, "Invalid Status Test")
+	require.Equal(t, http.StatusOK, status)
+
+	var existing domain.Survivor
+	require.NoError(t, json.NewDecoder(rawSurvivor).Decode(&existing))
+
+	body := `{"statusUpdate":"NotAValidStatus"}`
+	_, status = requester.UpdateSurvivor(userID,
+		settlementID,
+		existing.ID.String(),
+		body,
+	)
+	assert.Equal(t, http.StatusBadRequest, status)
+}
+
 func TestUpdateSurvivor_NoValidFields(t *testing.T) {
 	userID := "update-no-valid-fields-user"
 
@@ -222,7 +296,7 @@ func TestUpdateSurvivor_NoValidFields(t *testing.T) {
 	_, status := requester.UpdateSurvivor(userID,
 		settlementID,
 		survivorID,
-		`{"notafield":99}`,
+		`{"statUpdates":{"notafield":99}}`,
 	)
 	assert.Equal(t, http.StatusInternalServerError, status)
 }
@@ -231,14 +305,14 @@ func TestUpdateSurvivor_InvalidSettlementID(t *testing.T) {
 	_, status := requester.UpdateSurvivor("upsert-invalid-settlement-user",
 		"not-a-uuid",
 		testenv.UUIDString(),
-		`{"huntxp":5}`,
+		`{"statUpdates":{"huntxp":5}}`,
 	)
 	assert.Equal(t, http.StatusInternalServerError, status)
 }
 
 func TestUpdateSurvivor_Unauthorized(t *testing.T) {
 	t.Cleanup(requester.Unauthorized())
-	_, status := requester.UpdateSurvivor("unauthorized", testenv.UUIDString(), testenv.UUIDString(), `{"huntxp":5}`)
+	_, status := requester.UpdateSurvivor("unauthorized", testenv.UUIDString(), testenv.UUIDString(), `{"statUpdates":{"huntxp":5}}`)
 
 	assert.Equal(t, http.StatusUnauthorized, status)
 }

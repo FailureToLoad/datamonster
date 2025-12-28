@@ -91,15 +91,16 @@ var jsonToColumn = map[string]string{
 	"luck":             "luck",
 	"speed":            "speed",
 	"insanity":         "insanity",
-	"systemicpressure": "systemic_pressure",
+	"systemicPressure": "systemic_pressure",
 	"torment":          "torment",
 	"lumi":             "lumi",
 	"courage":          "courage",
 	"understanding":    "understanding",
+	"status":           "status",
 }
 
-func (r Postgres) Update(ctx context.Context, settlementID, survivorID uuid.UUID, updates map[string]int) (domain.Survivor, error) {
-	if len(updates) == 0 {
+func (r Postgres) Update(ctx context.Context, settlementID, survivorID uuid.UUID, updates domain.SurvivorUpdate) (domain.Survivor, error) {
+	if len(updates.StatUpdates) == 0 && updates.StatusUpdate == nil {
 		return domain.Survivor{}, fmt.Errorf("no fields to update")
 	}
 
@@ -107,13 +108,19 @@ func (r Postgres) Update(ctx context.Context, settlementID, survivorID uuid.UUID
 	args := []any{settlementID, survivorID}
 	paramIdx := 3
 
-	for jsonKey, value := range updates {
+	for jsonKey, value := range updates.StatUpdates {
 		col, ok := jsonToColumn[jsonKey]
 		if !ok {
 			continue
 		}
 		setClauses = append(setClauses, fmt.Sprintf("%s = $%d", col, paramIdx))
 		args = append(args, value)
+		paramIdx++
+	}
+
+	if updates.StatusUpdate != nil {
+		setClauses = append(setClauses, fmt.Sprintf("status = $%d", paramIdx))
+		args = append(args, string(*updates.StatusUpdate))
 		paramIdx++
 	}
 
@@ -188,6 +195,7 @@ type survivor struct {
 	Name             string    `db:"name"`
 	Birth            int       `db:"birth"`
 	Gender           string    `db:"gender"`
+	Status           string    `db:"status"`
 	HuntXP           int       `db:"hunt_xp"`
 	Survival         int       `db:"survival"`
 	Movement         int       `db:"movement"`
@@ -211,6 +219,7 @@ func toDTO(s survivor) domain.Survivor {
 		Name:             s.Name,
 		Birth:            s.Birth,
 		Gender:           s.Gender,
+		Status:           domain.SurvivorStatus(s.Status),
 		HuntXP:           s.HuntXP,
 		Survival:         s.Survival,
 		Movement:         s.Movement,
@@ -245,6 +254,7 @@ func fromDTO(s domain.Survivor) survivor {
 		Name:             s.Name,
 		Birth:            s.Birth,
 		Gender:           s.Gender,
+		Status:           string(s.Status),
 		HuntXP:           s.HuntXP,
 		Survival:         s.Survival,
 		Movement:         s.Movement,

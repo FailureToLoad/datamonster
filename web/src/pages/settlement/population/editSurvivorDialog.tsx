@@ -1,13 +1,21 @@
 import {useForm} from '@tanstack/react-form';
 import {useRef, useLayoutEffect} from 'react';
-import {type Survivor, SurvivorGender} from '~/types/survivor';
+import {type Survivor, SurvivorGender, SurvivorStatus} from '~/types/survivor';
 import {type} from 'arktype';
 import {PatchJSON} from '~/lib/request';
 
 const isInteger = type('number.integer');
 const isPositive = type('number.integer >= 0');
+const statusValidator = type.enumerated(
+  SurvivorStatus.Alive, 
+  SurvivorStatus.CannotDepart,
+  SurvivorStatus.CeasedToExist,
+  SurvivorStatus.Dead,
+  SurvivorStatus.Retired,
+);
 
 const EditSurvivorSchema = type({
+  status: statusValidator,
   survival: isPositive,
   systemicPressure: isInteger,
   movement: isInteger,
@@ -33,13 +41,19 @@ type EditSurvivorDialogProps = {
   onSuccess: () => void;
 };
 
+export type SurvivorUpdateRequest = {
+  statUpdates?: Record<string, number>;
+  statusUpdate?: SurvivorStatus;
+};
+
 export default function EditSurvivorDialog({survivor, onClose, onSuccess}: EditSurvivorDialogProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
 
   const form = useForm({
     defaultValues: {
+      status: survivor?.status ?? SurvivorStatus.Alive,
       survival: survivor?.survival ?? 1,
-      systemicPressure: survivor?.systemicpressure ?? 0,
+      systemicPressure: survivor?.systemicPressure ?? 0,
       movement: survivor?.movement ?? 5,
       accuracy: survivor?.accuracy ?? 0,
       strength: survivor?.strength ?? 0,
@@ -62,7 +76,7 @@ export default function EditSurvivorDialog({survivor, onClose, onSuccess}: EditS
         return;
       }
 
-      const fieldMap: Array<[keyof EditSurvivorFields, keyof Survivor, string]> = [
+      const statFields: Array<[keyof EditSurvivorFields, keyof Survivor, string]> = [
         ['huntxp', 'huntxp', 'huntxp'],
         ['survival', 'survival', 'survival'],
         ['movement', 'movement', 'movement'],
@@ -74,25 +88,35 @@ export default function EditSurvivorDialog({survivor, onClose, onSuccess}: EditS
         ['lumi', 'lumi', 'lumi'],
         ['insanity', 'insanity', 'insanity'],
         ['torment', 'torment', 'torment'],
-        ['systemicPressure', 'systemicpressure', 'systemicpressure'],
+        ['systemicPressure', 'systemicPressure', 'systemicPressure'],
         ['courage', 'courage', 'courage'],
         ['understanding', 'understanding', 'understanding'],
       ];
 
-      const changedFields = fieldMap.reduce<Record<string, number>>((acc, [formKey, survivorKey, apiKey]) => {
+      const statUpdates = statFields.reduce<Record<string, number>>((acc, [formKey, survivorKey, apiKey]) => {
         if (parsed[formKey] !== survivor[survivorKey]) {
-          acc[apiKey] = parsed[formKey];
+          acc[apiKey] = parsed[formKey] as number;
         }
         return acc;
       }, {});
 
-      if (Object.keys(changedFields).length === 0) {
+      const statusUpdate = parsed.status !== survivor.status ? parsed.status : undefined;
+
+      if (Object.keys(statUpdates).length === 0 && !statusUpdate) {
         dialogRef.current?.close();
         onClose();
         return;
       }
 
-      const response = await PatchJSON(`/api/settlements/${survivor.settlementId}/survivors/${survivor.id}`, changedFields);
+      const payload: SurvivorUpdateRequest = {};
+      if (Object.keys(statUpdates).length > 0) {
+        payload.statUpdates = statUpdates;
+      }
+      if (statusUpdate) {
+        payload.statusUpdate = statusUpdate;
+      }
+
+      const response = await PatchJSON(`/api/settlements/${survivor.settlementId}/survivors/${survivor.id}`, payload);
 
       if (response.ok) {
         dialogRef.current?.close();
@@ -136,13 +160,11 @@ export default function EditSurvivorDialog({survivor, onClose, onSuccess}: EditS
           }}
         >
           <section className="grid grid-cols-2 items-center justify-center gap-4">
-            {/* Section 1: Name + Gender row (locked) */}
-            <div className="mb-4 flex flex-row items-center justify-between col-span-2 h-full border-b-2 border-black">
+            <div className="flex flex-row items-center justify-between col-span-2 h-full border-b-2 border-black">
               <div className="flex flex-row gap-2 w-fill items-center">
                 <p className="text-2xl font-serif font-light tracking-wide">
-                  Name
+                  Name: {survivor.name}
                 </p>
-                <p className="text-lg px-3 py-2">{survivor.name}</p>
               </div>
               <div className="flex flex-row gap-4">
                 <span className={`px-3 py-1 rounded ${survivor.gender === SurvivorGender.M ? 'bg-base-300' : ''}`}>
@@ -153,8 +175,47 @@ export default function EditSurvivorDialog({survivor, onClose, onSuccess}: EditS
                 </span>
               </div>
             </div>
+            <div className="flex flex-row items-center justify-between col-span-2 border border-black h-full gap-2">
+              <div className="flex flex-row ml-4 m-2 gap-2 w-fill items-center">
+                <p className="text-lg font-serif font-light tracking-wide">
+                  Born: {survivor.birth}
+                </p>
+              </div>
+              <div className="flex flex-row mr-4 m-2 gap-2 w-fill items-center">
+                <form.Field
+                  name="status"
+                  validators={{
+                    onChange: ({value}) => {
+                      const result = statusValidator(value);
+                      return result instanceof type.errors
+                        ? result.summary
+                        : undefined;
+                    },
+                  }}
+                >
+                  {(field) => (
+                    <select
+                      id="status-input"
+                      className="select select-bordered"
+                      value={field.state.value}
+                      onChange={(e) =>
+                        field.handleChange(e.target.value as SurvivorStatus)
+                      }
+                    >
+                      {Object.values(SurvivorStatus).map((status) => (
+                        <option key={status} value={status}>
+                          {status}
+                        </option>
+                      ))}
+                    </select>
+                  )}
+                </form.Field>
+              </div>
+            </div>
+                        
 
-            {/* Section 2: Survival box */}
+
+
             <div className="flex flex-row items-center col-span-2 border border-black h-full gap-2">
               <form.Field
                 name="survival"
@@ -224,7 +285,6 @@ export default function EditSurvivorDialog({survivor, onClose, onSuccess}: EditS
               </div>
             </div>
 
-            {/* Section 3: Stats row */}
             <div className="flex flex-row items-center justify-between col-span-2 border border-black h-32 gap-2">
               <form.Field name="movement">
                 {(field) => (
@@ -311,7 +371,6 @@ export default function EditSurvivorDialog({survivor, onClose, onSuccess}: EditS
               </form.Field>
             </div>
 
-            {/* Section 4: Brain row */}
             <div className="flex flex-row items-center col-span-2 border border-black h-full gap-2">
               <form.Field name="insanity">
                 {(field) => (
@@ -357,20 +416,7 @@ export default function EditSurvivorDialog({survivor, onClose, onSuccess}: EditS
               </form.Field>
             </div>
 
-            {/* Section 5: Additional stats */}
             <div className="flex flex-row items-center justify-between col-span-2 border border-black h-32 gap-2">
-              <form.Field name="birth">
-                {(field) => (
-                  <StatBox
-                    id="birth-edit"
-                    value={field.state.value}
-                    onChange={(val) => field.handleChange(val)}
-                    label="Birth"
-                    className="ml-4 mr-2 size-full"
-                  />
-                )}
-              </form.Field>
-              <div className="divider divider-horizontal bg-black m-0 w-px" />
               <form.Field name="huntxp">
                 {(field) => (
                   <StatBox
@@ -378,7 +424,7 @@ export default function EditSurvivorDialog({survivor, onClose, onSuccess}: EditS
                     value={field.state.value}
                     onChange={(val) => field.handleChange(val)}
                     label="Hunt XP"
-                    className="mx-2 size-full"
+                    className="ml-4 mr-2 size-full"
                   />
                 )}
               </form.Field>
