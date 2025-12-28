@@ -389,11 +389,6 @@ export default function EditSurvivorDialog({survivor, onClose, onSuccess}: EditS
                   <p className="text-2xl font-serif font-light tracking-wide">
                     Brain
                   </p>
-                  <input
-                    type="checkbox"
-                    id="brainbox-edit"
-                    className="checkbox size-6"
-                  />
                 </div>
 
                 <div className="flex w-full">
