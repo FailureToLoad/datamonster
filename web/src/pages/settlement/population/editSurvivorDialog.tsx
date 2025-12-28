@@ -3,6 +3,7 @@ import {useRef, useLayoutEffect} from 'react';
 import {type Survivor, SurvivorGender, SurvivorStatus} from '~/types/survivor';
 import {type} from 'arktype';
 import {PatchJSON} from '~/lib/request';
+import {BoxTrack} from '~/components/BoxTrack'
 
 const isInteger = type('number.integer');
 const isPositive = type('number.integer >= 0');
@@ -151,7 +152,7 @@ export default function EditSurvivorDialog({survivor, onClose, onSuccess}: EditS
 
   return (
     <dialog ref={dialogRef} className="modal">
-      <div className="modal-box w-3/5 max-w-none mx-auto px-6">
+      <div className="modal-box w-1/2 max-w-none mx-auto px-6">
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -160,28 +161,15 @@ export default function EditSurvivorDialog({survivor, onClose, onSuccess}: EditS
           }}
         >
           <section className="grid grid-cols-2 items-center justify-center gap-4">
-            <div className="flex flex-row items-center justify-between col-span-2 h-full border-b-2 border-black">
-              <div className="flex flex-row gap-2 w-fill items-center">
-                <p className="text-2xl font-serif font-light tracking-wide">
-                  Name: {survivor.name}
-                </p>
-              </div>
-              <div className="flex flex-row gap-4">
-                <span className={`px-3 py-1 rounded ${survivor.gender === SurvivorGender.M ? 'bg-base-300' : ''}`}>
-                  M
-                </span>
-                <span className={`px-3 py-1 rounded ${survivor.gender === SurvivorGender.F ? 'bg-base-300' : ''}`}>
-                  F
-                </span>
-              </div>
-            </div>
-            <div className="flex flex-row items-center justify-between col-span-2 border border-black h-full gap-2">
-              <div className="flex flex-row ml-4 m-2 gap-2 w-fill items-center">
-                <p className="text-lg">
-                  Born: {survivor.birth}
-                </p>
-              </div>
-              <div className="flex flex-row mr-4 m-2 gap-2 w-fill items-center">
+            <div id="base-details" className="col-span-2 flex flex-col">
+              <div className="flex flex-row items-center justify-between border-b-2 border-black pb-1">
+                <div className="flex flex-row items-center gap-2">
+                  <p className="text-2xl">
+                    {survivor.name}
+                  </p>
+                  <span className="badge badge-outline">Born year {survivor.birth}</span>
+                  <span className="badge badge-outline">{survivor.gender === SurvivorGender.M ? 'Male' : 'Female'}</span>
+                </div>
                 <form.Field
                   name="status"
                   validators={{
@@ -196,7 +184,7 @@ export default function EditSurvivorDialog({survivor, onClose, onSuccess}: EditS
                   {(field) => (
                     <select
                       id="status-input"
-                      className="select select-bordered"
+                      className="select select-bordered select-sm w-auto min-w-0"
                       value={field.state.value}
                       onChange={(e) =>
                         field.handleChange(e.target.value as SurvivorStatus)
@@ -211,6 +199,14 @@ export default function EditSurvivorDialog({survivor, onClose, onSuccess}: EditS
                   )}
                 </form.Field>
               </div>
+              <form.Field name="huntxp">
+                {(field) => (
+                  <HuntXPTrack
+                    value={field.state.value}
+                    onChange={(val) => field.handleChange(val)}
+                  />
+                )}
+              </form.Field>
             </div>
                         
 
@@ -277,7 +273,7 @@ export default function EditSurvivorDialog({survivor, onClose, onSuccess}: EditS
                       id="systemicPressure-edit"
                       value={field.state.value}
                       onChange={(val) => field.handleChange(val)}
-                      label="Systemic Pressure"
+                      label={"Systemic\nPressure"}
                       className="mx-4 size-min"
                     />
                   )}
@@ -411,39 +407,21 @@ export default function EditSurvivorDialog({survivor, onClose, onSuccess}: EditS
               </form.Field>
             </div>
 
-            <div className="flex flex-row items-center justify-between col-span-2 border border-black h-32 gap-2">
-              <form.Field name="huntxp">
-                {(field) => (
-                  <StatBox
-                    id="huntxp-edit"
-                    value={field.state.value}
-                    onChange={(val) => field.handleChange(val)}
-                    label="Hunt XP"
-                    className="ml-4 mr-2 size-full"
-                  />
-                )}
-              </form.Field>
-              <div className="divider divider-horizontal bg-black m-0 w-px" />
+            <div className="flex flex-row items-center justify-around col-span-2 border border-black gap-4 p-4">
               <form.Field name="courage">
                 {(field) => (
-                  <StatBox
-                    id="courage-edit"
+                  <CourageTrack
                     value={field.state.value}
                     onChange={(val) => field.handleChange(val)}
-                    label="Courage"
-                    className="mx-2 size-full"
                   />
                 )}
               </form.Field>
-              <div className="divider divider-horizontal bg-black m-0 w-px" />
+              
               <form.Field name="understanding">
                 {(field) => (
-                  <StatBox
-                    id="understanding-edit"
+                  <UnderstandingTrack
                     value={field.state.value}
                     onChange={(val) => field.handleChange(val)}
-                    label="Understanding"
-                    className="ml-2 mr-4 size-full"
                   />
                 )}
               </form.Field>
@@ -524,5 +502,63 @@ function StatBox({
         {label}
       </p>
     </div>
+  );
+}
+
+
+function HuntXPTrack({
+  value,
+  onChange,
+}: {
+  value: number;
+  onChange: (val: number) => void;
+}) {
+  return (
+    <BoxTrack
+      value={value}
+      onChange={onChange}
+      label="Hunt XP"
+      totalBoxes={16}
+      accentedBoxes={[2, 6, 10, 15, 16]}
+      labelPosition="left"
+    />
+  );
+}
+
+function CourageTrack({
+  value,
+  onChange,
+}: {
+  value: number;
+  onChange: (val: number) => void;
+}) {
+  return (
+    <BoxTrack
+      value={value}
+      onChange={onChange}
+      label="Courage"
+      totalBoxes={9}
+      accentedBoxes={[3, 9]}
+      labelPosition="top"
+    />
+  );
+}
+
+function UnderstandingTrack({
+  value,
+  onChange,
+}: {
+  value: number;
+  onChange: (val: number) => void;
+}) {
+  return (
+    <BoxTrack
+      value={value}
+      onChange={onChange}
+      label="Understanding"
+      totalBoxes={9}
+      accentedBoxes={[3, 9]}
+      labelPosition="top"
+    />
   );
 }
