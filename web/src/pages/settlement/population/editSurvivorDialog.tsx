@@ -1,5 +1,5 @@
 import {useForm} from '@tanstack/react-form';
-import {useRef, useLayoutEffect} from 'react';
+import {useRef, useLayoutEffect, useState} from 'react';
 import {type Survivor, SurvivorGender, SurvivorStatus} from '~/types/survivor';
 import {type} from 'arktype';
 import {PatchJSON} from '~/lib/request';
@@ -50,6 +50,7 @@ export type SurvivorUpdateRequest = {
 
 export default function EditSurvivorDialog({survivor, onClose, onSuccess}: EditSurvivorDialogProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
+  const [cannotSpendSurvival, setCannotSpendSurvival] = useState(false);
 
   const form = useForm({
     defaultValues: {
@@ -170,11 +171,6 @@ export default function EditSurvivorDialog({survivor, onClose, onSuccess}: EditS
                   </p>
                   <span className="badge badge-neutral">{survivor.gender === SurvivorGender.M ? < GenderMaleIcon weight="bold"  /> : <GenderFemaleIcon  weight="bold" />}</span>
                   <span className="badge badge-neutral font-semibold">Born year {survivor.birth}</span>
-                  <form.Subscribe selector={(state) => state.values.insanity}>
-                    {(insanity) => insanity >= 3 && (
-                      <span className="badge badge-neutral font-semibold">Insane</span>
-                    )}
-                  </form.Subscribe>
                 </div>
                 <form.Field
                   name="status"
@@ -213,78 +209,81 @@ export default function EditSurvivorDialog({survivor, onClose, onSuccess}: EditS
                   />
                 )}
               </form.Field>
+              <div className="flex flex-row items-center gap-2 py-1">
+                <button
+                  type="button"
+                  className={`badge font-semibold cursor-pointer ${cannotSpendSurvival ? 'badge-error' : 'badge-success'}`}
+                  onClick={() => setCannotSpendSurvival(!cannotSpendSurvival)}
+                >
+                  {cannotSpendSurvival ? 'Cannot spend survival' : 'Can spend survival'}
+                </button>
+                <form.Subscribe selector={(state) => state.values.insanity}>
+                  {(insanity) => insanity >= 3 && (
+                    <span className="badge badge-neutral font-semibold">Insane</span>
+                  )}
+                </form.Subscribe>
+              </div>
             </div>
-                        
 
 
 
-            <div className="flex flex-row items-center col-span-2 border border-black gap-2">
-              <form.Field
-                name="survival"
-                validators={{
-                  onChange: ({value}) => {
-                    const result = isPositive(value);
-                    return result instanceof type.errors
-                      ? result.summary
-                      : undefined;
-                  },
-                }}
-              >
+
+            <div className="flex flex-row items-center justify-around col-span-2 border border-black gap-2">
+              <form.Field name="survival">
                 {(field) => (
-                  <div className="order-1 ml-6 my-4 border border-black size-20 place-content-around">
-                    <input
-                      id="survival-input"
-                      type="number"
-                      className="input input-bordered size-full text-center text-2xl border-0"
-                      value={field.state.value}
-                      onChange={(e) =>
-                        field.handleChange(Number(e.target.value))
-                      }
-                    />
-                  </div>
+                  <StatBox
+                    id="survival-edit"
+                    value={field.state.value}
+                    onChange={(val) => field.handleChange(val)}
+                    label="Survival"
+                    className="flex-1"
+                  />
                 )}
               </form.Field>
-
-              <div className="order-2 my-4 flex flex-col flex-1 h-20 items-start justify-between">
-                <p className="text-2xl font-serif font-light tracking-wide">
-                  Survival
-                </p>
-                <div className="flex w-full">
-                  <div className="flex items-start space-x-2">
-                    <input
-                      type="checkbox"
-                      id="cannot-spend-edit"
-                      className="checkbox"
-                    />
-                    <label
-                      htmlFor="cannot-spend-edit"
-                      className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-                    >
-                      Cannot spend survival
-                    </label>
-                  </div>
-                </div>
-              </div>
-              <div className="order-3 my-4 items-start justify-start content-start space-y-1">
-                <CheckboxItem id="dodge-edit" label="Dodge" />
-                <CheckboxItem id="encourage-edit" label="Encourage" />
-                <CheckboxItem id="surge-edit" label="Surge" />
-                <CheckboxItem id="dash-edit" label="Dash" />
-                <CheckboxItem id="fistpump-edit" label="Fist Pump" />
-              </div>
-              <div className="order-last border-l border-black justify-self-end flex flex-row">
-                <form.Field name="insanity">
-                  {(field) => (
-                    <StatBox
-                      id="insanity-edit"
-                      value={field.state.value}
-                      onChange={(val) => field.handleChange(val)}
-                      label="Insanity"
-                      className="mx-4 size-min"
-                    />
-                  )}
-                </form.Field>
-              </div>
+              <form.Field name="insanity">
+                {(field) => (
+                  <StatBox
+                    id="insanity-edit"
+                    value={field.state.value}
+                    onChange={(val) => field.handleChange(val)}
+                    label="Insanity"
+                    className="flex-1"
+                  />
+                )}
+              </form.Field>
+              <form.Field name="systemicPressure">
+                {(field) => (
+                  <StatBox
+                    id="systemicPressure-edit"
+                    value={field.state.value}
+                    onChange={(val) => field.handleChange(val)}
+                    label="Systemic Pressure"
+                    className="flex-1"
+                  />
+                )}
+              </form.Field>
+              <form.Field name="torment">
+                {(field) => (
+                  <StatBox
+                    id="torment-edit"
+                    value={field.state.value}
+                    onChange={(val) => field.handleChange(val)}
+                    label="Torment"
+                    className="flex-1"
+                  />
+                )}
+              </form.Field>
+              <form.Field name="lumi">
+                {(field) => (
+                  <StatBox
+                    id="lumi-edit"
+                    value={field.state.value}
+                    onChange={(val) => field.handleChange(val)}
+                    label="Lumi"
+                    className="flex-1"
+                  />
+                )}
+              </form.Field>
             </div>
 
             <div id="base-stats" className="flex flex-row items-center justify-around col-span-2 border border-black gap-2">
@@ -356,42 +355,6 @@ export default function EditSurvivorDialog({survivor, onClose, onSuccess}: EditS
               </form.Field>
             </div>
 
-            <div id="arc stats" className="flex flex-row items-center justify-around col-span-2 border border-black gap-2">
-                <form.Field name="systemicPressure">
-                  {(field) => (
-                    <StatBox
-                      id="systemicPressure-edit"
-                      value={field.state.value}
-                      onChange={(val) => field.handleChange(val)}
-                      label={"Systemic Pressure"}
-                      className="size-min"
-                    />
-                  )}
-                </form.Field>
-                <form.Field name="torment">
-                  {(field) => (
-                    <StatBox
-                      id="torment-edit"
-                      value={field.state.value}
-                      onChange={(val) => field.handleChange(val)}
-                      label="Torment"
-                      className="size-min"
-                    />
-                  )}
-                </form.Field>
-                <form.Field name="lumi">
-                {(field) => (
-                  <StatBox
-                    id="lumi-edit"
-                    value={field.state.value}
-                    onChange={(val) => field.handleChange(val)}
-                    label="Lumi"
-                    className="size-min"
-                  />
-                )}
-              </form.Field>
-            </div>
-
             <div className="flex flex-row items-center col-span-2 border border-black gap-4 p-4">
               <form.Field name="courage">
                 {(field) => (
@@ -443,20 +406,6 @@ export default function EditSurvivorDialog({survivor, onClose, onSuccess}: EditS
   );
 }
 
-function CheckboxItem({id, label}: {id: string; label: string}) {
-  return (
-    <div className="flex items-start space-x-1 rounded-none">
-      <input type="checkbox" id={id} className="checkbox checkbox-sm" />
-      <label
-        htmlFor={id}
-        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
-      >
-        {label}
-      </label>
-    </div>
-  );
-}
-
 function StatBox({
   id,
   value,
@@ -472,7 +421,7 @@ function StatBox({
 }) {
   return (
     <div
-      className={`flex flex-col items-center justify-between w-fit ${className}`}
+      className={`flex flex-col items-center ${className}`}
     >
       <div className="mt-4 flex border border-black h-16 w-14">
         <input
@@ -483,7 +432,7 @@ function StatBox({
           onChange={(e) => onChange(Number(e.target.value))}
         />
       </div>
-      <p className="flex my-4 text-xs text-wrap whitespace-break-spaces text-center">
+      <p className="my-4 text-xs text-center h-8 flex items-center">
         {label}
       </p>
     </div>
