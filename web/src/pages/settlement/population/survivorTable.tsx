@@ -5,6 +5,8 @@ import type {CellContextMenuEvent, GridApi, ColDef} from 'ag-grid-community';
 import {GearIcon} from '@phosphor-icons/react';
 import NewSurvivorDialog from './survivorDialog';
 
+const COLUMN_CONFIG_KEY = 'survivor-table-columns';
+
 type SurvivorTableProps = {
     data: Survivor[];
     settlementId: string;
@@ -23,39 +25,43 @@ type ColumnConfig = {
     field: keyof Survivor;
     headerName: string;
     headerTooltip?: string;
-    lockVisible?: boolean;
-    initialHide?: boolean;
+    locked?: boolean;
+    default?: boolean;
 };
 
 const columnConfigs: ColumnConfig[] = [
-    {field: 'name', headerName: 'Name', lockVisible: true},
-    {field: 'gender', headerName: 'Gender'},
-    {field: 'birth', headerName: 'Birth', initialHide: true},
-    {field: 'huntxp', headerName: 'XP', headerTooltip: 'Hunt XP'},
-    {field: 'survival', headerName: 'Survival'},
-    {field: 'movement', headerName: 'Movement', initialHide: true},
-    {field: 'speed', headerName: 'Speed', initialHide: true},
-    {field: 'strength', headerName: 'Strength', initialHide: true},
-    {field: 'accuracy', headerName: 'Accuracy', initialHide: true},
-    {field: 'evasion', headerName: 'Evasion', initialHide: true},
-    {field: 'luck', headerName: 'Luck', initialHide: true},
-    {field: 'systemicPressure', headerName: 'S.P.', headerTooltip: 'Systemic Pressure', initialHide: true},
-    {field: 'torment', headerName: 'Torment', initialHide: true},
-    {field: 'courage', headerName: 'Courage'},
-    {field: 'understanding', headerName: 'Understanding'},
-    {field: 'insanity', headerName: 'Insanity'},
-    {field: 'lumi', headerName: 'Lumi', initialHide: true},
+    {field: 'name', headerName: 'Name', locked: true, default: true},
+    {field: 'gender', headerName: 'Gender', default: true},
+    {field: 'birth', headerName: 'Birth'},
+    {field: 'huntxp', headerName: 'XP', headerTooltip: 'Hunt XP', default: true},
+    {field: 'survival', headerName: 'Survival', default: true},
+    {field: 'movement', headerName: 'Movement'},
+    {field: 'speed', headerName: 'Speed'},
+    {field: 'strength', headerName: 'Strength'},
+    {field: 'accuracy', headerName: 'Accuracy'},
+    {field: 'evasion', headerName: 'Evasion'},
+    {field: 'luck', headerName: 'Luck'},
+    {field: 'systemicPressure', headerName: 'S.P.', headerTooltip: 'Systemic Pressure'},
+    {field: 'torment', headerName: 'Torment'},
+    {field: 'courage', headerName: 'Courage', default: true},
+    {field: 'understanding', headerName: 'Understanding', default: true},
+    {field: 'insanity', headerName: 'Insanity', default: true},
+    {field: 'lumi', headerName: 'Lumi'},
 ];
 
 export function SurvivorTable({data, settlementId, onEditSurvivor, onSurvivorCreated}: SurvivorTableProps) {
     const gridApiRef = useRef<GridApi | null>(null);
     const [columnMenuOpen, setColumnMenuOpen] = useState(false);
     const [visibleColumns, setVisibleColumns] = useState<Set<string>>(() => {
-        const initial = new Set<string>();
-        columnConfigs.forEach(col => {
-            if (!col.initialHide) initial.add(col.field);
-        });
-        return initial;
+        const stored = localStorage.getItem(COLUMN_CONFIG_KEY);
+        if (stored) {
+            try {
+                return new Set(JSON.parse(stored) as string[]);
+            } catch {
+                return new Set(columnConfigs.filter(col => col.default).map(col => col.field));
+            }
+        }
+        return new Set(columnConfigs.filter(col => col.default).map(col => col.field));
     });
 
     const [contextMenu, setContextMenu] = useState<ContextMenuState>({
@@ -93,7 +99,7 @@ export function SurvivorTable({data, settlementId, onEditSurvivor, onSurvivorCre
 
     const toggleColumn = useCallback((field: string) => {
         const config = columnConfigs.find(c => c.field === field);
-        if (config?.lockVisible) return;
+        if (config?.locked) return;
 
         setVisibleColumns(prev => {
             const next = new Set(prev);
@@ -103,6 +109,7 @@ export function SurvivorTable({data, settlementId, onEditSurvivor, onSurvivorCre
                 next.add(field);
             }
             gridApiRef.current?.setColumnsVisible([field], next.has(field));
+            localStorage.setItem(COLUMN_CONFIG_KEY, JSON.stringify([...next]));
             return next;
         });
     }, []);
@@ -112,7 +119,7 @@ export function SurvivorTable({data, settlementId, onEditSurvivor, onSurvivorCre
         headerName: config.headerName,
         headerTooltip: config.headerTooltip,
         hide: !visibleColumns.has(config.field),
-        lockVisible: config.lockVisible,
+        lockVisible: config.locked,
         cellStyle: config.field === 'name' ? {textAlign: 'left'} : {textAlign: 'center'},
         headerClass: config.field === 'name' ? '' : 'ag-header-cell-center',
         flex: config.field === 'name' ? 2 : 1,
@@ -144,14 +151,14 @@ export function SurvivorTable({data, settlementId, onEditSurvivor, onSurvivorCre
                                 {columnConfigs.map(config => (
                                     <label
                                         key={config.field}
-                                        className={`flex items-center gap-2 px-3 py-1.5 hover:bg-base-200 cursor-pointer ${config.lockVisible ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                        className={`flex items-center gap-2 px-3 py-1.5 hover:bg-base-200 cursor-pointer ${config.locked ? 'opacity-50 cursor-not-allowed' : ''}`}
                                     >
                                         <input
                                             type="checkbox"
                                             className="checkbox checkbox-sm"
                                             checked={visibleColumns.has(config.field)}
                                             onChange={() => toggleColumn(config.field)}
-                                            disabled={config.lockVisible}
+                                            disabled={config.locked}
                                         />
                                         <span className="text-sm">{config.headerName}</span>
                                     </label>
