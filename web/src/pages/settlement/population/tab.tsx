@@ -1,6 +1,5 @@
 import {useState} from 'react';
 import {SurvivorTable} from './survivorTable';
-import NewSurvivorDialog from './survivorDialog';
 import EditSurvivorDialog from './editSurvivorDialog';
 import {type Survivor} from '~/types/survivor';
 import {useLoaderData, useParams, useRevalidator} from 'react-router';
@@ -23,15 +22,11 @@ export function PopulationTab() {
 
   return (
     <div id="population" className="flex flex-col w-fill py-4">
-      <div className="flex flex-row-reverse items-center py-4">
-        <NewSurvivorDialog
-          settlementId={settlementId}
-          onSuccess={() => revalidator.revalidate()}
-        />
-      </div>
       <SurvivorTable
         data={survivors}
+        settlementId={settlementId}
         onEditSurvivor={setEditingSurvivor}
+        onSurvivorCreated={() => revalidator.revalidate()}
       />
       <EditSurvivorDialog
         survivor={editingSurvivor}

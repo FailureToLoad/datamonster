@@ -90,11 +90,12 @@ export default function NewSurvivorDialog({settlementId, onSuccess}: SurvivorDia
   return (
     <>
       <button
-        className="btn btn-outline"
+        className="btn btn-ghost"
         aria-label="Create Survivor"
+        title="Create Survivor"
         onClick={() => dialogRef.current?.showModal()}
       >
-        <PlusIcon className="size-4" />
+        <PlusIcon size={18} weight="bold" />
       </button>
       <dialog ref={dialogRef} className="modal mx-auto w-3/5 px-6 grow">
         <div className="modal-box w-3/5 max-w-none px-6">
