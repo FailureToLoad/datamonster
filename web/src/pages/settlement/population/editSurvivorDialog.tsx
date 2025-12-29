@@ -4,6 +4,7 @@ import {type Survivor, SurvivorGender, SurvivorStatus} from '~/types/survivor';
 import {type} from 'arktype';
 import {PatchJSON} from '~/lib/request';
 import {BoxTrack} from '~/components/BoxTrack'
+import { GenderFemaleIcon, GenderMaleIcon } from '@phosphor-icons/react';
 
 const isInteger = type('number.integer');
 const isPositive = type('number.integer >= 0');
@@ -167,11 +168,11 @@ export default function EditSurvivorDialog({survivor, onClose, onSuccess}: EditS
                   <p className="text-2xl">
                     {survivor.name}
                   </p>
-                  <span className="badge badge-outline">Born year {survivor.birth}</span>
-                  <span className="badge badge-outline">{survivor.gender === SurvivorGender.M ? 'Male' : 'Female'}</span>
+                  <span className="badge badge-neutral">{survivor.gender === SurvivorGender.M ? < GenderMaleIcon weight="bold"  /> : <GenderFemaleIcon  weight="bold" />}</span>
+                  <span className="badge badge-neutral font-semibold">Born year {survivor.birth}</span>
                   <form.Subscribe selector={(state) => state.values.insanity}>
                     {(insanity) => insanity >= 3 && (
-                      <span className="badge badge-neutral font-bold">Insane</span>
+                      <span className="badge badge-neutral font-semibold">Insane</span>
                     )}
                   </form.Subscribe>
                 </div>
