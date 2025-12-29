@@ -6,6 +6,7 @@ export function BoxTrack({
   totalBoxes,
   accentedBoxes,
   labelPosition = 'top',
+  className = '',
 }: {
   value: number;
   onChange: (val: number) => void;
@@ -13,6 +14,7 @@ export function BoxTrack({
   totalBoxes: number;
   accentedBoxes: number[];
   labelPosition?: 'top' | 'bottom' | 'left';
+  className?: string;
 }) {
   const handleBoxClick = (index: number) => {
     const boxNumber = index + 1;
@@ -24,7 +26,7 @@ export function BoxTrack({
   };
 
   const boxes = (
-    <div className="flex flex-row flex-wrap gap-2">
+    <div className="flex flex-row justify-around flex-1">
       {Array.from({length: totalBoxes}, (_, i) => {
         const boxNumber = i + 1;
         const isFilled = boxNumber <= value;
@@ -51,7 +53,7 @@ export function BoxTrack({
 
   if (labelPosition === 'left') {
     return (
-      <div className="flex flex-row items-center gap-2 py-2">
+      <div className={`flex flex-row items-center gap-2 py-2 ${className}`}>
         {labelElement}
         {boxes}
       </div>
@@ -60,7 +62,7 @@ export function BoxTrack({
 
   if (labelPosition === 'bottom') {
     return (
-      <div className="flex flex-col items-start gap-2 py-2">
+      <div className={`flex flex-col items-stretch gap-2 py-2 ${className}`}>
         {boxes}
         {labelElement}
       </div>
@@ -68,7 +70,7 @@ export function BoxTrack({
   }
 
   return (
-    <div className="flex flex-col items-start gap-2 py-2">
+    <div className={`flex flex-col items-stretch gap-2 py-2 ${className}`}>
       {labelElement}
       {boxes}
     </div>

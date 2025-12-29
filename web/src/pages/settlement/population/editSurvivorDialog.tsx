@@ -152,7 +152,7 @@ export default function EditSurvivorDialog({survivor, onClose, onSuccess}: EditS
 
   return (
     <dialog ref={dialogRef} className="modal">
-      <div className="modal-box w-1/2 max-w-none mx-auto px-6">
+      <div className="modal-box max-w-1/2 min-w-1/4 mx-auto px-6">
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -217,7 +217,7 @@ export default function EditSurvivorDialog({survivor, onClose, onSuccess}: EditS
 
 
 
-            <div className="flex flex-row items-center col-span-2 border border-black h-full gap-2">
+            <div className="flex flex-row items-center col-span-2 border border-black gap-2">
               <form.Field
                 name="survival"
                 validators={{
@@ -271,14 +271,14 @@ export default function EditSurvivorDialog({survivor, onClose, onSuccess}: EditS
                 <CheckboxItem id="dash-edit" label="Dash" />
                 <CheckboxItem id="fistpump-edit" label="Fist Pump" />
               </div>
-              <div className="order-last border-l border-black justify-self-end flex flex-col">
-                <form.Field name="systemicPressure">
+              <div className="order-last border-l border-black justify-self-end flex flex-row">
+                <form.Field name="insanity">
                   {(field) => (
                     <StatBox
-                      id="systemicPressure-edit"
+                      id="insanity-edit"
                       value={field.state.value}
                       onChange={(val) => field.handleChange(val)}
-                      label={"Systemic\nPressure"}
+                      label="Insanity"
                       className="mx-4 size-min"
                     />
                   )}
@@ -286,7 +286,7 @@ export default function EditSurvivorDialog({survivor, onClose, onSuccess}: EditS
               </div>
             </div>
 
-            <div className="flex flex-row items-center justify-between col-span-2 border border-black h-32 gap-2">
+            <div id="base-stats" className="flex flex-row items-center justify-around col-span-2 border border-black gap-2">
               <form.Field name="movement">
                 {(field) => (
                   <StatBox
@@ -294,11 +294,10 @@ export default function EditSurvivorDialog({survivor, onClose, onSuccess}: EditS
                     value={field.state.value}
                     onChange={(val) => field.handleChange(val)}
                     label="Movement"
-                    className="ml-4 mr-2 size-full"
+                    className="flex-1"
                   />
                 )}
               </form.Field>
-              <div className="divider divider-horizontal bg-black m-0 w-px" />
               <form.Field name="accuracy">
                 {(field) => (
                   <StatBox
@@ -306,11 +305,10 @@ export default function EditSurvivorDialog({survivor, onClose, onSuccess}: EditS
                     value={field.state.value}
                     onChange={(val) => field.handleChange(val)}
                     label="Accuracy"
-                    className="mx-2 size-full"
+                    className="flex-1"
                   />
                 )}
               </form.Field>
-              <div className="divider divider-horizontal bg-black m-0 w-px" />
               <form.Field name="strength">
                 {(field) => (
                   <StatBox
@@ -318,11 +316,10 @@ export default function EditSurvivorDialog({survivor, onClose, onSuccess}: EditS
                     value={field.state.value}
                     onChange={(val) => field.handleChange(val)}
                     label="Strength"
-                    className="mx-2 size-full"
+                    className="flex-1"
                   />
                 )}
               </form.Field>
-              <div className="divider divider-horizontal bg-black m-0 w-px" />
               <form.Field name="evasion">
                 {(field) => (
                   <StatBox
@@ -330,11 +327,10 @@ export default function EditSurvivorDialog({survivor, onClose, onSuccess}: EditS
                     value={field.state.value}
                     onChange={(val) => field.handleChange(val)}
                     label="Evasion"
-                    className="mx-2 size-full"
+                    className="flex-1"
                   />
                 )}
               </form.Field>
-              <div className="divider divider-horizontal bg-black m-0 w-px" />
               <form.Field name="luck">
                 {(field) => (
                   <StatBox
@@ -342,11 +338,10 @@ export default function EditSurvivorDialog({survivor, onClose, onSuccess}: EditS
                     value={field.state.value}
                     onChange={(val) => field.handleChange(val)}
                     label="Luck"
-                    className="mx-2 size-full"
+                    className="flex-1"
                   />
                 )}
               </form.Field>
-              <div className="divider divider-horizontal bg-black m-0 w-px" />
               <form.Field name="speed">
                 {(field) => (
                   <StatBox
@@ -354,57 +349,49 @@ export default function EditSurvivorDialog({survivor, onClose, onSuccess}: EditS
                     value={field.state.value}
                     onChange={(val) => field.handleChange(val)}
                     label="Speed"
-                    className="mx-2 size-full"
+                    className="flex-1"
                   />
                 )}
               </form.Field>
-              <div className="divider divider-horizontal bg-black m-0 w-px" />
-              <form.Field name="lumi">
+            </div>
+
+            <div id="arc stats" className="flex flex-row items-center justify-around col-span-2 border border-black gap-2">
+                <form.Field name="systemicPressure">
+                  {(field) => (
+                    <StatBox
+                      id="systemicPressure-edit"
+                      value={field.state.value}
+                      onChange={(val) => field.handleChange(val)}
+                      label={"Systemic Pressure"}
+                      className="size-min"
+                    />
+                  )}
+                </form.Field>
+                <form.Field name="torment">
+                  {(field) => (
+                    <StatBox
+                      id="torment-edit"
+                      value={field.state.value}
+                      onChange={(val) => field.handleChange(val)}
+                      label="Torment"
+                      className="size-min"
+                    />
+                  )}
+                </form.Field>
+                <form.Field name="lumi">
                 {(field) => (
                   <StatBox
                     id="lumi-edit"
                     value={field.state.value}
                     onChange={(val) => field.handleChange(val)}
                     label="Lumi"
-                    className="ml-2 mr-4 size-full"
+                    className="size-min"
                   />
                 )}
               </form.Field>
             </div>
 
-            <div className="flex flex-row items-center col-span-2 border border-black gap-2">
-              <form.Field name="insanity">
-                {(field) => (
-                  <StatBox
-                    id="insanity-edit"
-                    value={field.state.value}
-                    onChange={(val) => field.handleChange(val)}
-                    label="Insanity"
-                    className="order-first ml-4 mr-2"
-                  />
-                )}
-              </form.Field>
-              <div className="divider divider-horizontal bg-black m-0 w-px" />
-              <div className="my-4 flex flex-col flex-1 items-start justify-center">
-                <p className="text-2xl font-serif font-light tracking-wide">
-                  Brain
-                </p>
-              </div>
-              <div className="divider divider-horizontal bg-black m-0 w-px" />
-              <form.Field name="torment">
-                {(field) => (
-                  <StatBox
-                    id="torment-edit"
-                    value={field.state.value}
-                    onChange={(val) => field.handleChange(val)}
-                    label="Torment"
-                    className="order-last ml-2 mr-4"
-                  />
-                )}
-              </form.Field>
-            </div>
-
-            <div className="flex flex-row items-center justify-around col-span-2 border border-black gap-4 p-4">
+            <div className="flex flex-row items-center col-span-2 border border-black gap-4 p-4">
               <form.Field name="courage">
                 {(field) => (
                   <CourageTrack
@@ -537,6 +524,7 @@ function CourageTrack({
       totalBoxes={9}
       accentedBoxes={[3, 9]}
       labelPosition="top"
+      className="flex-1"
     />
   );
 }
@@ -556,6 +544,7 @@ function UnderstandingTrack({
       totalBoxes={9}
       accentedBoxes={[3, 9]}
       labelPosition="top"
+      className="flex-1"
     />
   );
 }
