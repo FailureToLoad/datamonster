@@ -1,4 +1,4 @@
-.PHONY: certs clean-certs valkey-new valkey-kill authelia-new authelia-kill postgres-new postgres-kill glossary
+.PHONY: certs clean-certs valkey authelia postgres glossary
 
 CERT_DIR := local/.certs
 LOCAL_DIR := $(shell pwd)/local
@@ -21,14 +21,13 @@ clean-certs:
 	sudo update-ca-trust
 	rm -rf $(CERT_DIR)
 
-valkey-new:
+valkey:
+	-podman rm -f valkey
 	podman run -d --name valkey -p 6379:6379 valkey/valkey:8.0-alpine
 
-valkey-kill:
-	podman rm -f valkey
-
-authelia-new:
+authelia:
 	mkdir -p $(LOCAL_DIR)/data
+	-podman rm -f authelia
 	podman run -d --name authelia \
 		-p 9091:9091 \
 		-v $(LOCAL_DIR)/configuration.yml:/config/configuration.yml:ro,Z \
@@ -41,19 +40,14 @@ authelia-new:
 		-e AUTHELIA_SERVER_DISABLE_HEALTHCHECK=true \
 		docker.io/authelia/authelia:latest
 
-authelia-kill:
-	podman rm -f authelia
-
-postgres-new:
+postgres:
+	-podman rm -f postgres
 	podman run -d --name postgres \
 		-p 5432:5432 \
 		-e POSTGRES_USER=datamonster \
 		-e POSTGRES_PASSWORD=datamonster \
 		-e POSTGRES_DB=datamonster \
 		docker.io/postgres:18-alpine
-
-postgres-kill:
-	podman rm -f postgres
 
 glossary:
 	podman build -t glossary -f ./local/glossary.Containerfile ./local
