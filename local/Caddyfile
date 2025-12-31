@@ -1,13 +1,13 @@
 :80 {
 	root * /srv
-	
+
 	respond /health 200
 	respond /ready 200
-	
-	@api {
-		not path /health /ready
+
+	@json_routes {
+		path /glossary
 	}
-	rewrite @api {path}.json
-	
+	rewrite @json_routes {path}.json
+
 	file_server
 }

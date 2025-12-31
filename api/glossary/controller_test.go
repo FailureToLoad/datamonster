@@ -78,6 +78,13 @@ type knowledge struct {
 	Activation   string   `json:"activation,omitempty"`
 }
 
+type glossaryResponse struct {
+	Disorders    []disorder    `json:"disorders"`
+	FightingArts []fightingArt `json:"fightingArts"`
+	Innovations  []innovation  `json:"innovations"`
+	Knowledge    []knowledge   `json:"knowledge"`
+}
+
 func TestGetAllDisorders(t *testing.T) {
 	body, status := requester.GetAllDisorders("test-user")
 	require.Equal(t, http.StatusOK, status)
@@ -86,12 +93,7 @@ func TestGetAllDisorders(t *testing.T) {
 	require.NoError(t, json.NewDecoder(body).Decode(&disorders))
 	require.Len(t, disorders, 2)
 
-	for _, d := range disorders {
-		assert.NotEmpty(t, d.ID)
-		assert.NotEmpty(t, d.Name)
-		assert.NotEmpty(t, d.Source)
-		assert.NotEmpty(t, d.Effect)
-	}
+	validateDisorders(t, disorders)
 }
 
 func TestGetDisorder(t *testing.T) {
@@ -114,24 +116,7 @@ func TestGetAllFightingArts(t *testing.T) {
 	require.NoError(t, json.NewDecoder(body).Decode(&arts))
 	require.Len(t, arts, 2)
 
-	var hasSecret, hasNonSecret bool
-	for _, art := range arts {
-		assert.NotEmpty(t, art.ID)
-		assert.NotEmpty(t, art.Name)
-		assert.NotEmpty(t, art.Source)
-		assert.NotEmpty(t, art.Text)
-
-		if art.Name == "Normal" {
-			assert.False(t, art.Secret)
-			hasNonSecret = true
-		}
-		if art.Name == "Secret" {
-			assert.True(t, art.Secret)
-			hasSecret = true
-		}
-	}
-	assert.True(t, hasSecret, "expected a secret fighting art")
-	assert.True(t, hasNonSecret, "expected a non-secret fighting art")
+	validateFightingArts(t, arts)
 }
 
 func TestGetFightingArt(t *testing.T) {
@@ -155,12 +140,7 @@ func TestGetAllInnovations(t *testing.T) {
 	require.NoError(t, json.NewDecoder(body).Decode(&innovations))
 	require.Len(t, innovations, 2)
 
-	for _, inn := range innovations {
-		assert.NotEmpty(t, inn.ID)
-		assert.NotEmpty(t, inn.Name)
-		assert.NotEmpty(t, inn.Source)
-		assert.NotEmpty(t, inn.Keywords)
-	}
+	validateInnovations(t, innovations)
 }
 
 func TestGetInnovation(t *testing.T) {
@@ -183,13 +163,7 @@ func TestGetAllKnowledge(t *testing.T) {
 	var items []knowledge
 	require.NoError(t, json.NewDecoder(body).Decode(&items))
 	require.Len(t, items, 2)
-
-	for _, k := range items {
-		assert.NotEmpty(t, k.ID)
-		assert.NotEmpty(t, k.Name)
-		assert.NotEmpty(t, k.Type)
-		assert.NotEmpty(t, k.Description)
-	}
+	validateKnowledge(t, items)
 }
 
 func TestGetKnowledge(t *testing.T) {
@@ -211,4 +185,71 @@ func TestGetDisorder_Unauthorized(t *testing.T) {
 	t.Cleanup(requester.Unauthorized())
 	_, status := requester.GetDisorder("unauthorized", "019412a0-0001-7000-8000-000000000001")
 	assert.Equal(t, http.StatusUnauthorized, status)
+}
+
+func TestGetGlossary(t *testing.T) {
+	body, status := requester.GetGlossary("test-user")
+	require.Equal(t, http.StatusOK, status)
+
+	var g glossaryResponse
+	require.NoError(t, json.NewDecoder(body).Decode(&g))
+	require.Len(t, g.Disorders, 2)
+	validateDisorders(t, g.Disorders)
+
+	require.Len(t, g.FightingArts, 2)
+	validateFightingArts(t, g.FightingArts)
+
+	require.Len(t, g.Innovations, 2)
+	validateInnovations(t, g.Innovations)
+
+	require.Len(t, g.Knowledge, 2)
+	validateKnowledge(t, g.Knowledge)
+}
+
+func validateDisorders(t *testing.T, items []disorder) {
+	for _, d := range items {
+		assert.NotEmpty(t, d.ID)
+		assert.NotEmpty(t, d.Name)
+		assert.NotEmpty(t, d.Source)
+		assert.NotEmpty(t, d.Effect)
+	}
+}
+
+func validateFightingArts(t *testing.T, items []fightingArt) {
+	var hasSecret, hasNonSecret bool
+	for _, art := range items {
+		assert.NotEmpty(t, art.ID)
+		assert.NotEmpty(t, art.Name)
+		assert.NotEmpty(t, art.Source)
+		assert.NotEmpty(t, art.Text)
+
+		if art.Name == "Normal" {
+			assert.False(t, art.Secret)
+			hasNonSecret = true
+		}
+		if art.Name == "Secret" {
+			assert.True(t, art.Secret)
+			hasSecret = true
+		}
+	}
+	assert.True(t, hasSecret, "expected a secret fighting art")
+	assert.True(t, hasNonSecret, "expected a non-secret fighting art")
+}
+
+func validateInnovations(t *testing.T, items []innovation) {
+	for _, inn := range items {
+		assert.NotEmpty(t, inn.ID)
+		assert.NotEmpty(t, inn.Name)
+		assert.NotEmpty(t, inn.Source)
+		assert.NotEmpty(t, inn.Keywords)
+	}
+}
+
+func validateKnowledge(t *testing.T, items []knowledge) {
+	for _, k := range items {
+		assert.NotEmpty(t, k.ID)
+		assert.NotEmpty(t, k.Name)
+		assert.NotEmpty(t, k.Type)
+		assert.NotEmpty(t, k.Description)
+	}
 }

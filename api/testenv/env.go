@@ -297,3 +297,11 @@ func (r Requester) GetKnowledge(userID, id string) (*bytes.Buffer, int) {
 	r.DoRequest(w, req)
 	return w.Body, w.Code
 }
+
+func (r Requester) GetGlossary(userID string) (*bytes.Buffer, int) {
+	r.authorizer.ExpectUserID(userID)
+	req := httptest.NewRequest(http.MethodGet, "/api/glossary", nil)
+	w := httptest.NewRecorder()
+	r.DoRequest(w, req)
+	return w.Body, w.Code
+}

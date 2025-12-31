@@ -1,0 +1,68 @@
+{
+  "disorders": [
+    {
+      "id": "019412a0-0002-7000-8000-000000000002",
+      "name": "Another Disorder",
+      "source": "expansion",
+      "flavorText": "Flavor text",
+      "effect": "Things get worse"
+    },
+    {
+      "id": "019412a0-0001-7000-8000-000000000001",
+      "name": "Test Disorder",
+      "source": "core",
+      "effect": "Bad things happen"
+    }
+  ],
+  "fightingArts": [
+    {
+      "id": "019412a0-0003-7000-8000-000000000003",
+      "name": "Normal",
+      "secret": false,
+      "source": "core",
+      "text": ["You can swing a sword."]
+    },
+    {
+      "id": "019412a0-0004-7000-8000-000000000004",
+      "name": "Secret",
+      "secret": true,
+      "source": "expansion",
+      "text": ["Hidden technique."],
+      "notes": "Rare"
+    }
+  ],
+  "innovations": [
+    {
+      "id": "019412a0-0005-7000-8000-000000000005",
+      "name": "Dull boy",
+      "source": "core",
+      "keywords": "idiot"
+    },
+    {
+      "id": "019412a0-0006-7000-8000-000000000006",
+      "name": "Buffoonery",
+      "source": "core",
+      "keywords": "shame",
+      "parent": "019412a0-0005-7000-8000-000000000005"
+    }
+  ],
+  "knowledge": [
+    {
+      "id": "019412a0-0008-7000-8000-000000000008",
+      "name": "Advanced Knowledge",
+      "cost": 3,
+      "tenet": true,
+      "type": "nonsense",
+      "description": ["Deep thoughts."],
+      "condition": "requires 019412a0-0007-7000-8000-000000000007"
+    },
+    {
+      "id": "019412a0-0007-7000-8000-000000000007",
+      "name": "Basic Knowledge",
+      "cost": 1,
+      "tenet": false,
+      "type": "imaginary",
+      "description": ["You know things."]
+    }
+  ]
+}
