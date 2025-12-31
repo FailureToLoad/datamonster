@@ -12,6 +12,7 @@ import (
 	"time"
 
 	"github.com/failuretoload/datamonster/auth"
+	"github.com/failuretoload/datamonster/glossary"
 	"github.com/failuretoload/datamonster/logger"
 	"github.com/failuretoload/datamonster/server"
 	"github.com/failuretoload/datamonster/settlement"
@@ -131,8 +132,14 @@ func makeControllers(pool *pgxpool.Pool) ([]server.Controller, error) {
 		return nil, err
 	}
 
+	glossaryController, err := glossary.NewController(os.Getenv("GLOSSARY_SERVER"))
+	if err != nil {
+		return nil, err
+	}
+
 	return []server.Controller{
 		settlementController,
 		survivorController,
+		glossaryController,
 	}, nil
 }

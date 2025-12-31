@@ -1,0 +1,17 @@
+[
+  {
+    "id": "019412a0-0003-7000-8000-000000000003",
+    "name": "Normal",
+    "secret": false,
+    "source": "core",
+    "text": ["You can swing a sword."]
+  },
+  {
+    "id": "019412a0-0004-7000-8000-000000000004",
+    "name": "Secret",
+    "secret": true,
+    "source": "expansion",
+    "text": ["Hidden technique."],
+    "notes": "Rare"
+  }
+]

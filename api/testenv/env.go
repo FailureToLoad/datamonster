@@ -24,6 +24,11 @@ type DBContainer struct {
 	PGPool      *pgxpool.Pool
 }
 
+type GlossaryContainer struct {
+	container testcontainers.Container
+	URL       string
+}
+
 type Requester struct {
 	authorizer *AuthorizerFake
 	handler    http.Handler
@@ -70,6 +75,47 @@ func (e *DBContainer) Cleanup() {
 		log.Fatalf("failed to terminate postgres container: %s", err)
 	}
 }
+
+func NewGlossaryContainer(ctx context.Context) (*GlossaryContainer, error) {
+	req := testcontainers.ContainerRequest{
+		FromDockerfile: testcontainers.FromDockerfile{
+			Context:    "../../local",
+			Dockerfile: "glossary.Containerfile",
+		},
+		ExposedPorts: []string{"80/tcp"},
+		WaitingFor:   wait.ForHTTP("/health").WithPort("80/tcp"),
+	}
+
+	container, err := testcontainers.GenericContainer(ctx, testcontainers.GenericContainerRequest{
+		ContainerRequest: req,
+		Started:          true,
+	})
+	if err != nil {
+		return nil, fmt.Errorf("failed to start glossary container: %w", err)
+	}
+
+	host, err := container.Host(ctx)
+	if err != nil {
+		return nil, fmt.Errorf("failed to get container host: %w", err)
+	}
+
+	port, err := container.MappedPort(ctx, "80/tcp")
+	if err != nil {
+		return nil, fmt.Errorf("failed to get container port: %w", err)
+	}
+
+	return &GlossaryContainer{
+		container: container,
+		URL:       fmt.Sprintf("http://%s:%s", host, port.Port()),
+	}, nil
+}
+
+func (g *GlossaryContainer) Cleanup(ctx context.Context) {
+	if err := g.container.Terminate(ctx); err != nil {
+		log.Fatalf("failed to terminate glossary container: %s", err)
+	}
+}
+
 
 func NewRequester(controllers []server.Controller) (*Requester, error) {
 	authorizer := &AuthorizerFake{
@@ -186,4 +232,68 @@ func UUIDString() string {
 
 func UUID() uuid.UUID {
 	return uuid.Must(uuid.NewV4())
+}
+
+func (r Requester) GetAllDisorders(userID string) (*bytes.Buffer, int) {
+	r.authorizer.ExpectUserID(userID)
+	req := httptest.NewRequest(http.MethodGet, "/api/glossary/disorders", nil)
+	w := httptest.NewRecorder()
+	r.DoRequest(w, req)
+	return w.Body, w.Code
+}
+
+func (r Requester) GetDisorder(userID, id string) (*bytes.Buffer, int) {
+	r.authorizer.ExpectUserID(userID)
+	req := httptest.NewRequest(http.MethodGet, "/api/glossary/disorders/"+id, nil)
+	w := httptest.NewRecorder()
+	r.DoRequest(w, req)
+	return w.Body, w.Code
+}
+
+func (r Requester) GetAllFightingArts(userID string) (*bytes.Buffer, int) {
+	r.authorizer.ExpectUserID(userID)
+	req := httptest.NewRequest(http.MethodGet, "/api/glossary/fightingarts", nil)
+	w := httptest.NewRecorder()
+	r.DoRequest(w, req)
+	return w.Body, w.Code
+}
+
+func (r Requester) GetFightingArt(userID, id string) (*bytes.Buffer, int) {
+	r.authorizer.ExpectUserID(userID)
+	req := httptest.NewRequest(http.MethodGet, "/api/glossary/fightingarts/"+id, nil)
+	w := httptest.NewRecorder()
+	r.DoRequest(w, req)
+	return w.Body, w.Code
+}
+
+func (r Requester) GetAllInnovations(userID string) (*bytes.Buffer, int) {
+	r.authorizer.ExpectUserID(userID)
+	req := httptest.NewRequest(http.MethodGet, "/api/glossary/innovations", nil)
+	w := httptest.NewRecorder()
+	r.DoRequest(w, req)
+	return w.Body, w.Code
+}
+
+func (r Requester) GetInnovation(userID, id string) (*bytes.Buffer, int) {
+	r.authorizer.ExpectUserID(userID)
+	req := httptest.NewRequest(http.MethodGet, "/api/glossary/innovations/"+id, nil)
+	w := httptest.NewRecorder()
+	r.DoRequest(w, req)
+	return w.Body, w.Code
+}
+
+func (r Requester) GetAllKnowledge(userID string) (*bytes.Buffer, int) {
+	r.authorizer.ExpectUserID(userID)
+	req := httptest.NewRequest(http.MethodGet, "/api/glossary/knowledge", nil)
+	w := httptest.NewRecorder()
+	r.DoRequest(w, req)
+	return w.Body, w.Code
+}
+
+func (r Requester) GetKnowledge(userID, id string) (*bytes.Buffer, int) {
+	r.authorizer.ExpectUserID(userID)
+	req := httptest.NewRequest(http.MethodGet, "/api/glossary/knowledge/"+id, nil)
+	w := httptest.NewRecorder()
+	r.DoRequest(w, req)
+	return w.Body, w.Code
 }

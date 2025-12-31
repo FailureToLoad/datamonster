@@ -1,0 +1,19 @@
+[
+  {
+    "id": "019412a0-0008-7000-8000-000000000008",
+    "name": "Advanced Knowledge",
+    "cost": 3,
+    "tenet": true,
+    "type": "nonsense",
+    "description": ["Deep thoughts."],
+    "condition": "requires 019412a0-0007-7000-8000-000000000007"
+  },
+  {
+    "id": "019412a0-0007-7000-8000-000000000007",
+    "name": "Basic Knowledge",
+    "cost": 1,
+    "tenet": false,
+    "type": "imaginary",
+    "description": ["You know things."]
+  }
+]

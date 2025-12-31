@@ -1,4 +1,4 @@
-.PHONY: certs clean-certs valkey-new valkey-kill authelia-new authelia-kill postgres-new postgres-kill
+.PHONY: certs clean-certs valkey-new valkey-kill authelia-new authelia-kill postgres-new postgres-kill glossary
 
 CERT_DIR := local/.certs
 LOCAL_DIR := $(shell pwd)/local
@@ -54,3 +54,8 @@ postgres-new:
 
 postgres-kill:
 	podman rm -f postgres
+
+glossary:
+	podman build -t glossary -f ./local/glossary.Containerfile ./local
+	-podman rm -f glossary
+	podman run -d --name glossary -p 9080:80 glossary
