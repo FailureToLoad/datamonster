@@ -107,7 +107,7 @@ func NewController(glossaryServerURL string) (*Controller, error) {
 	}
 	disorderCollection := newCollection(disorderList)
 
-	fightingArtList, err := fetchAll[fightingArt](glossaryServerURL + "/fightingarts")
+	fightingArtList, err := fetchAll[fightingArt](glossaryServerURL + "/fighting-arts")
 	if err != nil {
 		return nil, fmt.Errorf("unable to fetch fighting arts: %w", err)
 	}
