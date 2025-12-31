@@ -67,17 +67,17 @@ func (k knowledge) Key() string {
 	return k.ID
 }
 
-type definition interface {
-	disorder | fightingArt | innovation | knowledge
+type mappable interface {
+	any
 	Key() string
 }
 
-type collection[T definition] struct {
+type collection[T mappable] struct {
 	idMap map[string]T
 	list  []T
 }
 
-func newCollection[T definition](definitions []T) collection[T] {
+func newCollection[T mappable](definitions []T) collection[T] {
 	m := toMap(definitions)
 	return collection[T]{
 		list:  definitions,
@@ -142,7 +142,6 @@ func (c Controller) RegisterRoutes(r chi.Router) {
 	r.Get("/glossary/innovations/{id}", c.getInnovation)
 	r.Get("/glossary/knowledge", c.allKnowledge)
 	r.Get("/glossary/knowledge/{id}", c.getKnowledge)
-
 }
 
 func (c Controller) allDisorders(w http.ResponseWriter, r *http.Request) {
@@ -205,7 +204,7 @@ func (c Controller) getKnowledge(w http.ResponseWriter, r *http.Request) {
 	response.OK(r.Context(), w, c.knowledge.Get(id))
 }
 
-func fetchAll[T definition](definitionURI string) ([]T, error) {
+func fetchAll[T mappable](definitionURI string) ([]T, error) {
 	_, err := url.Parse(definitionURI)
 	if err != nil {
 		return nil, fmt.Errorf("%s is not a valid definition uri: %w", definitionURI, err)
@@ -226,7 +225,7 @@ func fetchAll[T definition](definitionURI string) ([]T, error) {
 	return result, nil
 }
 
-func toMap[T definition](collection []T) map[string]T {
+func toMap[T mappable](collection []T) map[string]T {
 	target := make(map[string]T)
 
 	for _, item := range collection {
