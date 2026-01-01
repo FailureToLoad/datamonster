@@ -1,8 +1,5 @@
 {
   "gopls": {
     "build.directoryFilters": ["-local", "-web", "-.vscode", "-.github"]
-  },
-  "files.associations": {
-        "*.css": "tailwindcss"
-  },
+  }
 }
