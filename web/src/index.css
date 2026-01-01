@@ -1,6 +1,16 @@
-@import "./styles/daisyui.css";
-@import "./styles/daisythemes.css";
-@import "./styles/loader.css";
+@import "./styles/daisyui/reset.css";
+@import "./styles/daisyui/rootcolor.css";
+@import "./styles/daisyui/properties.css";
+@import "./styles/daisyui/button.css";
+@import "./styles/daisyui/modal.css";
+@import "./styles/daisyui/input.css";
+@import "./styles/daisyui/select.css";
+@import "./styles/daisyui/checkbox.css";
+@import "./styles/daisyui/radio.css";
+@import "./styles/daisyui/badge.css";
+@import "./styles/daisyui/card.css";
+@import "./styles/daisyui/menu.css";
+@import "./styles/daisyui/tooltip.css";
 
 :root {
   --color-base-100: hsl(45 10% 95%);
