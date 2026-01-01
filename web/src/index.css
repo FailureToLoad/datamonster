@@ -1,19 +1,7 @@
-@property --radialprogress {
-  syntax: "<percentage>";
-  inherits: true;
-  initial-value: 0%;
-}
+@import "./styles/daisyui.css";
+@import "./styles/themes.css";
 
-@import "tailwindcss";
-@plugin "daisyui" {
-  exclude: properties;
-}
-
-@plugin "daisyui/theme" {
-  name: "default";
-  default: true;
-  prefersdark: false;
-  color-scheme: "light";
+:root {
   --color-base-100: hsl(45 10% 95%);
   --color-base-200: hsl(40 12% 91%);
   --color-base-300: hsl(40 12% 85%);
@@ -42,11 +30,9 @@
   --border: 2px;
   --depth: 1;
   --noise: 0;
-}
-
-@theme {
   --font-sans: "Inter", ui-sans-serif, system-ui, sans-serif,
     "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol", "Noto Color Emoji";
+  font-family: var(--font-sans);
 }
 
 .ag-header-cell-center .ag-header-cell-label {
