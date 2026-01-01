@@ -2,17 +2,15 @@ import {useState, useRef, useCallback} from 'react';
 import {DataGrid} from '~/components/DataGrid';
 import {type Survivor} from '~/lib/survivor';
 import type {CellContextMenuEvent, GridApi, ColDef} from 'ag-grid-community';
-import {GearIcon} from '@phosphor-icons/react';
-import NewSurvivorDialog from './survivorDialog';
+import {GearIcon, PlusIcon} from '@phosphor-icons/react';
 import styles from './survivorTable.module.css';
 
 const COLUMN_CONFIG_KEY = 'survivor-table-columns';
 
 type SurvivorTableProps = {
     data: Survivor[];
-    settlementId: string;
     onEditSurvivor?: (survivor: Survivor) => void;
-    onSurvivorCreated?: () => void;
+    onCreateSurvivor?: () => void;
 };
 
 type ContextMenuState = {
@@ -50,7 +48,7 @@ const columnConfigs: ColumnConfig[] = [
     {field: 'lumi', headerName: 'Lumi'},
 ];
 
-export function SurvivorTable({data, settlementId, onEditSurvivor, onSurvivorCreated}: SurvivorTableProps) {
+export function SurvivorTable({data, onEditSurvivor, onCreateSurvivor}: SurvivorTableProps) {
     const gridApiRef = useRef<GridApi | null>(null);
     const [columnMenuOpen, setColumnMenuOpen] = useState(false);
     const [visibleColumns, setVisibleColumns] = useState<Set<string>>(() => {
@@ -129,10 +127,14 @@ export function SurvivorTable({data, settlementId, onEditSurvivor, onSurvivorCre
     return (
         <div className={styles.container} onContextMenu={(e) => e.preventDefault()}>
             <div className={styles.header}>
-                <NewSurvivorDialog
-                    settlementId={settlementId}
-                    onSuccess={onSurvivorCreated}
-                />
+                <button
+                    className={styles.btnGhost}
+                    aria-label="Create Survivor"
+                    title="Create Survivor"
+                    onClick={onCreateSurvivor}
+                >
+                    <PlusIcon size={18} weight="bold" />
+                </button>
                 <div className={styles.columnMenuWrapper}>
                     <button
                         className="btn btn-ghost"

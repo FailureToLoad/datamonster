@@ -87,3 +87,7 @@
 .contextMenuItem:hover {
   background-color: var(--bg-base);
 }
+
+.btnGhost {
+  composes: btn btn-ghost from global;
+}
