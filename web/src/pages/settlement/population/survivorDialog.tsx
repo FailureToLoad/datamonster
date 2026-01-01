@@ -57,7 +57,7 @@ export type SurvivorUpdateRequest = {
 export default function SurvivorDialog({data, settlementId, onClose, onSuccess}: SurvivorDialogProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
   const [cannotSpendSurvival, setCannotSpendSurvival] = useState(false);
-  const isCreateMode = data.id.trim().length === 0;
+  const isCreateMode = !data.id || data.id.trim().length === 0;
 
   const form = useForm({
     defaultValues: {
