@@ -1,0 +1,58 @@
+.container {
+  display: flex;
+  gap: 0.5rem;
+  padding-top: 0.5rem;
+  padding-bottom: 0.5rem;
+}
+
+.containerColumn {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.containerRow {
+  flex-direction: row;
+  align-items: center;
+}
+
+.boxes {
+  display: flex;
+  flex-direction: row;
+  justify-content: space-around;
+  flex: 1;
+}
+
+.box {
+  width: 1.25rem;
+  height: 1.25rem;
+  border: 1px solid #9ca3af;
+  transition: background-color 0.15s;
+  background-color: white;
+  padding: 0;
+  cursor: pointer;
+}
+
+.box:hover {
+  background-color: #e5e7eb;
+}
+
+.boxAccented {
+  border: 2px solid black;
+}
+
+.boxFilled {
+  background-color: black;
+}
+
+.boxFilled:hover {
+  background-color: black;
+}
+
+.labelWrapper {
+  composes: tooltip from global;
+}
+
+.label {
+  font-size: 0.875rem;
+  cursor: help;
+}
