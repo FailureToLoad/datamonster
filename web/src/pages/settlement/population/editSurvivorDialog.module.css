@@ -1,0 +1,156 @@
+.dialog {
+  composes: modal from global;
+}
+
+.dialogBox {
+  composes: modal-box from global;
+  width: 33.5rem;
+  margin-left: auto;
+  margin-right: auto;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.baseDetails {
+  grid-column: span 2;
+  display: flex;
+  flex-direction: column;
+}
+
+.nameRow {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 2px solid black;
+  padding-bottom: 0.25rem;
+}
+
+.nameInfo {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.survivorName {
+  font-size: 1.5rem;
+}
+
+.badge {
+  composes: badge badge-neutral from global;
+}
+
+.badgeSemibold {
+  composes: badge badge-neutral from global;
+  font-weight: 600;
+}
+
+.badgeSuccess {
+  composes: badge badge-success from global;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.badgeError {
+  composes: badge badge-error from global;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.select {
+  composes: select select-bordered select-sm from global;
+  width: auto;
+  min-width: 0;
+}
+
+.badgeRow {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+}
+
+.statsSection {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-around;
+  grid-column: span 2;
+  border: 1px solid black;
+  gap: 0.5rem;
+}
+
+.tracksSection {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  grid-column: span 2;
+  border: 1px solid black;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.modalFooter {
+  composes: modal-action from global;
+  padding-top: 1rem;
+}
+
+.btn {
+  composes: btn from global;
+}
+
+.btnPrimary {
+  composes: btn btn-primary from global;
+}
+
+.statBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+.statBoxFlex1 {
+  flex: 1;
+}
+
+.statBoxInput {
+  margin-top: 1rem;
+  display: flex;
+  border: 1px solid black;
+  height: 4rem;
+  width: 3.5rem;
+}
+
+.statBoxInputField {
+  composes: input input-bordered from global;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  font-size: 1.125rem;
+  border: 0;
+}
+
+.statBoxLabel {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  font-size: 0.75rem;
+  text-align: center;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+}
+
+.flex1 {
+  flex: 1;
+}

@@ -1,3 +1,4 @@
+import styles from './BoxTrack.module.css';
 
 export function BoxTrack({
   value,
@@ -26,7 +27,7 @@ export function BoxTrack({
   };
 
   const boxes = (
-    <div className="flex flex-row justify-around flex-1">
+    <div className={styles.boxes}>
       {Array.from({length: totalBoxes}, (_, i) => {
         const boxNumber = i + 1;
         const isFilled = boxNumber <= value;
@@ -36,9 +37,7 @@ export function BoxTrack({
             key={i}
             type="button"
             onClick={() => handleBoxClick(i)}
-            className={`size-5 border transition-colors ${
-              isAccented ? 'border-2 border-black' : 'border border-gray-400'
-            } ${isFilled ? 'bg-black' : 'bg-white hover:bg-gray-200'}`}
+            className={`${styles.box} ${isAccented ? styles.boxAccented : ''} ${isFilled ? styles.boxFilled : ''}`}
           />
         );
       })}
@@ -46,14 +45,14 @@ export function BoxTrack({
   );
 
   const labelElement = (
-    <div className="tooltip" data-tip={value}>
-      <p className="text-sm cursor-help">{label}</p>
+    <div className={styles.labelWrapper} data-tip={value}>
+      <p className={styles.label}>{label}</p>
     </div>
   );
 
   if (labelPosition === 'left') {
     return (
-      <div className={`flex flex-row items-center gap-2 py-2 ${className}`}>
+      <div className={`${styles.container} ${styles.containerRow} ${className}`}>
         {labelElement}
         {boxes}
       </div>
@@ -62,7 +61,7 @@ export function BoxTrack({
 
   if (labelPosition === 'bottom') {
     return (
-      <div className={`flex flex-col items-stretch gap-2 py-2 ${className}`}>
+      <div className={`${styles.container} ${styles.containerColumn} ${className}`}>
         {boxes}
         {labelElement}
       </div>
@@ -70,7 +69,7 @@ export function BoxTrack({
   }
 
   return (
-    <div className={`flex flex-col items-stretch gap-2 py-2 ${className}`}>
+    <div className={`${styles.container} ${styles.containerColumn} ${className}`}>
       {labelElement}
       {boxes}
     </div>

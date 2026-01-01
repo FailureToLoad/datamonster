@@ -1,4 +1,5 @@
 import { isRouteErrorResponse, useRouteError } from "react-router";
+import styles from "./ErrorBoundary.module.css";
 
 export function ErrorBoundary() {
   const error = useRouteError();
@@ -17,10 +18,10 @@ export function ErrorBoundary() {
   }
 
   return (
-    <main className="flex min-h-screen flex-col items-center justify-center">
-      <h1 className="text-4xl font-bold mb-4">{message}</h1>
-      <p className="text-muted-foreground">{details}</p>
-      <a href="/" className="mt-4 underline">Go home</a>
+    <main className={styles.page}>
+      <h1 className={styles.title}>{message}</h1>
+      <p className={styles.details}>{details}</p>
+      <a href="/" className={styles.homeLink}>Go home</a>
     </main>
   );
 }

@@ -1,7 +1,9 @@
+import styles from "./Home.module.css";
+
 export default function Home() {
   return (
-    <div className="flex min-h-screen flex-col items-center justify-center bg-base-200">
-      <h1 className="mb-4 text-5xl font-extrabold leading-none tracking-tight">
+    <div className={styles.page}>
+      <h1 className={styles.title}>
         Datamonster
       </h1>
       <a href="/auth/login">Sign In</a>

@@ -3,6 +3,7 @@ import {SurvivorTable} from './survivorTable';
 import EditSurvivorDialog from './editSurvivorDialog';
 import {type Survivor} from '~/types/survivor';
 import {useLoaderData, useParams, useRevalidator} from 'react-router';
+import styles from './tab.module.css';
 
 
 export function PopulationTab() {
@@ -21,7 +22,7 @@ export function PopulationTab() {
   };
 
   return (
-    <div id="population" className="flex flex-col w-fill py-4">
+    <div id="population" className={styles.tab}>
       <SurvivorTable
         data={survivors}
         settlementId={settlementId}

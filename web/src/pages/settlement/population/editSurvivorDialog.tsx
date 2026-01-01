@@ -5,6 +5,7 @@ import {type} from 'arktype';
 import {PatchJSON} from '~/lib/request';
 import {BoxTrack} from '~/components/BoxTrack'
 import { GenderFemaleIcon, GenderMaleIcon } from '@phosphor-icons/react';
+import styles from './editSurvivorDialog.module.css';
 
 const isInteger = type('number.integer');
 const isPositive = type('number.integer >= 0');
@@ -153,8 +154,8 @@ export default function EditSurvivorDialog({survivor, onClose, onSuccess}: EditS
   if (!survivor) return null;
 
   return (
-    <dialog ref={dialogRef} className="modal">
-      <div className="modal-box max-w-1/2 min-w-1/4 mx-auto px-6">
+    <dialog ref={dialogRef} className={styles.dialog}>
+      <div className={styles.dialogBox}>
         <form
           onSubmit={(e) => {
             e.preventDefault();
@@ -162,15 +163,15 @@ export default function EditSurvivorDialog({survivor, onClose, onSuccess}: EditS
             form.handleSubmit();
           }}
         >
-          <section className="grid grid-cols-2 items-center justify-center gap-4">
-            <div id="base-details" className="col-span-2 flex flex-col">
-              <div className="flex flex-row items-center justify-between border-b-2 border-black pb-1">
-                <div className="flex flex-row items-center gap-2">
-                  <p className="text-2xl">
+          <section className={styles.formGrid}>
+            <div id="base-details" className={styles.baseDetails}>
+              <div className={styles.nameRow}>
+                <div className={styles.nameInfo}>
+                  <p className={styles.survivorName}>
                     {survivor.name}
                   </p>
-                  <span className="badge badge-neutral">{survivor.gender === SurvivorGender.M ? < GenderMaleIcon weight="bold"  /> : <GenderFemaleIcon  weight="bold" />}</span>
-                  <span className="badge badge-neutral font-semibold">Born year {survivor.birth}</span>
+                  <span className={styles.badge}>{survivor.gender === SurvivorGender.M ? < GenderMaleIcon weight="bold"  /> : <GenderFemaleIcon  weight="bold" />}</span>
+                  <span className={styles.badgeSemibold}>Born year {survivor.birth}</span>
                 </div>
                 <form.Field
                   name="status"
@@ -186,7 +187,7 @@ export default function EditSurvivorDialog({survivor, onClose, onSuccess}: EditS
                   {(field) => (
                     <select
                       id="status-input"
-                      className="select select-bordered select-sm w-auto min-w-0"
+                      className={styles.select}
                       value={field.state.value}
                       onChange={(e) =>
                         field.handleChange(e.target.value as SurvivorStatus)
@@ -209,17 +210,17 @@ export default function EditSurvivorDialog({survivor, onClose, onSuccess}: EditS
                   />
                 )}
               </form.Field>
-              <div className="flex flex-row items-center gap-2 py-1">
+              <div className={styles.badgeRow}>
                 <button
                   type="button"
-                  className={`badge font-semibold cursor-pointer ${cannotSpendSurvival ? 'badge-error' : 'badge-success'}`}
+                  className={cannotSpendSurvival ? styles.badgeError : styles.badgeSuccess}
                   onClick={() => setCannotSpendSurvival(!cannotSpendSurvival)}
                 >
                   {cannotSpendSurvival ? 'Cannot spend survival' : 'Can spend survival'}
                 </button>
                 <form.Subscribe selector={(state) => state.values.insanity}>
                   {(insanity) => insanity >= 3 && (
-                    <span className="badge badge-neutral font-semibold">Insane</span>
+                    <span className={styles.badgeSemibold}>Insane</span>
                   )}
                 </form.Subscribe>
               </div>
@@ -228,7 +229,7 @@ export default function EditSurvivorDialog({survivor, onClose, onSuccess}: EditS
 
 
 
-            <div className="flex flex-row items-center justify-around col-span-2 border border-black gap-2">
+            <div className={styles.statsSection}>
               <form.Field name="survival">
                 {(field) => (
                   <StatBox
@@ -236,7 +237,6 @@ export default function EditSurvivorDialog({survivor, onClose, onSuccess}: EditS
                     value={field.state.value}
                     onChange={(val) => field.handleChange(val)}
                     label="Survival"
-                    className="flex-1"
                   />
                 )}
               </form.Field>
@@ -247,7 +247,6 @@ export default function EditSurvivorDialog({survivor, onClose, onSuccess}: EditS
                     value={field.state.value}
                     onChange={(val) => field.handleChange(val)}
                     label="Insanity"
-                    className="flex-1"
                   />
                 )}
               </form.Field>
@@ -258,7 +257,6 @@ export default function EditSurvivorDialog({survivor, onClose, onSuccess}: EditS
                     value={field.state.value}
                     onChange={(val) => field.handleChange(val)}
                     label="Systemic Pressure"
-                    className="flex-1"
                   />
                 )}
               </form.Field>
@@ -269,7 +267,6 @@ export default function EditSurvivorDialog({survivor, onClose, onSuccess}: EditS
                     value={field.state.value}
                     onChange={(val) => field.handleChange(val)}
                     label="Torment"
-                    className="flex-1"
                   />
                 )}
               </form.Field>
@@ -280,13 +277,12 @@ export default function EditSurvivorDialog({survivor, onClose, onSuccess}: EditS
                     value={field.state.value}
                     onChange={(val) => field.handleChange(val)}
                     label="Lumi"
-                    className="flex-1"
                   />
                 )}
               </form.Field>
             </div>
 
-            <div id="base-stats" className="flex flex-row items-center justify-around col-span-2 border border-black gap-2">
+            <div id="base-stats" className={styles.statsSection}>
               <form.Field name="movement">
                 {(field) => (
                   <StatBox
@@ -294,7 +290,6 @@ export default function EditSurvivorDialog({survivor, onClose, onSuccess}: EditS
                     value={field.state.value}
                     onChange={(val) => field.handleChange(val)}
                     label="Movement"
-                    className="flex-1"
                   />
                 )}
               </form.Field>
@@ -305,7 +300,6 @@ export default function EditSurvivorDialog({survivor, onClose, onSuccess}: EditS
                     value={field.state.value}
                     onChange={(val) => field.handleChange(val)}
                     label="Accuracy"
-                    className="flex-1"
                   />
                 )}
               </form.Field>
@@ -316,7 +310,6 @@ export default function EditSurvivorDialog({survivor, onClose, onSuccess}: EditS
                     value={field.state.value}
                     onChange={(val) => field.handleChange(val)}
                     label="Strength"
-                    className="flex-1"
                   />
                 )}
               </form.Field>
@@ -327,7 +320,6 @@ export default function EditSurvivorDialog({survivor, onClose, onSuccess}: EditS
                     value={field.state.value}
                     onChange={(val) => field.handleChange(val)}
                     label="Evasion"
-                    className="flex-1"
                   />
                 )}
               </form.Field>
@@ -338,7 +330,6 @@ export default function EditSurvivorDialog({survivor, onClose, onSuccess}: EditS
                     value={field.state.value}
                     onChange={(val) => field.handleChange(val)}
                     label="Luck"
-                    className="flex-1"
                   />
                 )}
               </form.Field>
@@ -349,13 +340,12 @@ export default function EditSurvivorDialog({survivor, onClose, onSuccess}: EditS
                     value={field.state.value}
                     onChange={(val) => field.handleChange(val)}
                     label="Speed"
-                    className="flex-1"
                   />
                 )}
               </form.Field>
             </div>
 
-            <div className="flex flex-row items-center col-span-2 border border-black gap-4 p-4">
+            <div className={styles.tracksSection}>
               <form.Field name="courage">
                 {(field) => (
                   <CourageTrack
@@ -377,10 +367,10 @@ export default function EditSurvivorDialog({survivor, onClose, onSuccess}: EditS
           </section>
 
           {/* Footer */}
-          <div className="modal-action pt-4">
+          <div className={styles.modalFooter}>
             <button
               type="button"
-              className="btn"
+              className={styles.btn}
               onClick={handleClose}
             >
               Cancel
@@ -389,7 +379,7 @@ export default function EditSurvivorDialog({survivor, onClose, onSuccess}: EditS
               {(canSubmit) => (
                 <button
                   type="submit"
-                  className="btn btn-primary"
+                  className={styles.btnPrimary}
                   disabled={!canSubmit}
                 >
                   Save
@@ -411,28 +401,24 @@ function StatBox({
   value,
   onChange,
   label,
-  className = '',
 }: {
   id: string;
   value: number;
   onChange: (val: number) => void;
   label: string;
-  className?: string;
 }) {
   return (
-    <div
-      className={`flex flex-col items-center ${className}`}
-    >
-      <div className="mt-4 flex border border-black h-16 w-14">
+    <div className={`${styles.statBox} ${styles.statBoxFlex1}`}>
+      <div className={styles.statBoxInput}>
         <input
           id={`${id}-input`}
           type="number"
-          className="input input-bordered size-full text-center text-lg border-0"
+          className={styles.statBoxInputField}
           value={value}
           onChange={(e) => onChange(Number(e.target.value))}
         />
       </div>
-      <p className="my-4 text-xs text-center h-8 flex items-center">
+      <p className={styles.statBoxLabel}>
         {label}
       </p>
     </div>
@@ -474,7 +460,7 @@ function CourageTrack({
       totalBoxes={9}
       accentedBoxes={[3, 9]}
       labelPosition="top"
-      className="flex-1"
+      className={styles.flex1}
     />
   );
 }
@@ -494,7 +480,7 @@ function UnderstandingTrack({
       totalBoxes={9}
       accentedBoxes={[3, 9]}
       labelPosition="top"
-      className="flex-1"
+      className={styles.flex1}
     />
   );
 }

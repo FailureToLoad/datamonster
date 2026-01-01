@@ -1,0 +1,306 @@
+.dialog {
+  composes: modal from global;
+  margin-left: auto;
+  margin-right: auto;
+  width: 60%;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+  flex-grow: 1;
+}
+
+.dialogBox {
+  composes: modal-box from global;
+  width: 60%;
+  max-width: none;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+}
+
+.formGrid {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+}
+
+.nameRow {
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  grid-column: span 2;
+  height: 100%;
+  border-bottom: 2px solid black;
+}
+
+.nameInputWrapper {
+  display: flex;
+  flex-direction: row;
+  gap: 0.5rem;
+  width: 100%;
+}
+
+.sectionLabel {
+  font-size: 1.5rem;
+  font-family: serif;
+  font-weight: 300;
+  letter-spacing: 0.025em;
+}
+
+.nameInput {
+  composes: input input-bordered from global;
+  width: 100%;
+  font-size: 1.125rem;
+}
+
+.genderGroup {
+  display: flex;
+  flex-direction: row;
+  gap: 1rem;
+}
+
+.radioLabel {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  cursor: pointer;
+}
+
+.radio {
+  composes: radio from global;
+}
+
+.checkbox {
+  composes: checkbox from global;
+}
+
+.survivalSection {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  grid-column: span 2;
+  border: 1px solid black;
+  height: 100%;
+  gap: 0.5rem;
+}
+
+.survivalBox {
+  order: 1;
+  margin-left: 1.5rem;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  border: 1px solid black;
+  width: 5rem;
+  height: 5rem;
+  place-content: center;
+}
+
+.survivalInput {
+  composes: input input-bordered from global;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  font-size: 1.5rem;
+  border: 0;
+}
+
+.survivalInfo {
+  order: 2;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  height: 5rem;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.checkboxRow {
+  display: flex;
+  width: 100%;
+}
+
+.checkboxItem {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.25rem;
+}
+
+.checkboxSmall {
+  composes: checkbox checkbox-sm from global;
+}
+
+.checkboxLabel {
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.skillsColumn {
+  order: 3;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  align-items: flex-start;
+  justify-content: flex-start;
+  display: flex;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.systemicPressureWrapper {
+  order: 4;
+  border-left: 1px solid black;
+  justify-self: end;
+  display: flex;
+  flex-direction: column;
+}
+
+.systemicPressureStat {
+  margin-left: 1rem;
+  margin-right: 1rem;
+}
+
+.statsRow {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  grid-column: span 2;
+  border: 1px solid black;
+  height: 8rem;
+  gap: 0.5rem;
+}
+
+.divider {
+  background-color: black;
+  margin: 0;
+  width: 1px;
+  align-self: stretch;
+}
+
+.statFirst {
+  margin-left: 1rem;
+  margin-right: 0.5rem;
+  width: 100%;
+  height: 100%;
+}
+
+.statMiddle {
+  margin-left: 0.5rem;
+  margin-right: 0.5rem;
+  width: 100%;
+  height: 100%;
+}
+
+.statLast {
+  margin-left: 0.5rem;
+  margin-right: 1rem;
+  width: 100%;
+  height: 100%;
+}
+
+.brainSection {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  grid-column: span 2;
+  border: 1px solid black;
+  height: 100%;
+  gap: 0.5rem;
+}
+
+.brainInfo {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  height: 5rem;
+  align-items: flex-start;
+  justify-content: space-between;
+}
+
+.brainHeader {
+  width: 100%;
+  display: flex;
+  flex-direction: row;
+  justify-content: space-between;
+}
+
+.brainCheckbox {
+  composes: checkbox from global;
+  width: 1.5rem;
+  height: 1.5rem;
+}
+
+.brainDescription {
+  font-size: 0.875rem;
+  font-weight: 500;
+  line-height: 1;
+}
+
+.statBoxOrderFirst {
+  order: -1;
+  margin-left: 1rem;
+  margin-right: 0.5rem;
+}
+
+.statBoxOrderLast {
+  order: 999;
+  margin-left: 0.5rem;
+  margin-right: 1rem;
+}
+
+.modalFooter {
+  composes: modal-action from global;
+  padding-top: 1rem;
+}
+
+.btn {
+  composes: btn from global;
+}
+
+.btnPrimary {
+  composes: btn btn-primary from global;
+}
+
+.btnGhost {
+  composes: btn btn-ghost from global;
+}
+
+.statBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: space-between;
+  width: fit-content;
+}
+
+.statBoxInput {
+  margin-top: 1rem;
+  display: flex;
+  border: 1px solid black;
+  height: 4rem;
+  width: 3.5rem;
+}
+
+.statBoxInputField {
+  composes: input input-bordered from global;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  font-size: 1.125rem;
+  border: 0;
+}
+
+.statBoxLabel {
+  display: flex;
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  font-size: 0.75rem;
+  text-align: center;
+  white-space: break-spaces;
+}

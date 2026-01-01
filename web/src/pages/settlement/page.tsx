@@ -7,6 +7,7 @@ import {
   SignOutIcon,
 } from "@phosphor-icons/react";
 import { Link, Outlet, useLocation, useNavigate } from "react-router";
+import styles from "./page.module.css";
 
 
 function LeftNav() {
@@ -32,8 +33,8 @@ function LeftNav() {
   };
 
   return (
-    <div className="left-0 top-0 grid h-screen w-fit p-4">
-      <ul className="menu mt-6 justify-between rounded-box bg-base-300">
+    <div className={styles.navContainer}>
+      <ul className={`menu rounded-box bg-base-300 ${styles.navMenu}`}>
         <div>
           <li>
             <Link to={timelineKey} color="foreground" className="tooltip tooltip-right" data-tip="Timeline">
@@ -70,9 +71,9 @@ function LeftNav() {
 
 export function SettlementPage() {
   return (
-    <div className="flex h-screen">
+    <div className={styles.page}>
       <LeftNav />
-      <div className="flex-1 overflow-auto p-16">
+      <div className={styles.content}>
         <Outlet />
       </div>
     </div>
