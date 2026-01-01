@@ -66,7 +66,7 @@ export function SurvivorTemplate(settlementId:string) :Survivor {
 }
 
 export type CreateSurvivorRequest = {
-  settlementID: string;
+  settlementId: string;
   name: string;
   birth?: number;
   gender?: SurvivorGender;
