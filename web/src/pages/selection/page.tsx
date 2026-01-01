@@ -1,5 +1,5 @@
 import { useLoaderData, useRevalidator, Link } from "react-router";
-import type { SettlementId } from "~/types/settlement";
+import type { SettlementId } from "~/lib/settlement";
 import {PlayIcon} from "@phosphor-icons/react";
 import { CreateSettlementDialog } from "./dialog";
 import styles from "./page.module.css";

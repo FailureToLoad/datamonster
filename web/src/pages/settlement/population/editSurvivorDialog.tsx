@@ -1,6 +1,6 @@
 import {useForm} from '@tanstack/react-form';
 import {useRef, useLayoutEffect, useState} from 'react';
-import {type Survivor, SurvivorGender, SurvivorStatus} from '~/types/survivor';
+import {type Survivor, SurvivorGender, SurvivorStatus} from '~/lib/survivor';
 import {type} from 'arktype';
 import {PatchJSON} from '~/lib/request';
 import {BoxTrack} from '~/components/BoxTrack'

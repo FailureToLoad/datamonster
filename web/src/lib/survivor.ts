@@ -40,6 +40,29 @@ export const SurvivorStatus = {
 
 export type SurvivorStatus = typeof SurvivorStatus[keyof typeof SurvivorStatus];
 
+export function SurvivorTemplate(): Omit<Survivor, 'id' | 'settlementId'> {
+  return {
+    name: 'Meat',
+    gender: SurvivorGender.M,
+    birth: 1,
+    status: SurvivorStatus.Alive,
+    huntxp: 0,
+    survival: 1,
+    movement: 5,
+    accuracy: 0,
+    strength: 0,
+    evasion: 0,
+    luck: 0,
+    speed: 0,
+    systemicPressure: 0,
+    torment: 0,
+    courage: 0,
+    understanding: 0,
+    insanity: 0,
+    lumi: 0,
+  };
+}
+
 export type CreateSurvivorRequest = {
   settlementID: string;
   name: string;

@@ -1,7 +1,7 @@
 import {useForm} from '@tanstack/react-form';
 import {useRef} from 'react';
 import {PlusIcon} from '@phosphor-icons/react';
-import {SurvivorGender} from '~/types/survivor';
+import {SurvivorGender} from '~/lib/survivor';
 import {type} from 'arktype';
 import { PostJSON } from '~/lib/request';
 import styles from './survivorDialog.module.css';

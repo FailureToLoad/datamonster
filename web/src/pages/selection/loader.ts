@@ -1,5 +1,5 @@
 import { redirect } from "react-router";
-import { Get } from "~/lib/request.tsx";
+import { Get } from "~/lib/request.ts";
 
 export async function loadSettlements() {
     const res = await Get("/api/settlements");

@@ -2,7 +2,7 @@ import { type } from "arktype";
 import { useForm } from "@tanstack/react-form";
 import { useRef } from "react";
 import {PlusIcon} from "@phosphor-icons/react";
-import { PostJSON } from "~/lib/request.tsx";
+import { PostJSON } from "~/lib/request.ts";
 import styles from "./dialog.module.css";
 
 const settlementNameValidator = type("5 <= string <= 25");

@@ -1,7 +1,7 @@
 import {useState} from 'react';
 import {SurvivorTable} from './survivorTable';
 import EditSurvivorDialog from './editSurvivorDialog';
-import {type Survivor} from '~/types/survivor';
+import {type Survivor} from '~/lib/survivor';
 import {useLoaderData, useParams, useRevalidator} from 'react-router';
 import styles from './tab.module.css';
 

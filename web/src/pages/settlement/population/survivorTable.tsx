@@ -1,6 +1,6 @@
 import {useState, useRef, useCallback} from 'react';
 import {DataGrid} from '~/components/DataGrid';
-import {type Survivor} from '~/types/survivor';
+import {type Survivor} from '~/lib/survivor';
 import type {CellContextMenuEvent, GridApi, ColDef} from 'ag-grid-community';
 import {GearIcon} from '@phosphor-icons/react';
 import NewSurvivorDialog from './survivorDialog';
