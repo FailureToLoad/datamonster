@@ -2,18 +2,19 @@ import { useLoaderData, useRevalidator, Link } from "react-router";
 import type { SettlementId } from "~/types/settlement";
 import {PlayIcon} from "@phosphor-icons/react";
 import { CreateSettlementDialog } from "./dialog";
+import styles from "./page.module.css";
 
 function SettlementCard({ settlement }: { settlement: SettlementId }) {
   return (
-    <div className="card bg-base-100 w-96 overflow-hidden shadow-sm">
-      <div className="card-body flex-row items-stretch p-0">
-        <div className="flex flex-1 basis-2/3 items-center p-4">
+    <div className={`card bg-base-100 shadow-sm ${styles.settlementCard}`}>
+      <div className={`card-body ${styles.cardBody}`}>
+        <div className={styles.cardInfo}>
           <h2 className="card-title">{settlement.name}</h2>
         </div>
 
         <Link
           to={"/settlements/" + settlement.id}
-          className="btn btn-ghost h-auto basis-1/3 rounded-none"
+          className={`btn btn-ghost ${styles.playButton}`}
         >
           <PlayIcon size={24} />
         </Link>
@@ -27,15 +28,17 @@ export function SelectSettlement() {
   const revalidator = useRevalidator();
 
   return (
-    <ul className="flex w-full flex-col items-center space-y-4">
-      {settlements.map((settlement) => (
-        <li key={settlement.id}>
-          <SettlementCard settlement={settlement} />
-        </li>
-      ))}
-      <li key="create">
+    <div className={styles.container}>
+      <div className={styles.content}>
         <CreateSettlementDialog refresh={() => revalidator.revalidate()} />
-      </li>
-    </ul>
+        <ul className={styles.list}>
+          {settlements.map((settlement) => (
+            <li key={settlement.id}>
+              <SettlementCard settlement={settlement} />
+            </li>
+          ))}
+        </ul>
+      </div>
+    </div>
   );
 }

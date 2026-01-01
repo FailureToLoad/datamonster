@@ -3,6 +3,7 @@ import { useForm } from "@tanstack/react-form";
 import { useRef } from "react";
 import {PlusIcon} from "@phosphor-icons/react";
 import { PostJSON } from "~/lib/request.tsx";
+import styles from "./dialog.module.css";
 
 const settlementNameValidator = type("5 <= string <= 25");
 
@@ -38,15 +39,15 @@ export function CreateSettlementDialog({ refresh }: { refresh: () => void }) {
   return (
     <>
       <button
-        className="w-96 btn btn-neutral"
+        className={`btn btn-neutral ${styles.createButton}`}
         aria-label="Create Settlement"
         onClick={() => dialogRef.current?.showModal()}
       >
-        <PlusIcon className="h-6 w-6" />
+        <PlusIcon className={styles.icon} />
       </button>
       <dialog ref={dialogRef} className="modal">
         <div className="modal-box">
-          <h3 className="font-bold text-lg">Add Settlement</h3>
+          <h3 className={styles.dialogTitle}>Add Settlement</h3>
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -64,18 +65,13 @@ export function CreateSettlementDialog({ refresh }: { refresh: () => void }) {
               }}
             >
               {(field) => (
-                <label className="form-control w-full">
-                  <div className="label">
-                    <span className="label-text">Settlement Name</span>
-                  </div>
-                  <input
-                    type="text"
-                    placeholder="Enter settlement name"
-                    className="input input-bordered w-full"
-                    value={field.state.value}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                  />
-                </label>
+                <input
+                  type="text"
+                  placeholder="Enter settlement name"
+                  className={`input ${styles.formInput}`}
+                  value={field.state.value}
+                  onChange={(e) => field.handleChange(e.target.value)}
+                />
               )}
             </form.Field>
             <div className="modal-action">

@@ -1,0 +1,48 @@
+.container {
+  display: grid;
+  place-content: center;
+  min-height: 100%;
+  padding: 2rem;
+}
+
+.content {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+}
+
+.list {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 1rem;
+  padding: 0;
+  list-style: none;
+}
+
+.settlementCard {
+  width: 24rem;
+  overflow: hidden;
+}
+
+.cardBody {
+  display: flex;
+  flex-direction: row;
+  align-items: stretch;
+  padding: 0;
+}
+
+.cardInfo {
+  display: flex;
+  flex: 1;
+  flex-basis: 66.666%;
+  align-items: center;
+  padding: 1rem;
+}
+
+.playButton {
+  height: auto;
+  flex-basis: 33.333%;
+  border-radius: 0;
+}
