@@ -4,7 +4,7 @@
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  background-color: var(--color-base-200);
+  background-color: var(--bg-base);
 }
 
 .title {
