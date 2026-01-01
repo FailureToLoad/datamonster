@@ -200,8 +200,8 @@ func (c *Controller) callbackHandler() http.HandlerFunc {
 			return
 		}
 
-		ttl := time.Until(token.Expiry)
-		if err := c.sessions.Set(r.Context(), sessionID, data, ttl); err != nil {
+		sessionTTL := 7 * 24 * time.Hour
+		if err := c.sessions.Set(r.Context(), sessionID, data, sessionTTL); err != nil {
 			response.InternalServerError(ctx, w, fmt.Errorf("saving session: %w", err))
 			return
 		}
@@ -209,7 +209,7 @@ func (c *Controller) callbackHandler() http.HandlerFunc {
 		http.SetCookie(w, &http.Cookie{
 			Name:     sessionCookieName,
 			Value:    sessionID,
-			MaxAge:   int(ttl.Seconds()),
+			MaxAge:   int(sessionTTL.Seconds()),
 			HttpOnly: true,
 			Secure:   isSecureCookie(),
 			SameSite: http.SameSiteLaxMode,
