@@ -4,6 +4,7 @@ import {type Survivor} from '~/types/survivor';
 import type {CellContextMenuEvent, GridApi, ColDef} from 'ag-grid-community';
 import {GearIcon} from '@phosphor-icons/react';
 import NewSurvivorDialog from './survivorDialog';
+import styles from './survivorTable.module.css';
 
 const COLUMN_CONFIG_KEY = 'survivor-table-columns';
 
@@ -126,13 +127,13 @@ export function SurvivorTable({data, settlementId, onEditSurvivor, onSurvivorCre
     }));
 
     return (
-        <div className="relative" onContextMenu={(e) => e.preventDefault()}>
-            <div className="flex justify-between items-center mb-2">
+        <div className={styles.container} onContextMenu={(e) => e.preventDefault()}>
+            <div className={styles.header}>
                 <NewSurvivorDialog
                     settlementId={settlementId}
                     onSuccess={onSurvivorCreated}
                 />
-                <div className="relative">
+                <div className={styles.columnMenuWrapper}>
                     <button
                         className="btn btn-ghost"
                         onClick={() => setColumnMenuOpen(!columnMenuOpen)}
@@ -143,15 +144,15 @@ export function SurvivorTable({data, settlementId, onEditSurvivor, onSurvivorCre
                     {columnMenuOpen && (
                         <>
                             <div
-                                className="fixed inset-0 z-40"
+                                className={styles.overlay}
                                 onClick={() => setColumnMenuOpen(false)}
                             />
-                            <div className="absolute right-0 top-full z-50 bg-base-100 border border-base-300 rounded-lg shadow-lg py-2 min-w-48">
-                                <p className="px-3 py-1 text-xs font-semibold text-base-content/60 uppercase">Columns</p>
+                            <div className={styles.columnMenu}>
+                                <p className={styles.columnMenuTitle}>Columns</p>
                                 {columnConfigs.map(config => (
                                     <label
                                         key={config.field}
-                                        className={`flex items-center gap-2 px-3 py-1.5 hover:bg-base-200 cursor-pointer ${config.locked ? 'opacity-50 cursor-not-allowed' : ''}`}
+                                        className={`${styles.columnOption} ${config.locked ? styles.columnOptionDisabled : ''}`}
                                     >
                                         <input
                                             type="checkbox"
@@ -160,7 +161,7 @@ export function SurvivorTable({data, settlementId, onEditSurvivor, onSurvivorCre
                                             onChange={() => toggleColumn(config.field)}
                                             disabled={config.locked}
                                         />
-                                        <span className="text-sm">{config.headerName}</span>
+                                        <span className={styles.columnOptionLabel}>{config.headerName}</span>
                                     </label>
                                 ))}
                             </div>
@@ -182,13 +183,13 @@ export function SurvivorTable({data, settlementId, onEditSurvivor, onSurvivorCre
             />
             {contextMenu.visible && (
                 <>
-                    <div className="fixed inset-0 z-40" onClick={closeMenu} onContextMenu={(e) => { e.preventDefault(); closeMenu(); }} />
+                    <div className={styles.overlay} onClick={closeMenu} onContextMenu={(e) => { e.preventDefault(); closeMenu(); }} />
                     <div
-                        className="fixed z-50 bg-base-100 border border-base-300 rounded-lg shadow-lg py-1 min-w-32"
+                        className={styles.contextMenu}
                         style={{left: contextMenu.x, top: contextMenu.y}}
                     >
                         <button
-                            className="w-full px-4 py-2 text-left hover:bg-base-200 transition-colors"
+                            className={styles.contextMenuItem}
                             onClick={handleEdit}
                         >
                             Edit
