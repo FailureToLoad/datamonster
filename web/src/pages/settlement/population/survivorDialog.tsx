@@ -4,6 +4,7 @@ import {PlusIcon} from '@phosphor-icons/react';
 import {SurvivorGender} from '~/types/survivor';
 import {type} from 'arktype';
 import { PostJSON } from '~/lib/request';
+import styles from './survivorDialog.module.css';
 
 const survivorNameValidator = type('1 <= string <= 50');
 const isInteger = type('number.integer');
@@ -90,15 +91,15 @@ export default function NewSurvivorDialog({settlementId, onSuccess}: SurvivorDia
   return (
     <>
       <button
-        className="btn btn-ghost"
+        className={styles.btnGhost}
         aria-label="Create Survivor"
         title="Create Survivor"
         onClick={() => dialogRef.current?.showModal()}
       >
         <PlusIcon size={18} weight="bold" />
       </button>
-      <dialog ref={dialogRef} className="modal mx-auto w-3/5 px-6 grow">
-        <div className="modal-box w-3/5 max-w-none px-6">
+      <dialog ref={dialogRef} className={styles.dialog}>
+        <div className={styles.dialogBox}>
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -106,11 +107,11 @@ export default function NewSurvivorDialog({settlementId, onSuccess}: SurvivorDia
               form.handleSubmit();
             }}
           >
-            <section className="grid grid-cols-2 items-center justify-center gap-4">
+            <section className={styles.formGrid}>
               {/* Section 1: Name + Gender row */}
-              <div className="mb-4 flex flex-row items-center justify-between col-span-2 h-full border-b-2 border-black">
-                <div className="flex flex-row gap-2 w-fill">
-                  <p className="text-2xl font-serif font-light tracking-wide">
+              <div className={styles.nameRow}>
+                <div className={styles.nameInputWrapper}>
+                  <p className={styles.sectionLabel}>
                     Name
                   </p>
                   <form.Field
@@ -128,7 +129,7 @@ export default function NewSurvivorDialog({settlementId, onSuccess}: SurvivorDia
                       <input
                         type="text"
                         id="name-input"
-                        className="input input-bordered w-full text-lg"
+                        className={styles.nameInput}
                         value={field.state.value}
                         onChange={(e) => field.handleChange(e.target.value)}
                       />
@@ -137,23 +138,23 @@ export default function NewSurvivorDialog({settlementId, onSuccess}: SurvivorDia
                 </div>
                 <form.Field name="gender">
                   {(field) => (
-                    <div className="flex flex-row gap-4">
-                      <label className="flex items-center gap-2 cursor-pointer">
+                    <div className={styles.genderGroup}>
+                      <label className={styles.radioLabel}>
                         <input
                           type="radio"
                           name="gender"
-                          className="radio"
+                          className={styles.radio}
                           value="M"
                           checked={field.state.value === 'M'}
                           onChange={() => field.handleChange(SurvivorGender.M)}
                         />
                         <span>M</span>
                       </label>
-                      <label className="flex items-center gap-2 cursor-pointer">
+                      <label className={styles.radioLabel}>
                         <input
                           type="radio"
                           name="gender"
-                          className="radio"
+                          className={styles.radio}
                           value="F"
                           checked={field.state.value === 'F'}
                           onChange={() => field.handleChange(SurvivorGender.F)}
@@ -166,7 +167,7 @@ export default function NewSurvivorDialog({settlementId, onSuccess}: SurvivorDia
               </div>
 
               {/* Section 2: Survival box */}
-              <div className="flex flex-row items-center col-span-2 border border-black h-full gap-2">
+              <div className={styles.survivalSection}>
                 <form.Field
                   name="survival"
                   validators={{
@@ -179,11 +180,11 @@ export default function NewSurvivorDialog({settlementId, onSuccess}: SurvivorDia
                   }}
                 >
                   {(field) => (
-                    <div className="order-1 ml-6 my-4 border border-black size-20 place-content-around">
+                    <div className={styles.survivalBox}>
                       <input
                         id="survival-input"
                         type="number"
-                        className="input input-bordered size-full text-center text-2xl border-0"
+                        className={styles.survivalInput}
                         value={field.state.value}
                         onChange={(e) =>
                           field.handleChange(Number(e.target.value))
@@ -193,34 +194,34 @@ export default function NewSurvivorDialog({settlementId, onSuccess}: SurvivorDia
                   )}
                 </form.Field>
 
-                <div className="order-2 my-4 flex flex-col flex-1 h-20 items-start justify-between">
-                  <p className="text-2xl font-serif font-light tracking-wide">
+                <div className={styles.survivalInfo}>
+                  <p className={styles.sectionLabel}>
                     Survival
                   </p>
-                  <div className="flex w-full">
-                    <div className="flex items-start space-x-2">
+                  <div className={styles.checkboxRow}>
+                    <div className={styles.checkboxItem}>
                       <input
                         type="checkbox"
                         id="cannot-spend"
-                        className="checkbox"
+                        className={styles.checkbox}
                       />
                       <label
                         htmlFor="cannot-spend"
-                        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+                        className={styles.checkboxLabel}
                       >
                         Cannot spend survival
                       </label>
                     </div>
                   </div>
                 </div>
-                <div className="order-3 my-4 items-start justify-start content-start space-y-1">
+                <div className={styles.skillsColumn}>
                   <CheckboxItem id="dodge" label="Dodge" />
                   <CheckboxItem id="encourage" label="Encourage" />
                   <CheckboxItem id="surge" label="Surge" />
                   <CheckboxItem id="dash" label="Dash" />
                   <CheckboxItem id="fistpump" label="Fist Pump" />
                 </div>
-                <div className="order-last border-l border-black justify-self-end flex flex-col">
+                <div className={styles.systemicPressureWrapper}>
                   <form.Field name="systemicPressure">
                     {(field) => (
                       <StatBox
@@ -228,7 +229,7 @@ export default function NewSurvivorDialog({settlementId, onSuccess}: SurvivorDia
                         value={field.state.value}
                         onChange={(val) => field.handleChange(val)}
                         label="Systemic Pressure"
-                        className="mx-4 size-min"
+                        className={styles.systemicPressureStat}
                       />
                     )}
                   </form.Field>
@@ -236,7 +237,7 @@ export default function NewSurvivorDialog({settlementId, onSuccess}: SurvivorDia
               </div>
 
               {/* Section 3: Stats row */}
-              <div className="flex flex-row items-center justify-between col-span-2 border border-black h-32 gap-2">
+              <div className={styles.statsRow}>
                 <form.Field name="movement">
                   {(field) => (
                     <StatBox
@@ -244,11 +245,11 @@ export default function NewSurvivorDialog({settlementId, onSuccess}: SurvivorDia
                       value={field.state.value}
                       onChange={(val) => field.handleChange(val)}
                       label="Movement"
-                      className="ml-4 mr-2 size-full"
+                      className={styles.statFirst}
                     />
                   )}
                 </form.Field>
-                <div className="divider divider-horizontal bg-black m-0 w-px" />
+                <div className={styles.divider} />
                 <form.Field name="accuracy">
                   {(field) => (
                     <StatBox
@@ -256,11 +257,11 @@ export default function NewSurvivorDialog({settlementId, onSuccess}: SurvivorDia
                       value={field.state.value}
                       onChange={(val) => field.handleChange(val)}
                       label="Accuracy"
-                      className="mx-2 size-full"
+                      className={styles.statMiddle}
                     />
                   )}
                 </form.Field>
-                <div className="divider divider-horizontal bg-black m-0 w-px" />
+                <div className={styles.divider} />
                 <form.Field name="strength">
                   {(field) => (
                     <StatBox
@@ -268,11 +269,11 @@ export default function NewSurvivorDialog({settlementId, onSuccess}: SurvivorDia
                       value={field.state.value}
                       onChange={(val) => field.handleChange(val)}
                       label="Strength"
-                      className="mx-2 size-full"
+                      className={styles.statMiddle}
                     />
                   )}
                 </form.Field>
-                <div className="divider divider-horizontal bg-black m-0 w-px" />
+                <div className={styles.divider} />
                 <form.Field name="evasion">
                   {(field) => (
                     <StatBox
@@ -280,11 +281,11 @@ export default function NewSurvivorDialog({settlementId, onSuccess}: SurvivorDia
                       value={field.state.value}
                       onChange={(val) => field.handleChange(val)}
                       label="Evasion"
-                      className="mx-2 size-full"
+                      className={styles.statMiddle}
                     />
                   )}
                 </form.Field>
-                <div className="divider divider-horizontal bg-black m-0 w-px" />
+                <div className={styles.divider} />
                 <form.Field name="luck">
                   {(field) => (
                     <StatBox
@@ -292,11 +293,11 @@ export default function NewSurvivorDialog({settlementId, onSuccess}: SurvivorDia
                       value={field.state.value}
                       onChange={(val) => field.handleChange(val)}
                       label="Luck"
-                      className="mx-2 size-full"
+                      className={styles.statMiddle}
                     />
                   )}
                 </form.Field>
-                <div className="divider divider-horizontal bg-black m-0 w-px" />
+                <div className={styles.divider} />
                 <form.Field name="speed">
                   {(field) => (
                     <StatBox
@@ -304,11 +305,11 @@ export default function NewSurvivorDialog({settlementId, onSuccess}: SurvivorDia
                       value={field.state.value}
                       onChange={(val) => field.handleChange(val)}
                       label="Speed"
-                      className="mx-2 size-full"
+                      className={styles.statMiddle}
                     />
                   )}
                 </form.Field>
-                <div className="divider divider-horizontal bg-black m-0 w-px" />
+                <div className={styles.divider} />
                 <form.Field name="lumi">
                   {(field) => (
                     <StatBox
@@ -316,14 +317,14 @@ export default function NewSurvivorDialog({settlementId, onSuccess}: SurvivorDia
                       value={field.state.value}
                       onChange={(val) => field.handleChange(val)}
                       label="Lumi"
-                      className="ml-2 mr-4 size-full"
+                      className={styles.statLast}
                     />
                   )}
                 </form.Field>
               </div>
 
               {/* Section 4: Brain row */}
-              <div className="flex flex-row items-center col-span-2 border border-black h-full gap-2">
+              <div className={styles.brainSection}>
                 <form.Field name="insanity">
                   {(field) => (
                     <StatBox
@@ -331,30 +332,30 @@ export default function NewSurvivorDialog({settlementId, onSuccess}: SurvivorDia
                       value={field.state.value}
                       onChange={(val) => field.handleChange(val)}
                       label="Insanity"
-                      className="order-first ml-4 mr-2"
+                      className={styles.statBoxOrderFirst}
                     />
                   )}
                 </form.Field>
-                <div className="divider divider-horizontal bg-black m-0 w-px" />
-                <div className="my-4 flex flex-col flex-1 h-20 items-start justify-between">
-                  <div className="w-full flex flex-row justify-between">
-                    <p className="text-2xl font-serif font-light tracking-wide">
+                <div className={styles.divider} />
+                <div className={styles.brainInfo}>
+                  <div className={styles.brainHeader}>
+                    <p className={styles.sectionLabel}>
                       Brain
                     </p>
                     <input
                       type="checkbox"
                       id="brainbox"
-                      className="checkbox size-6"
+                      className={styles.brainCheckbox}
                     />
                   </div>
 
-                  <div className="flex w-full">
-                    <p className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
+                  <div className={styles.checkboxRow}>
+                    <p className={styles.brainDescription}>
                       If your insanity is 3+, you are <b>insane</b>
                     </p>
                   </div>
                 </div>
-                <div className="divider divider-horizontal bg-black m-0 w-px" />
+                <div className={styles.divider} />
                 <form.Field name="torment">
                   {(field) => (
                     <StatBox
@@ -362,7 +363,7 @@ export default function NewSurvivorDialog({settlementId, onSuccess}: SurvivorDia
                       value={field.state.value}
                       onChange={(val) => field.handleChange(val)}
                       label="Torment"
-                      className="order-last ml-2 mr-4"
+                      className={styles.statBoxOrderLast}
                     />
                   )}
                 </form.Field>
@@ -370,10 +371,10 @@ export default function NewSurvivorDialog({settlementId, onSuccess}: SurvivorDia
             </section>
 
             {/* Footer */}
-            <div className="modal-action pt-4">
+            <div className={styles.modalFooter}>
               <button
                 type="button"
-                className="btn"
+                className={styles.btn}
                 onClick={() => dialogRef.current?.close()}
               >
                 Cancel
@@ -382,7 +383,7 @@ export default function NewSurvivorDialog({settlementId, onSuccess}: SurvivorDia
                 {(canSubmit) => (
                   <button
                     type="submit"
-                    className="btn btn-primary"
+                    className={styles.btnPrimary}
                     disabled={!canSubmit}
                   >
                     Create
@@ -402,11 +403,11 @@ export default function NewSurvivorDialog({settlementId, onSuccess}: SurvivorDia
 
 function CheckboxItem({id, label}: {id: string; label: string}) {
   return (
-    <div className="flex items-start space-x-1 rounded-none">
-      <input type="checkbox" id={id} className="checkbox checkbox-sm" />
+    <div className={styles.checkboxItem}>
+      <input type="checkbox" id={id} className={styles.checkboxSmall} />
       <label
         htmlFor={id}
-        className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70"
+        className={styles.checkboxLabel}
       >
         {label}
       </label>
@@ -429,18 +430,18 @@ function StatBox({
 }) {
   return (
     <div
-      className={`flex flex-col items-center justify-between w-fit ${className}`}
+      className={`${styles.statBox} ${className}`}
     >
-      <div className="mt-4 flex border border-black h-16 w-14">
+      <div className={styles.statBoxInput}>
         <input
           id={`${id}-input`}
           type="number"
-          className="input input-bordered size-full text-center text-lg border-0"
+          className={styles.statBoxInputField}
           value={value}
           onChange={(e) => onChange(Number(e.target.value))}
         />
       </div>
-      <p className="flex my-4 text-xs text-wrap whitespace-break-spaces text-center">
+      <p className={styles.statBoxLabel}>
         {label}
       </p>
     </div>
