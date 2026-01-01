@@ -33,6 +33,12 @@
   --color-warning-content: hsl(45 65% 35%);
   --color-error: hsl(15 75% 55%);
   --color-error-content: hsl(15 75% 25%);
+  --color-gender-male: hsl(210 70% 55%);
+  --color-gender-male-content: hsl(210 70% 95%);
+  --color-gender-female: hsl(145 55% 45%);
+  --color-gender-female-content: hsl(145 55% 95%);
+  --color-gender-transgender: hsl(66 90% 77.8%);
+  --color-gender-transgender-content: hsl(0 0% 12%);
   --radius-selector: 2rem;
   --radius-field: 0.5rem;
   --radius-box: 0.5rem;
