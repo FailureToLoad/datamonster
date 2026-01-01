@@ -1,5 +1,5 @@
 @import "./styles/daisyui.css";
-@import "./styles/themes.css";
+@import "./styles/daisythemes.css";
 
 :root {
   --color-base-100: hsl(45 10% 95%);
