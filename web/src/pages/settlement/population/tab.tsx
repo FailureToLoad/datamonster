@@ -5,7 +5,7 @@ import {type Survivor, SurvivorTemplate} from '~/lib/survivor';
 import {useLoaderData, useParams, useRevalidator} from 'react-router';
 import styles from './tab.module.css';
 
-type DialogState = Survivor | null
+type DialogState = Survivor | null;
 
 export function PopulationTab() {
   const {settlementId} = useParams();
