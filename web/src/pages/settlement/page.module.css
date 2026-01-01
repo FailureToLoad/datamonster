@@ -1,0 +1,26 @@
+.page {
+  display: flex;
+  height: 100vh;
+}
+
+.navContainer {
+  position: fixed;
+  left: 0;
+  top: 0;
+  display: grid;
+  height: 100vh;
+  width: fit-content;
+  padding: 1rem;
+}
+
+.navMenu {
+  margin-top: 1.5rem;
+  justify-content: space-between;
+}
+
+.content {
+  flex: 1;
+  overflow: auto;
+  padding: 4rem;
+  margin-left: 4.5rem;
+}

@@ -1,6 +1,8 @@
+import styles from './tab.module.css';
+
 export function StorageTab() {
   return (
-    <div id="storage" className="max-w-fit py-4">
+    <div id="storage" className={styles.tab}>
       Storage
     </div>
   );

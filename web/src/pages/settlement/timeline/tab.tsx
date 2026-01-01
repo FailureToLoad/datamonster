@@ -1,6 +1,8 @@
+import styles from './tab.module.css';
+
 export function TimelineTab() {
   return (
-    <div id="timeline" className="max-w-fit py-4">
+    <div id="timeline" className={styles.tab}>
       Timeline
     </div>
   );
