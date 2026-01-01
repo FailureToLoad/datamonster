@@ -1,10 +1,10 @@
 import {Outlet} from 'react-router';
+import styles from './ProtectedLayout.module.css';
 
 export default function ProtectedLayout() {
-
     return (
-    <div className="flex h-screen flex-col bg-base-200">
-        <Outlet />
-    </div>
+        <div className={styles.layout}>
+            <Outlet />
+        </div>
     );
 }

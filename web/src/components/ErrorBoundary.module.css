@@ -1,0 +1,22 @@
+.page {
+  display: flex;
+  min-height: 100vh;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+}
+
+.title {
+  font-size: 2.25rem;
+  font-weight: 700;
+  margin-bottom: 1rem;
+}
+
+.details {
+  color: var(--text-primary);
+}
+
+.homeLink {
+  margin-top: 1rem;
+  text-decoration: underline;
+}
