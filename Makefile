@@ -21,6 +21,7 @@ daisyui:
 	curl -sL $(DAISYUI_CDN)/components/card.css -o $(STYLES_DIR)/card.css
 	curl -sL $(DAISYUI_CDN)/components/menu.css -o $(STYLES_DIR)/menu.css
 	curl -sL $(DAISYUI_CDN)/components/tooltip.css -o $(STYLES_DIR)/tooltip.css
+	curl -sL $(DAISYUI_CDN)/components/table.css -o $(STYLES_DIR)/table.css
 
 certs: $(CERT_DIR)/authelia.crt $(CERT_DIR)/authelia.key
 

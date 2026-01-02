@@ -1,5 +1,6 @@
 .container {
-  position: relative;
+  height: 100%;
+  width: 100%;
 }
 
 .header {
@@ -53,13 +54,27 @@
   background-color: var(--bg-base);
 }
 
-.columnOptionDisabled {
-  opacity: 0.5;
-  cursor: not-allowed;
-}
-
 .columnOptionLabel {
   font-size: 0.875rem;
+}
+
+.btnGhost {
+  composes: btn btn-ghost from global;
+}
+
+.dataTable {
+  composes: table table-m table-pin-rows from global;
+  border-radius: var(--radius-box);
+  overflow: hidden;
+}
+
+.dataTable thead tr {
+  background-color: var(--color-neutral);
+  color: var(--color-neutral-content);
+}
+
+.dataTable tbody tr {
+  background-color: var(--bg-surface);
 }
 
 .contextMenu {
@@ -88,6 +103,3 @@
   background-color: var(--bg-base);
 }
 
-.btnGhost {
-  composes: btn btn-ghost from global;
-}

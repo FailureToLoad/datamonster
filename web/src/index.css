@@ -11,6 +11,7 @@
 @import "./styles/daisyui/card.css";
 @import "./styles/daisyui/menu.css";
 @import "./styles/daisyui/tooltip.css";
+@import "./styles/daisyui/table.css";
 
 :root {
   --color-base-100: hsl(45 10% 95%);
