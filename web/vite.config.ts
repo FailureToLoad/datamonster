@@ -11,7 +11,6 @@ export default defineConfig({
       output: {
         manualChunks: {
           vendor: ["react", "react-dom", "react-router"],
-          grid: ["ag-grid-community", "ag-grid-react"],
         },
       },
     },
