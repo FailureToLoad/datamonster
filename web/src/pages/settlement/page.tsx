@@ -9,13 +9,13 @@ import {
 import { Link, Outlet, useLocation, useNavigate } from "react-router";
 import styles from "./page.module.css";
 
-
-function LeftNav() {
+function useNavItems() {
   const { pathname } = useLocation();
   const navigate = useNavigate();
   const timelineKey = "timeline";
   const populationKey = "population";
   const storageKey = "storage";
+
   const getProps = (active: boolean): IconProps => {
     const props: IconProps = {
       size: 32,
@@ -32,39 +32,86 @@ function LeftNav() {
     navigate("/");
   };
 
+  return {
+    timelineKey,
+    populationKey,
+    storageKey,
+    pathname,
+    getProps,
+    handleLogout,
+  };
+}
+
+function getPageTitle(pathname: string): string {
+  if (pathname.includes("timeline")) return "Timeline";
+  if (pathname.includes("population")) return "Population";
+  if (pathname.includes("storage")) return "Storage";
+  return "Settlement";
+}
+
+function getActiveIcon(pathname: string): React.ReactNode {
+  if (pathname.includes("timeline")) return <HourglassMediumIcon size={24} weight="fill" />;
+  if (pathname.includes("population")) return <PersonIcon size={24} weight="fill" />;
+  if (pathname.includes("storage")) return <ArchiveIcon size={24} weight="fill" />;
+  return <HourglassMediumIcon size={24} />;
+}
+
+function NavBar() {
+  const { timelineKey, populationKey, storageKey, pathname, handleLogout } = useNavItems();
+  const pageTitle = getPageTitle(pathname);
+
   return (
-    <div className={styles.navContainer}>
-      <ul className={`menu rounded-box bg-base-300 ${styles.navMenu}`}>
-        <div>
-          <li>
-            <Link to={timelineKey} color="foreground" className="tooltip tooltip-right" data-tip="Timeline">
-              <HourglassMediumIcon {...getProps(pathname.includes(timelineKey))} />
+    <div className={styles.navWrapper}>
+      <div className={styles.navbar}>
+        <div className={styles.navbarStart}>
+          <div className={styles.tooltip} data-tip="Settlements">
+            <Link to="/settlements" className={styles.navLink} aria-label="Settlements">
+              <TentIcon size={24} />
             </Link>
-          </li>
-          <li>
-            <Link to={populationKey} color="foreground" className="tooltip tooltip-right" data-tip="Population">
-              <PersonIcon {...getProps(pathname.includes(populationKey))} />
-            </Link>
-          </li>
-          <li>
-            <Link to={storageKey} color="foreground" className="tooltip tooltip-right" data-tip="Storage">
-              <ArchiveIcon {...getProps(pathname.includes(storageKey))} />
-            </Link>
-          </li>
+          </div>
         </div>
-        <div>
-          <li>
-            <Link to="/settlements" className="tooltip tooltip-right" data-tip="Settlements">
-              <TentIcon size={32} />
-            </Link>
-          </li>
-          <li>
-            <button onClick={handleLogout} className="tooltip tooltip-right" data-tip="Logout">
-              <SignOutIcon size={32} />
+        <div className={styles.navbarCenter}>
+          <div className={styles.dropdown}>
+            <div tabIndex={0} role="button" className={styles.navButton}>
+              {getActiveIcon(pathname)}
+              {pageTitle}
+            </div>
+            <ul tabIndex={-1} className={styles.dropdownMenu}>
+              {!pathname.includes(timelineKey) && (
+                <li>
+                  <Link to={timelineKey}>
+                    <HourglassMediumIcon size={24} />
+                    Timeline
+                  </Link>
+                </li>
+              )}
+              {!pathname.includes(populationKey) && (
+                <li>
+                  <Link to={populationKey}>
+                    <PersonIcon size={24} />
+                    Population
+                  </Link>
+                </li>
+              )}
+              {!pathname.includes(storageKey) && (
+                <li>
+                  <Link to={storageKey}>
+                    <ArchiveIcon size={24} />
+                    Storage
+                  </Link>
+                </li>
+              )}
+            </ul>
+          </div>
+        </div>
+        <div className={styles.navbarEnd}>
+          <div className={styles.tooltip} data-tip="Logout">
+            <button onClick={handleLogout} className={styles.navLink} aria-label="Logout">
+              <SignOutIcon size={24} />
             </button>
-          </li>
+          </div>
         </div>
-      </ul>
+      </div>
     </div>
   );
 }
@@ -72,7 +119,7 @@ function LeftNav() {
 export function SettlementPage() {
   return (
     <div className={styles.page}>
-      <LeftNav />
+      <NavBar />
       <div className={styles.content}>
         <Outlet />
       </div>

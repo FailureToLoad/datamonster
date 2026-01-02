@@ -3,24 +3,98 @@
   height: 100vh;
 }
 
-.navContainer {
+.navWrapper {
   position: fixed;
+  bottom: 0;
   left: 0;
-  top: 0;
-  display: grid;
-  height: 100vh;
-  width: fit-content;
+  right: 0;
+  display: flex;
+  justify-content: center;
   padding: 1rem;
+  z-index: 10;
+  pointer-events: none;
 }
 
-.navMenu {
-  margin-top: 1.5rem;
-  justify-content: space-between;
+.navbar {
+  composes: navbar from global;
+  pointer-events: auto;
+  width: 20%;
+  padding-left: 0.5rem;
+  padding-right: 0.5rem;
+  background-color: var(--color-primary);
+  color: var(--color-primary-content);
+  border-radius: var(--radius-box);
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+
+.navbarStart {
+  composes: navbar-start from global;
+}
+
+.navbarCenter {
+  composes: navbar-center from global;
+}
+
+.navbarEnd {
+  composes: navbar-end from global;
+}
+
+.dropdown {
+  composes: dropdown dropdown-top from global;
+}
+
+.dropdownMenu {
+  composes: dropdown-content menu from global;
+  padding: 0.5rem;
+  background-color: var(--color-primary);
+  color: var(--color-primary-content);
+  border-radius: var(--radius-box);
+  box-shadow: 0 10px 15px -3px rgb(0 0 0 / 0.1), 0 4px 6px -4px rgb(0 0 0 / 0.1);
+}
+
+.dropdownMenu a {
+  gap: 0.5rem;
+  font-size: 1.25rem;
+  color: var(--color-primary-content);
+}
+
+.dropdownMenu a:hover {
+  background-color: var(--color-primary-content);
+  color: var(--color-primary);
+}
+
+.navButton {
+  composes: btn btn-ghost from global;
+  gap: 0.5rem;
+  font-size: 1.25rem;
+}
+
+.navButton:hover {
+  background-color: var(--color-primary-content);
+  color: var(--color-primary);
+}
+
+.navLink {
+  composes: btn btn-ghost from global;
+}
+
+.navLink:hover {
+  background-color: var(--color-primary-content);
+  color: var(--color-primary);
+}
+
+.tooltip {
+  composes: tooltip tooltip-top from global;
+  --tt-bg: var(--color-primary);
+  font-weight: 600;
+}
+
+.tooltip::before {
+  color: var(--color-primary-content);
 }
 
 .content {
   flex: 1;
   overflow: auto;
-  padding: 4rem;
-  margin-left: 4.5rem;
+  padding: 2rem;
 }

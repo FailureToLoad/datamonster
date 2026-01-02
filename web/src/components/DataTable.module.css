@@ -69,8 +69,8 @@
 }
 
 .dataTable thead tr {
-  background-color: var(--color-neutral);
-  color: var(--color-neutral-content);
+  background-color: var(--color-primary);
+  color: var(--color-primary-content);
 }
 
 .dataTable tbody tr {

@@ -12,6 +12,8 @@
 @import "./styles/daisyui/menu.css";
 @import "./styles/daisyui/tooltip.css";
 @import "./styles/daisyui/table.css";
+@import "./styles/daisyui/navbar.css";
+@import "./styles/daisyui/dropdown.css";
 
 :root {
   --color-base-100: hsl(45 10% 95%);
