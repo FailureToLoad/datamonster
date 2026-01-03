@@ -1,0 +1,154 @@
+.dialog {
+  composes: modal from global;
+}
+
+.dialogBox {
+  composes: modal-box from global;
+  display: flex;
+  flex-direction: column;
+  max-width: 50%;
+  min-width: 25%;
+  height: 90vh;
+  padding-left: 1.5rem;
+  padding-right: 1.5rem;
+  background-color: var(--color-base-200);
+}
+
+.form {
+  display: flex;
+  flex-direction: column;
+  flex: 1;
+  min-height: 0;
+}
+
+.baseDetails {
+  display: flex;
+  flex-direction: column;
+}
+
+.header {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-between;
+  border-bottom: 2px solid black;
+  padding-bottom: 0.25rem;
+}
+
+.nameSection {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.name {
+  font-size: 1.5rem;
+  line-height: 2rem;
+}
+
+.nameInput {
+  composes: input from global;
+  font-size: 1.25rem;
+}
+
+.genderBadge {
+  composes: badge badge-neutral from global;
+}
+
+.genderBadgeMale {
+  composes: badge from global;
+  background-color: var(--color-gender-male);
+  color: var(--color-gender-male-content);
+  cursor: pointer;
+  border: none;
+}
+
+.genderBadgeFemale {
+  composes: badge from global;
+  background-color: var(--color-gender-female);
+  color: var(--color-gender-female-content);
+  cursor: pointer;
+  border: none;
+}
+
+.birthBadge {
+  composes: badge badge-neutral from global;
+  font-weight: 600;
+}
+
+.statusSelect {
+  composes: select select-bordered select-sm from global;
+  width: auto;
+  min-width: 0;
+  outline: none;
+}
+
+.survivalRow {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  gap: 0.5rem;
+  padding-top: 0.25rem;
+  padding-bottom: 0.25rem;
+}
+
+.survivalBadgeActive {
+  composes: badge badge-success from global;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.survivalBadgeInactive {
+  composes: badge badge-error from global;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+.insaneBadge {
+  composes: badge badge-neutral from global;
+  font-weight: 600;
+}
+
+.tabs {
+  composes: tabs tabs-lift tabs-bottom from global;
+  flex: 1;
+  min-height: 0;
+  margin-bottom: -0.5rem;
+}
+
+.tab {
+  composes: tab from global;
+}
+
+.tab input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.tabContent {
+  composes: tab-content from global;
+  overflow-y: auto;
+  padding: 1rem;
+  border-color: var(--color-base-300);
+  background-color: var(--color-base-100);
+}
+
+.actions {
+  composes: modal-action from global;
+  margin-top: 0;
+  flex-shrink: 0;
+}
+
+.cancelBtn {
+  composes: btn from global;
+}
+
+.saveBtn {
+  composes: btn btn-primary from global;
+}
+
+.backdrop {
+  composes: modal-backdrop from global;
+}

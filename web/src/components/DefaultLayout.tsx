@@ -1,5 +1,5 @@
 import {Outlet} from 'react-router';
-import styles from './ProtectedLayout.module.css';
+import styles from './DefaultLayout.module.css';
 import {GlossaryProvider} from '~/context/glossary';
 
 export default function Layout() {

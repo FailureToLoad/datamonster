@@ -1,0 +1,7 @@
+.section {
+  flex: 1;
+  flex-direction: column;
+  justify-content: space-around;
+  gap: calc(var(--spacing) * 4);
+  height: 100%;
+}

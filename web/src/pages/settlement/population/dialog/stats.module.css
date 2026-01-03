@@ -1,0 +1,66 @@
+.section {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  align-items: center;
+  justify-content: space-around;
+  gap: 1rem;
+  height: 100%;
+  align-content: space-around;
+}
+
+.statRow {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  justify-content: space-around;
+  grid-column: span 2;
+  border: 1px solid black;
+  gap: 0.5rem;
+}
+
+.trackRow {
+  display: flex;
+  flex-direction: row;
+  align-items: center;
+  grid-column: span 2;
+  border: 1px solid black;
+  gap: 1rem;
+  padding: 1rem;
+}
+
+.statBox {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  flex: 1;
+}
+
+.statInputWrapper {
+  margin-top: 1rem;
+  display: flex;
+  border: 1px solid black;
+  height: 4rem;
+  width: 3.5rem;
+}
+
+.statInput {
+  composes: input input-bordered from global;
+  width: 100%;
+  height: 100%;
+  text-align: center;
+  font-size: 1.125rem;
+  line-height: 1.75rem;
+  border: 0;
+  outline: none;
+}
+
+.statLabel {
+  margin-top: 1rem;
+  margin-bottom: 1rem;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  text-align: center;
+  height: 2rem;
+  display: flex;
+  align-items: center;
+}
