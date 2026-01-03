@@ -5,7 +5,8 @@
   "explorer.fileNesting.enabled": true,
   "explorer.fileNesting.patterns": {
     "package.json": "package-lock.json, pnpm*, .yarnrc*, yarn*, .eslint*, eslint*, .oxlint*, oxlint*, .prettier*, prettier*, .editorconfig, .gitignore, jsconfig*, vitest.config.*, cypress.config.*, playwright.config.*, tsconfig.*, env.d.ts, vite.config.ts",
-    "Containerfile": "Caddyfile"
+    "Containerfile": "Caddyfile",
+    "*.tsx": "$(capture).module.css"
   },
   "editor.codeActionsOnSave": {
     "source.fixAll": "explicit"
