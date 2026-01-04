@@ -1,5 +1,5 @@
 import {useAppForm} from '~/lib/form';
-import {useRef, useLayoutEffect, useState} from 'react';
+import {useRef, useLayoutEffect} from 'react';
 import {type Survivor, SurvivorGender, SurvivorStatus} from '~/lib/survivor';
 import {type} from 'arktype';
 import {PostJSON, PatchJSON} from '~/lib/request';
@@ -27,7 +27,6 @@ export type SurvivorUpdateRequest = {
 
 export default function SurvivorDialog({data, settlementId, onClose, onSuccess}: SurvivorDialogProps) {
   const dialogRef = useRef<HTMLDialogElement>(null);
-  const [cannotSpendSurvival, setCannotSpendSurvival] = useState(false);
   const isCreateMode = !data.id || data.id.trim().length === 0;
 
   const form = useAppForm({
@@ -270,13 +269,6 @@ export default function SurvivorDialog({data, settlementId, onClose, onSuccess}:
               )}
             </form.Field>
             <div className={styles.survivalRow}>
-              <button
-                type="button"
-                className={cannotSpendSurvival ? styles.survivalBadgeInactive : styles.survivalBadgeActive}
-                onClick={() => setCannotSpendSurvival(!cannotSpendSurvival)}
-              >
-                {cannotSpendSurvival ? 'Cannot spend survival' : 'Can spend survival'}
-              </button>
               <form.Subscribe selector={(state) => state.values.insanity}>
                 {(insanity) => insanity >= 3 && (
                   <span className={styles.insaneBadge}>Insane</span>
