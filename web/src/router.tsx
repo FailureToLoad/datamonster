@@ -52,6 +52,10 @@ export const router = createBrowserRouter([
             element: <SettlementPage />,
             children: [
               {
+                index: true,
+                loader: ({ params }) => redirect(`/settlements/${params.settlementId}/timeline`),
+              },
+              {
                 path: 'population',
                 element: <PopulationTab />,
                 loader: loadSurvivors,
