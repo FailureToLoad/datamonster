@@ -9,6 +9,7 @@
 }
 
 .statRow {
+  composes: card card-sm from global;
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -19,6 +20,7 @@
 }
 
 .trackRow {
+  composes: card card-sm from global;
   display: flex;
   flex-direction: row;
   align-items: center;
@@ -39,8 +41,10 @@
   margin-top: 1rem;
   display: flex;
   border: 1px solid black;
+  border-radius: var(--radius-box);
   height: 4rem;
   width: 3.5rem;
+  overflow: hidden;
 }
 
 .statInput {
