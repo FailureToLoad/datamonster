@@ -194,9 +194,10 @@ describe("PopulationTab", () => {
       expect(dialog).toHaveAttribute("open");
 
       const survivalInputs = within(dialog).getAllByRole("spinbutton");
-      const survivalInputEl = survivalInputs.find(el => el.id === "survival-edit-input")!;
-      await user.clear(survivalInputEl);
-      await user.type(survivalInputEl, "5");
+      const survivalInputEl = survivalInputs.find(el => el.id === "survival-edit-input");
+      expect(survivalInputEl).toBeDefined();
+      await user.clear(survivalInputEl!);
+      await user.type(survivalInputEl!, "5");
 
       await user.click(within(dialog).getByRole("button", { name: /save/i }));
 
