@@ -15,6 +15,7 @@
 @import "./styles/daisyui/navbar.css";
 @import "./styles/daisyui/dropdown.css";
 @import "./styles/daisyui/tab.css";
+@import "./styles/daisyui/collapse.css";
 :root {
   --spacing: 0.25rem;
   --color-base-100: hsl(45 10% 95%);

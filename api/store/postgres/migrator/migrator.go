@@ -14,6 +14,7 @@ type migration func(context.Context, pgx.Tx) error
 var migrations = map[int]migration{
 	1: createSettlementTable,
 	2: createSurvivorTable,
+	3: addFightingArtsToSurvivor,
 }
 
 func Migrate(ctx context.Context, pool *pgxpool.Pool) error {

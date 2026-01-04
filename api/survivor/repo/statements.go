@@ -20,7 +20,9 @@ const (
 	lumi,
 	courage,
 	understanding,
-	disorders
+	disorders,
+	fighting_art,
+	secret_fighting_art
 )
 VALUES (
 	$1,
@@ -41,7 +43,9 @@ VALUES (
 	$16,
 	$17,
 	$18,
-	$19
+	$19,
+	$20,
+	$21
 )
 RETURNING *
 `

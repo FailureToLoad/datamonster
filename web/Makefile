@@ -22,3 +22,4 @@ daisyui:
 	curl -sL $(DAISYUI_CDN)/components/navbar.css -o $(STYLES_DIR)/navbar.css
 	curl -sL $(DAISYUI_CDN)/components/dropdown.css -o $(STYLES_DIR)/dropdown.css
 	curl -sL $(DAISYUI_CDN)/components/tab.css -o $(STYLES_DIR)/tab.css
+	curl -sL $(DAISYUI_CDN)/components/collapse.css -o $(STYLES_DIR)/collapse.css

@@ -20,6 +20,8 @@ export type Survivor = {
   lumi: number;
   settlementId: string;
   disorders: string[];
+  fightingArt: string | null;
+  secretFightingArt: string | null;
 };
 
 export const SurvivorGender = {
@@ -64,6 +66,8 @@ export function SurvivorTemplate(settlementId: string): Survivor {
     insanity: 0,
     lumi: 0,
     disorders: [],
+    fightingArt: null,
+    secretFightingArt: null,
   };
 }
 
