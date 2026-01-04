@@ -1,44 +1,63 @@
 name: publish api
 
 on:
-    workflow_dispatch:
-    push:
-        branches: [main]
-        paths: ["api/**"]
+  workflow_dispatch:
+  push:
+    branches: [main]
+    paths: ["api/**"]
 
 jobs:
-    build:
-        runs-on: ubuntu-24.04-arm
-        permissions:
-            contents: read
-            packages: write
+  test:
+    runs-on: ubuntu-24.04
+    permissions:
+      contents: read
 
-        steps:
-            - uses: actions/checkout@v4
+    steps:
+      - uses: actions/checkout@v4
 
-            - name: Generate image tag
-              id: tag
-              run: echo "tag=$(date +'%Y.%m.%d')-${{ github.run_number }}" >> $GITHUB_OUTPUT
+      - name: Set up Go
+        uses: actions/setup-go@v5
+        with:
+          go-version: "1.25"
+          cache-dependency-path: api/go.sum
 
-            - name: Log in to GitHub Container Registry
-              uses: docker/login-action@v3
-              with:
-                  registry: ghcr.io
-                  username: ${{ github.actor }}
-                  password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Run tests
+        working-directory: ./api
+        run: go test -v ./...
 
-            - name: Build image
-              uses: redhat-actions/buildah-build@v2
-              with:
-                  image: datamonster-api
-                  tags: latest ${{ steps.tag.outputs.tag }}
-                  containerfiles: ./api/Containerfile
-                  context: ./api
-                  platforms: linux/arm64
+  build:
+    needs: test
+    runs-on: ubuntu-24.04-arm
+    permissions:
+      contents: read
+      packages: write
 
-            - name: Push image
-              uses: redhat-actions/push-to-registry@v2
-              with:
-                  image: datamonster-api
-                  tags: latest ${{ steps.tag.outputs.tag }}
-                  registry: ghcr.io/failuretoload
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Generate image tag
+        id: tag
+        run: echo "tag=$(date +'%Y.%m.%d')-${{ github.run_number }}" >> $GITHUB_OUTPUT
+
+      - name: Log in to GitHub Container Registry
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+
+      - name: Build image
+        uses: redhat-actions/buildah-build@v2
+        with:
+          image: datamonster-api
+          tags: latest ${{ steps.tag.outputs.tag }}
+          containerfiles: ./api/Containerfile
+          context: ./api
+          platforms: linux/arm64
+
+      - name: Push image
+        uses: redhat-actions/push-to-registry@v2
+        with:
+          image: datamonster-api
+          tags: latest ${{ steps.tag.outputs.tag }}
+          registry: ghcr.io/failuretoload
