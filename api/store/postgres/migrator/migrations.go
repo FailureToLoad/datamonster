@@ -1,4 +1,4 @@
-package internal
+package migrator
 
 import (
 	"context"
@@ -7,17 +7,37 @@ import (
 	"github.com/jackc/pgx/v5"
 )
 
-type CreateSurvivorTable struct{}
-
-func (CreateSurvivorTable) ID() int { return 3 }
-
-func (CreateSurvivorTable) Apply(ctx context.Context, tx pgx.Tx) error {
+func createSettlementTable(ctx context.Context, tx pgx.Tx) error {
 	create := `
-		ALTER TABLE settlement ADD CONSTRAINT settlement_external_id_unique UNIQUE (external_id);
+		CREATE TABLE IF NOT EXISTS settlement (
+			id SERIAL PRIMARY KEY,
+			external_id UUID NOT NULL UNIQUE DEFAULT uuidv7(),
+			owner VARCHAR(255) NOT NULL,
+			name VARCHAR(255) NOT NULL,
+			survival_limit INTEGER NOT NULL,
+			departing_survival INTEGER NOT NULL,
+			collective_cognition INTEGER NOT NULL,
+			year INTEGER NOT NULL
+		);
+
+		CREATE INDEX IF NOT EXISTS idx_settlement_owner ON settlement(owner);
+	`
+
+	_, err := tx.Exec(ctx, create)
+	if err != nil {
+		return fmt.Errorf("failed to create settlement table: %w", err)
+	}
+
+	return nil
+}
+
+func createSurvivorTable(ctx context.Context, tx pgx.Tx) error {
+	create := `
+		CREATE TYPE survivor_status AS ENUM ('Alive', 'Ceased to exist', 'Cannot depart', 'Dead', 'Retired');
 
 		CREATE TABLE IF NOT EXISTS survivor (
 			id SERIAL PRIMARY KEY,
-			external_id UUID NOT NULL DEFAULT gen_random_uuid(),
+			external_id UUID NOT NULL DEFAULT uuidv7(),
 			settlement_id UUID REFERENCES settlement(external_id),
 			name VARCHAR(255) NOT NULL,
 			birth INTEGER NOT NULL,
@@ -35,7 +55,9 @@ func (CreateSurvivorTable) Apply(ctx context.Context, tx pgx.Tx) error {
 			torment INTEGER NOT NULL,
 			lumi INTEGER NOT NULL,
 			courage INTEGER NOT NULL,
-			understanding INTEGER NOT NULL
+			understanding INTEGER NOT NULL,
+			status survivor_status NOT NULL DEFAULT 'Alive',
+			disorders UUID[3]
 		);
 
 		CREATE INDEX IF NOT EXISTS idx_survivors_settlement ON survivor(settlement_id);

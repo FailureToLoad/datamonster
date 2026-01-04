@@ -67,7 +67,7 @@ func CorrelationIDMiddleware(next http.Handler) http.Handler {
 	return http.HandlerFunc(func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
 		if CorrelationID(ctx) == "" {
-			unique, err := uuid.NewV4()
+			unique, err := uuid.NewV7()
 			if err == nil {
 				ctx = context.WithValue(ctx, correlationIDKey, unique.String())
 			}

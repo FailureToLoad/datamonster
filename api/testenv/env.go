@@ -231,7 +231,7 @@ func UUIDString() string {
 }
 
 func UUID() uuid.UUID {
-	return uuid.Must(uuid.NewV4())
+	return uuid.Must(uuid.NewV7())
 }
 
 func (r Requester) GetAllDisorders(userID string) (*bytes.Buffer, int) {
