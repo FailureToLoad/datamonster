@@ -38,9 +38,10 @@ type DataTableProps<T extends { id: string }> = {
     rows: T[];
     contextActions?: ContextAction<T>[] | null;
     addRow?: AddRowAction | null;
+    emptyMessage?: string;
 };
 
-export function DataTable<T extends { id: string }>({ columns, rows, contextActions, addRow }: DataTableProps<T>) {
+export function DataTable<T extends { id: string }>({ columns, rows, contextActions, addRow, emptyMessage }: DataTableProps<T>) {
     const [sort, setSort] = useState<SortState<T>>(null);
     const [columnMenuOpen, setColumnMenuOpen] = useState(false);
     const [contextMenu, setContextMenu] = useState<ContextMenuState<T>>({
@@ -173,6 +174,13 @@ export function DataTable<T extends { id: string }>({ columns, rows, contextActi
                     </tr>
                 </thead>
                 <tbody>
+                    {sortedRows.length === 0 && emptyMessage && (
+                        <tr>
+                            <td colSpan={visibleColumns.length} className={styles.emptyMessage}>
+                                {emptyMessage}
+                            </td>
+                        </tr>
+                    )}
                     {sortedRows.map((row) => (
                         <tr
                             key={row.id}

@@ -34,6 +34,7 @@ export function SurvivorTable({ data, onEditSurvivor, onCreateSurvivor }: Surviv
             rows={data}
             contextActions={onEditSurvivor && [{ label: 'Edit', onClick: onEditSurvivor }]}
             addRow={onCreateSurvivor && { label: 'Create Survivor', onClick: onCreateSurvivor }}
+            emptyMessage="No Survivors"
         />
     );
 }
