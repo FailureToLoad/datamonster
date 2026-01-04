@@ -5,20 +5,15 @@ import (
 	"fmt"
 	"log/slog"
 
-	"github.com/failuretoload/datamonster/store/postgres/migrator/internal"
 	"github.com/jackc/pgx/v5"
 	"github.com/jackc/pgx/v5/pgxpool"
 )
 
-type migration interface {
-	ID() int
-	Apply(ctx context.Context, tx pgx.Tx) error
-}
+type migration func(context.Context, pgx.Tx) error
 
-var migrations = []migration{
-	internal.CreateSettlementTable{},
-	internal.CreateSurvivorTable{},
-	internal.AddSurvivorStatus{},
+var migrations = map[int]migration{
+	1: createSettlementTable,
+	2: createSurvivorTable,
 }
 
 func Migrate(ctx context.Context, pool *pgxpool.Pool) error {
@@ -35,26 +30,25 @@ func Migrate(ctx context.Context, pool *pgxpool.Pool) error {
 	var lastApplied int
 	_ = tx.QueryRow(ctx, "SELECT COALESCE(MAX(id), 0) FROM migration").Scan(&lastApplied)
 
-	for _, m := range migrations {
-		mID := m.ID()
-		if mID <= lastApplied {
+	for id, apply := range migrations {
+		if id <= lastApplied {
 			continue
 		}
 
-		if err := m.Apply(ctx, tx); err != nil {
+		if err := apply(ctx, tx); err != nil {
 			if txErr := tx.Rollback(ctx); txErr != nil {
 				slog.Error("did not roll back migration: %w", slog.Any("error", txErr))
 			}
 
-			return fmt.Errorf("did not apply migration %d: %w", mID, err)
+			return fmt.Errorf("did not apply migration %d: %w", id, err)
 		}
 
-		if recordErr := record(ctx, tx, m.ID()); recordErr != nil {
+		if recordErr := record(ctx, tx, id); recordErr != nil {
 			if txErr := tx.Rollback(ctx); txErr != nil {
 				slog.Error("did not roll back migration: %w", slog.Any("error", txErr))
 			}
 
-			return fmt.Errorf("did not record migration %d: %w", mID, recordErr)
+			return fmt.Errorf("did not record migration %d: %w", id, recordErr)
 		}
 	}
 
