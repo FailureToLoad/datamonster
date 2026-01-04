@@ -57,7 +57,7 @@ export function createMockFetch(state: MockApiState) {
     if (url === "/api/settlements" && method === "POST") {
       const body = JSON.parse(init?.body as string);
       const newSettlement: SettlementId = {
-        id: `settlement-${Date.now()}`,
+        id: crypto.randomUUID(),
         name: body.name,
       };
       state.settlements.push(newSettlement);
@@ -75,7 +75,7 @@ export function createMockFetch(state: MockApiState) {
       if (method === "POST") {
         const body = JSON.parse(init?.body as string);
         const newSurvivor: Survivor = {
-          id: `survivor-${Date.now()}`,
+          id: crypto.randomUUID(),
           settlementId,
           name: body.name,
           gender: body.gender ?? "M",
