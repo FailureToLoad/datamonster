@@ -1,8 +1,6 @@
-import { render, screen, within } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
-import { describe, it, expect, vi } from "vitest";
-import { SelectSettlement } from "~/pages/selection/page";
-import { TestRouter } from "~/test/TestRouter";
+import { screen, within, waitFor } from "@testing-library/react";
+import { describe, it, expect } from "vitest";
+import { testApp } from "~test/builder";
 import type { SettlementId } from "~/lib/settlement";
 
 const mockSettlements: SettlementId[] = [
@@ -11,26 +9,19 @@ const mockSettlements: SettlementId[] = [
   { id: "3", name: "Children of the Stars" },
 ];
 
-function renderPage(settlements: SettlementId[] = []) {
-  render(
-    <TestRouter loaderData={settlements}>
-      <SelectSettlement />
-    </TestRouter>
-  );
-  return userEvent.setup();
-}
-
 describe("SelectSettlement", () => {
   describe("viewing settlements", () => {
     it("shows an empty list when no settlements exist", async () => {
-      renderPage([]);
+      testApp().renderAt("/settlements");
 
       await screen.findByRole("button", { name: /create settlement/i });
       expect(screen.queryByRole("link")).not.toBeInTheDocument();
     });
 
     it("shows all my settlements", async () => {
-      renderPage(mockSettlements);
+      testApp()
+        .withSettlements(mockSettlements)
+        .renderAt("/settlements");
 
       expect(await screen.findByText("People of the Lantern")).toBeInTheDocument();
       expect(screen.getByText("The Sun Stalkers")).toBeInTheDocument();
@@ -40,7 +31,9 @@ describe("SelectSettlement", () => {
 
   describe("selecting a settlement", () => {
     it("navigates to the settlement when clicking play", async () => {
-      renderPage(mockSettlements);
+      testApp()
+        .withSettlements(mockSettlements)
+        .renderAt("/settlements");
 
       await screen.findByText("People of the Lantern");
 
@@ -53,7 +46,7 @@ describe("SelectSettlement", () => {
 
   describe("creating a settlement", () => {
     it("requires a name of at least 5 characters", async () => {
-      const user = renderPage([]);
+      const user = testApp().renderAt("/settlements");
 
       await user.click(
         await screen.findByRole("button", { name: /create settlement/i })
@@ -71,13 +64,7 @@ describe("SelectSettlement", () => {
     });
 
     it("creates a settlement and refreshes the list", async () => {
-      const mockFetch = vi.fn().mockResolvedValue({
-        ok: true,
-        json: () => Promise.resolve({ id: "new-id", name: "New Settlement" }),
-      });
-      vi.stubGlobal("fetch", mockFetch);
-
-      const user = renderPage([]);
+      const user = testApp().renderAt("/settlements");
 
       await user.click(
         await screen.findByRole("button", { name: /create settlement/i })
@@ -90,19 +77,15 @@ describe("SelectSettlement", () => {
       );
       await user.click(within(dialog).getByRole("button", { name: /^create$/i }));
 
-      expect(mockFetch).toHaveBeenCalledWith(
-        "/api/settlements",
-        expect.objectContaining({
-          method: "POST",
-          body: JSON.stringify({ name: "New Settlement" }),
-        })
-      );
+      await waitFor(() => {
+        expect(dialog).not.toHaveAttribute("open");
+      });
 
-      vi.unstubAllGlobals();
+      expect(await screen.findByText("New Settlement")).toBeInTheDocument();
     });
 
     it("can be cancelled", async () => {
-      const user = renderPage([]);
+      const user = testApp().renderAt("/settlements");
 
       await user.click(
         await screen.findByRole("button", { name: /create settlement/i })

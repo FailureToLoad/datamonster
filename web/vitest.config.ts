@@ -4,12 +4,15 @@ import react from "@vitejs/plugin-react";
 export default defineConfig({
   plugins: [react()],
   resolve: {
-    alias: { "~": "/src" },
+    alias: {
+      "~": "/src",
+      "~test": "/test",
+    },
   },
   test: {
     globals: true,
     environment: "jsdom",
-    setupFiles: "./src/test/setup.ts",
+    setupFiles: "./test/setup.ts",
     include: ["src/**/*.test.{ts,tsx}"],
   },
 });
