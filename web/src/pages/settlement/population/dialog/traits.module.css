@@ -4,4 +4,25 @@
   justify-content: space-around;
   gap: calc(var(--spacing) * 4);
   height: 100%;
+  padding: calc(var(--spacing) * 2);
+}
+
+.disordersCard {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing) * 2);
+  border: 1px solid black;
+  padding: calc(var(--spacing) * 4);
+}
+
+.cardTitle {
+  font-weight: 600;
+  font-size: 0.875rem;
+  margin-bottom: calc(var(--spacing) * 2);
+}
+
+.disordersList {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing) * 2);
 }

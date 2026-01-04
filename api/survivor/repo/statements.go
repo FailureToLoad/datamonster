@@ -19,7 +19,8 @@ const (
 	torment,
 	lumi,
 	courage,
-	understanding
+	understanding,
+	disorders
 )
 VALUES (
 	$1,
@@ -39,7 +40,8 @@ VALUES (
 	$15,
 	$16,
 	$17,
-	$18
+	$18,
+	$19
 )
 RETURNING *
 `

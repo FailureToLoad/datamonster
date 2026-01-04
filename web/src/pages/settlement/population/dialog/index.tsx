@@ -20,6 +20,7 @@ type SurvivorDialogProps = {
 export type SurvivorUpdateRequest = {
   statUpdates?: Record<string, number>;
   statusUpdate?: SurvivorStatus;
+  disorders?: string[];
 };
 
 export default function SurvivorDialog({data, settlementId, onClose, onSuccess}: SurvivorDialogProps) {
@@ -47,9 +48,9 @@ export default function SurvivorDialog({data, settlementId, onClose, onSuccess}:
       huntxp: data.huntxp,
       courage: data.courage,
       understanding: data.understanding,
-      disorder1: null,
-      disorder2: null,
-      disorder3: null,
+      disorder1: data.disorders?.[0] ?? null,
+      disorder2: data.disorders?.[1] ?? null,
+      disorder3: data.disorders?.[2] ?? null,
       fightingArt: null,
       secretFightingArt: null,
     } as SurvivorFormFields,
@@ -58,6 +59,9 @@ export default function SurvivorDialog({data, settlementId, onClose, onSuccess}:
       if (parsed instanceof type.errors) {
         return;
       }
+
+      const disorders = [parsed.disorder1, parsed.disorder2, parsed.disorder3]
+        .filter((d): d is string => d !== null);
 
       if (isCreateMode) {
         const response = await PostJSON(`/api/settlements/${settlementId}/survivors`, {
@@ -79,6 +83,7 @@ export default function SurvivorDialog({data, settlementId, onClose, onSuccess}:
           courage: parsed.courage,
           understanding: parsed.understanding,
           settlementId: settlementId,
+          disorders: disorders.length > 0 ? disorders : undefined,
         });
 
         if (response.ok) {
@@ -113,7 +118,7 @@ export default function SurvivorDialog({data, settlementId, onClose, onSuccess}:
 
         const statusUpdate = parsed.status !== data.status ? parsed.status : undefined;
 
-        if (Object.keys(statUpdates).length === 0 && !statusUpdate) {
+        if (Object.keys(statUpdates).length === 0 && !statusUpdate && disorders.length === 0) {
           dialogRef.current?.close();
           onClose();
           return;
@@ -125,6 +130,9 @@ export default function SurvivorDialog({data, settlementId, onClose, onSuccess}:
         }
         if (statusUpdate) {
           payload.statusUpdate = statusUpdate;
+        }
+        if (disorders.length > 0) {
+          payload.disorders = disorders;
         }
 
         const response = await PatchJSON(`/api/settlements/${settlementId}/survivors/${data.id}`, payload);

@@ -1,10 +1,9 @@
-
 export type Survivor = {
   id: string;
   name: string;
   gender: SurvivorGender;
   birth: number;
-  status: SurvivorStatus
+  status: SurvivorStatus;
   huntxp: number;
   movement: number;
   speed: number;
@@ -20,31 +19,33 @@ export type Survivor = {
   insanity: number;
   lumi: number;
   settlementId: string;
+  disorders: string[];
 };
 
-
 export const SurvivorGender = {
-  F: 'F',
-  M: 'M'
+  F: "F",
+  M: "M",
 } as const;
 
-export type SurvivorGender = typeof SurvivorGender[keyof typeof SurvivorGender];
+export type SurvivorGender =
+  (typeof SurvivorGender)[keyof typeof SurvivorGender];
 
 export const SurvivorStatus = {
   Alive: "Alive",
   CeasedToExist: "Ceased to exist",
-  CannotDepart:"Cannot depart",
+  CannotDepart: "Cannot depart",
   Dead: "Dead",
-  Retired:"Retired"
+  Retired: "Retired",
 } as const;
 
-export type SurvivorStatus = typeof SurvivorStatus[keyof typeof SurvivorStatus];
+export type SurvivorStatus =
+  (typeof SurvivorStatus)[keyof typeof SurvivorStatus];
 
-export function SurvivorTemplate(settlementId:string) :Survivor {
+export function SurvivorTemplate(settlementId: string): Survivor {
   return {
-    id:"",
-    settlementId:settlementId,
-    name: 'Anon',
+    id: "",
+    settlementId: settlementId,
+    name: "Anon",
     gender: SurvivorGender.F,
     birth: 1,
     status: SurvivorStatus.Alive,
@@ -62,6 +63,7 @@ export function SurvivorTemplate(settlementId:string) :Survivor {
     understanding: 0,
     insanity: 0,
     lumi: 0,
+    disorders: [],
   };
 }
 

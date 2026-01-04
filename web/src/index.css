@@ -16,6 +16,7 @@
 @import "./styles/daisyui/dropdown.css";
 @import "./styles/daisyui/tab.css";
 :root {
+  --spacing: 0.25rem;
   --color-base-100: hsl(45 10% 95%);
   --color-base-200: hsl(40 12% 91%);
   --color-base-300: hsl(40 12% 85%);

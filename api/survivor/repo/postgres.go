@@ -50,6 +50,7 @@ func (r Postgres) Create(ctx context.Context, d domain.Survivor) (domain.Survivo
 		s.Lumi,
 		s.Courage,
 		s.Understanding,
+		s.Disorders,
 	)
 	if err != nil {
 		if IsDuplicateKeyError(err) {
@@ -97,10 +98,11 @@ var jsonToColumn = map[string]string{
 	"courage":          "courage",
 	"understanding":    "understanding",
 	"status":           "status",
+	"disorders":        "disorders",
 }
 
 func (r Postgres) Update(ctx context.Context, settlementID, survivorID uuid.UUID, updates domain.SurvivorUpdate) (domain.Survivor, error) {
-	if len(updates.StatUpdates) == 0 && updates.StatusUpdate == nil {
+	if len(updates.StatUpdates) == 0 && updates.StatusUpdate == nil && updates.Disorders == nil {
 		return domain.Survivor{}, fmt.Errorf("no fields to update")
 	}
 
@@ -121,6 +123,12 @@ func (r Postgres) Update(ctx context.Context, settlementID, survivorID uuid.UUID
 	if updates.StatusUpdate != nil {
 		setClauses = append(setClauses, fmt.Sprintf("status = $%d", paramIdx))
 		args = append(args, string(*updates.StatusUpdate))
+		paramIdx++
+	}
+
+	if updates.Disorders != nil {
+		setClauses = append(setClauses, fmt.Sprintf("disorders = $%d", paramIdx))
+		args = append(args, updates.Disorders)
 		paramIdx++
 	}
 
@@ -235,6 +243,7 @@ func toDTO(s survivor) domain.Survivor {
 		Lumi:             s.Lumi,
 		Courage:          s.Courage,
 		Understanding:    s.Understanding,
+		Disorders:        s.Disorders,
 	}
 }
 
@@ -270,5 +279,6 @@ func fromDTO(s domain.Survivor) survivor {
 		Lumi:             s.Lumi,
 		Courage:          s.Courage,
 		Understanding:    s.Understanding,
+		Disorders:        s.Disorders,
 	}
 }

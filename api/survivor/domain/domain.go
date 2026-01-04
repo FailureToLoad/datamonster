@@ -41,9 +41,11 @@ type Survivor struct {
 	Lumi             int            `json:"lumi"`
 	Courage          int            `json:"courage"`
 	Understanding    int            `json:"understanding"`
+	Disorders        []uuid.UUID    `json:"disorders"`
 }
 
 type SurvivorUpdate struct {
 	StatUpdates  map[string]int  `json:"statUpdates,omitempty"`
 	StatusUpdate *SurvivorStatus `json:"statusUpdate,omitempty"`
+	Disorders    []uuid.UUID     `json:"disorders"`
 }
