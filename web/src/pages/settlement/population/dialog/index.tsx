@@ -69,7 +69,7 @@ export default function SurvivorDialog({data, settlementId, onClose, onSuccess}:
           name: parsed.name,
           gender: parsed.gender,
           survival: parsed.survival,
-          systemicpressure: parsed.systemicPressure,
+          systemicPressure: parsed.systemicPressure,
           movement: parsed.movement,
           accuracy: parsed.accuracy,
           strength: parsed.strength,

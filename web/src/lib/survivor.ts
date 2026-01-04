@@ -85,7 +85,7 @@ export type CreateSurvivorRequest = {
   luck?: number;
   speed?: number;
   insanity?: number;
-  systemicpressure?: number;
+  systemicPressure?: number;
   torment?: number;
   lumi?: number;
   courage?: number;
