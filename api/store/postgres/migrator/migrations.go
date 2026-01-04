@@ -71,3 +71,17 @@ func createSurvivorTable(ctx context.Context, tx pgx.Tx) error {
 
 	return nil
 }
+
+func addFightingArtsToSurvivor(ctx context.Context, tx pgx.Tx) error {
+	alter := `
+		ALTER TABLE survivor ADD COLUMN IF NOT EXISTS fighting_art UUID;
+		ALTER TABLE survivor ADD COLUMN IF NOT EXISTS secret_fighting_art UUID;
+	`
+
+	_, err := tx.Exec(ctx, alter)
+	if err != nil {
+		return fmt.Errorf("failed to add fighting arts columns to survivor table: %w", err)
+	}
+
+	return nil
+}

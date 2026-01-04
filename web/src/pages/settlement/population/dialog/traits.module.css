@@ -1,0 +1,53 @@
+.section {
+  display: flex;
+  flex: 1;
+  flex-direction: column;
+  gap: calc(var(--spacing) * 4);
+  height: 100%;
+  padding: calc(var(--spacing) * 2);
+  overflow-y: auto;
+}
+
+.card {
+  composes: card card-sm collapse collapse-arrow from global;
+  border: 1px solid black;
+  position: relative;
+  z-index: 1;
+}
+
+.card[open] {
+  z-index: 10;
+}
+
+.card:has([data-dropdown-open]) {
+  overflow: visible;
+  z-index: 100;
+}
+
+.cardTitle {
+  font-weight: 600;
+  font-size: 0.875rem;
+}
+
+.countBadge {
+  margin-left: calc(var(--spacing) * 2);
+  background-color: var(--color-base-300);
+  border-radius: 9999px;
+  padding: 0 calc(var(--spacing) * 2);
+  font-size: 0.75rem;
+}
+
+.cardContent {
+  display: flex;
+  flex-direction: column;
+  gap: calc(var(--spacing) * 2);
+}
+
+.itemName {
+  font-weight: 500;
+}
+
+.itemEffect {
+  font-weight: 500;
+  color: color-mix(in oklab, var(--color-base-content) 80%, transparent);
+}

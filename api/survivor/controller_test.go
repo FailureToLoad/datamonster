@@ -3,6 +3,7 @@ package survivor_test
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"log"
 	"net/http"
 	"os"
@@ -170,6 +171,24 @@ func TestCreateSurvivor_DuplicateName(t *testing.T) {
 	assert.Equal(t, http.StatusInternalServerError, status)
 }
 
+func TestCreateSurvivor_WithDisorders(t *testing.T) {
+	userID := "create-survivor-with-disorders-user"
+
+	settlementID, err := requester.CreateSettlement(userID)
+	require.NoError(t, err)
+
+	disorderID := "019412a0-0001-7000-8000-000000000001"
+	body := fmt.Sprintf(`{"name":"Disordered Survivor","birth":1,"gender":"M","disorders":["%s"]}`, disorderID)
+	respBody, status := requester.CreateSurvivorWithBody(userID, settlementID, body)
+	require.Equal(t, http.StatusOK, status)
+
+	var survivor domain.Survivor
+	require.NoError(t, json.NewDecoder(respBody).Decode(&survivor))
+	assert.Equal(t, "Disordered Survivor", survivor.Name)
+	require.Len(t, survivor.Disorders, 1)
+	assert.Equal(t, disorderID, survivor.Disorders[0].String())
+}
+
 func TestUpdateSurvivor_UpdateExisting(t *testing.T) {
 	userID := "upsert-update-user"
 
@@ -286,8 +305,8 @@ func TestUpdateSurvivor_InvalidStatus(t *testing.T) {
 	assert.Equal(t, http.StatusBadRequest, status)
 }
 
-func TestUpdateSurvivor_NoValidFields(t *testing.T) {
-	userID := "update-no-valid-fields-user"
+func TestUpdateSurvivor_NonExistentSurvivor(t *testing.T) {
+	userID := "update-nonexistent-survivor-user"
 
 	settlementID, err := requester.CreateSettlement(userID)
 	require.NoError(t, err)
@@ -296,7 +315,7 @@ func TestUpdateSurvivor_NoValidFields(t *testing.T) {
 	_, status := requester.UpdateSurvivor(userID,
 		settlementID,
 		survivorID,
-		`{"statUpdates":{"notafield":99}}`,
+		`{"disorders":[],"fightingArt":null,"secretFightingArt":null}`,
 	)
 	assert.Equal(t, http.StatusInternalServerError, status)
 }
@@ -315,4 +334,252 @@ func TestUpdateSurvivor_Unauthorized(t *testing.T) {
 	_, status := requester.UpdateSurvivor("unauthorized", testenv.UUIDString(), testenv.UUIDString(), `{"statUpdates":{"huntxp":5}}`)
 
 	assert.Equal(t, http.StatusUnauthorized, status)
+}
+
+func TestUpdateSurvivor_AddDisorders(t *testing.T) {
+	userID := "update-add-disorders-user"
+
+	settlementID, err := requester.CreateSettlement(userID)
+	require.NoError(t, err)
+
+	rawSurvivor, status := requester.CreateSurvivor(userID, settlementID, "Disorders Test")
+	require.Equal(t, http.StatusOK, status)
+
+	var existing domain.Survivor
+	require.NoError(t, json.NewDecoder(rawSurvivor).Decode(&existing))
+	assert.Empty(t, existing.Disorders)
+
+	disorderID := "019412a0-0001-7000-8000-000000000001"
+	body := fmt.Sprintf(`{"disorders":["%s"]}`, disorderID)
+	respBody, status := requester.UpdateSurvivor(userID,
+		settlementID,
+		existing.ID.String(),
+		body,
+	)
+	require.Equal(t, http.StatusOK, status)
+
+	var survivor domain.Survivor
+	require.NoError(t, json.NewDecoder(respBody).Decode(&survivor))
+	require.Len(t, survivor.Disorders, 1)
+	assert.Equal(t, disorderID, survivor.Disorders[0].String())
+}
+
+func TestUpdateSurvivor_UpdateDisorders(t *testing.T) {
+	userID := "update-disorders-user"
+
+	settlementID, err := requester.CreateSettlement(userID)
+	require.NoError(t, err)
+
+	rawSurvivor, status := requester.CreateSurvivor(userID, settlementID, "Update Disorders Test")
+	require.Equal(t, http.StatusOK, status)
+
+	var existing domain.Survivor
+	require.NoError(t, json.NewDecoder(rawSurvivor).Decode(&existing))
+
+	firstDisorderID := "019412a0-0001-7000-8000-000000000001"
+	body := fmt.Sprintf(`{"disorders":["%s"]}`, firstDisorderID)
+	_, status = requester.UpdateSurvivor(userID,
+		settlementID,
+		existing.ID.String(),
+		body,
+	)
+	require.Equal(t, http.StatusOK, status)
+
+	secondDisorderID := "019412a0-0002-7000-8000-000000000002"
+	body = fmt.Sprintf(`{"disorders":["%s","%s"]}`, firstDisorderID, secondDisorderID)
+	respBody, status := requester.UpdateSurvivor(userID,
+		settlementID,
+		existing.ID.String(),
+		body,
+	)
+	require.Equal(t, http.StatusOK, status)
+
+	var survivor domain.Survivor
+	require.NoError(t, json.NewDecoder(respBody).Decode(&survivor))
+	require.Len(t, survivor.Disorders, 2)
+}
+
+func TestUpdateSurvivor_ClearDisorders(t *testing.T) {
+	userID := "clear-disorders-user"
+
+	settlementID, err := requester.CreateSettlement(userID)
+	require.NoError(t, err)
+
+	rawSurvivor, status := requester.CreateSurvivor(userID, settlementID, "Clear Disorders Test")
+	require.Equal(t, http.StatusOK, status)
+
+	var existing domain.Survivor
+	require.NoError(t, json.NewDecoder(rawSurvivor).Decode(&existing))
+
+	disorderID := "019412a0-0001-7000-8000-000000000001"
+	body := fmt.Sprintf(`{"disorders":["%s"]}`, disorderID)
+	_, status = requester.UpdateSurvivor(userID,
+		settlementID,
+		existing.ID.String(),
+		body,
+	)
+	require.Equal(t, http.StatusOK, status)
+
+	body = `{"disorders":[]}`
+	respBody, status := requester.UpdateSurvivor(userID,
+		settlementID,
+		existing.ID.String(),
+		body,
+	)
+	require.Equal(t, http.StatusOK, status)
+
+	var survivor domain.Survivor
+	require.NoError(t, json.NewDecoder(respBody).Decode(&survivor))
+	assert.Empty(t, survivor.Disorders)
+}
+
+func TestUpdateSurvivor_DisordersWithStats(t *testing.T) {
+	userID := "disorders-with-stats-user"
+
+	settlementID, err := requester.CreateSettlement(userID)
+	require.NoError(t, err)
+
+	rawSurvivor, status := requester.CreateSurvivor(userID, settlementID, "Combined Disorders Test")
+	require.Equal(t, http.StatusOK, status)
+
+	var existing domain.Survivor
+	require.NoError(t, json.NewDecoder(rawSurvivor).Decode(&existing))
+
+	disorderID := "019412a0-0001-7000-8000-000000000001"
+	body := fmt.Sprintf(`{"statUpdates":{"insanity":5},"disorders":["%s"]}`, disorderID)
+	respBody, status := requester.UpdateSurvivor(userID,
+		settlementID,
+		existing.ID.String(),
+		body,
+	)
+	require.Equal(t, http.StatusOK, status)
+
+	var survivor domain.Survivor
+	require.NoError(t, json.NewDecoder(respBody).Decode(&survivor))
+	assert.Equal(t, 5, survivor.Insanity)
+	require.Len(t, survivor.Disorders, 1)
+	assert.Equal(t, disorderID, survivor.Disorders[0].String())
+}
+
+func TestCreateSurvivor_WithFightingArt(t *testing.T) {
+	userID := "create-survivor-with-fighting-art-user"
+
+	settlementID, err := requester.CreateSettlement(userID)
+	require.NoError(t, err)
+
+	fightingArtID := "019412a0-0001-7000-8000-000000000010"
+	body := fmt.Sprintf(`{"name":"Fighter Survivor","birth":1,"gender":"M","fightingArt":"%s"}`, fightingArtID)
+	respBody, status := requester.CreateSurvivorWithBody(userID, settlementID, body)
+	require.Equal(t, http.StatusOK, status)
+
+	var survivor domain.Survivor
+	require.NoError(t, json.NewDecoder(respBody).Decode(&survivor))
+	assert.Equal(t, "Fighter Survivor", survivor.Name)
+	require.NotNil(t, survivor.FightingArt)
+	assert.Equal(t, fightingArtID, survivor.FightingArt.String())
+}
+
+func TestCreateSurvivor_WithSecretFightingArt(t *testing.T) {
+	userID := "create-survivor-with-secret-fighting-art-user"
+
+	settlementID, err := requester.CreateSettlement(userID)
+	require.NoError(t, err)
+
+	secretFightingArtID := "019412a0-0001-7000-8000-000000000020"
+	body := fmt.Sprintf(`{"name":"Secret Fighter","birth":1,"gender":"F","secretFightingArt":"%s"}`, secretFightingArtID)
+	respBody, status := requester.CreateSurvivorWithBody(userID, settlementID, body)
+	require.Equal(t, http.StatusOK, status)
+
+	var survivor domain.Survivor
+	require.NoError(t, json.NewDecoder(respBody).Decode(&survivor))
+	assert.Equal(t, "Secret Fighter", survivor.Name)
+	require.NotNil(t, survivor.SecretFightingArt)
+	assert.Equal(t, secretFightingArtID, survivor.SecretFightingArt.String())
+}
+
+func TestUpdateSurvivor_AddFightingArt(t *testing.T) {
+	userID := "update-add-fighting-art-user"
+
+	settlementID, err := requester.CreateSettlement(userID)
+	require.NoError(t, err)
+
+	rawSurvivor, status := requester.CreateSurvivor(userID, settlementID, "Fighting Art Test")
+	require.Equal(t, http.StatusOK, status)
+
+	var existing domain.Survivor
+	require.NoError(t, json.NewDecoder(rawSurvivor).Decode(&existing))
+	assert.Nil(t, existing.FightingArt)
+
+	fightingArtID := "019412a0-0001-7000-8000-000000000010"
+	body := fmt.Sprintf(`{"fightingArt":"%s"}`, fightingArtID)
+	respBody, status := requester.UpdateSurvivor(userID,
+		settlementID,
+		existing.ID.String(),
+		body,
+	)
+	require.Equal(t, http.StatusOK, status)
+
+	var survivor domain.Survivor
+	require.NoError(t, json.NewDecoder(respBody).Decode(&survivor))
+	require.NotNil(t, survivor.FightingArt)
+	assert.Equal(t, fightingArtID, survivor.FightingArt.String())
+}
+
+func TestUpdateSurvivor_AddSecretFightingArt(t *testing.T) {
+	userID := "update-add-secret-fighting-art-user"
+
+	settlementID, err := requester.CreateSettlement(userID)
+	require.NoError(t, err)
+
+	rawSurvivor, status := requester.CreateSurvivor(userID, settlementID, "Secret Fighting Art Test")
+	require.Equal(t, http.StatusOK, status)
+
+	var existing domain.Survivor
+	require.NoError(t, json.NewDecoder(rawSurvivor).Decode(&existing))
+	assert.Nil(t, existing.SecretFightingArt)
+
+	secretFightingArtID := "019412a0-0001-7000-8000-000000000020"
+	body := fmt.Sprintf(`{"secretFightingArt":"%s"}`, secretFightingArtID)
+	respBody, status := requester.UpdateSurvivor(userID,
+		settlementID,
+		existing.ID.String(),
+		body,
+	)
+	require.Equal(t, http.StatusOK, status)
+
+	var survivor domain.Survivor
+	require.NoError(t, json.NewDecoder(respBody).Decode(&survivor))
+	require.NotNil(t, survivor.SecretFightingArt)
+	assert.Equal(t, secretFightingArtID, survivor.SecretFightingArt.String())
+}
+
+func TestUpdateSurvivor_FightingArtsWithStats(t *testing.T) {
+	userID := "fighting-arts-with-stats-user"
+
+	settlementID, err := requester.CreateSettlement(userID)
+	require.NoError(t, err)
+
+	rawSurvivor, status := requester.CreateSurvivor(userID, settlementID, "Combined Fighting Arts Test")
+	require.Equal(t, http.StatusOK, status)
+
+	var existing domain.Survivor
+	require.NoError(t, json.NewDecoder(rawSurvivor).Decode(&existing))
+
+	fightingArtID := "019412a0-0001-7000-8000-000000000010"
+	secretFightingArtID := "019412a0-0001-7000-8000-000000000020"
+	body := fmt.Sprintf(`{"statUpdates":{"courage":5},"fightingArt":"%s","secretFightingArt":"%s"}`, fightingArtID, secretFightingArtID)
+	respBody, status := requester.UpdateSurvivor(userID,
+		settlementID,
+		existing.ID.String(),
+		body,
+	)
+	require.Equal(t, http.StatusOK, status)
+
+	var survivor domain.Survivor
+	require.NoError(t, json.NewDecoder(respBody).Decode(&survivor))
+	assert.Equal(t, 5, survivor.Courage)
+	require.NotNil(t, survivor.FightingArt)
+	assert.Equal(t, fightingArtID, survivor.FightingArt.String())
+	require.NotNil(t, survivor.SecretFightingArt)
+	assert.Equal(t, secretFightingArtID, survivor.SecretFightingArt.String())
 }

@@ -50,6 +50,9 @@ func (r Postgres) Create(ctx context.Context, d domain.Survivor) (domain.Survivo
 		s.Lumi,
 		s.Courage,
 		s.Understanding,
+		s.Disorders,
+		s.FightingArt,
+		s.SecretFightingArt,
 	)
 	if err != nil {
 		if IsDuplicateKeyError(err) {
@@ -82,28 +85,27 @@ func (r Postgres) Create(ctx context.Context, d domain.Survivor) (domain.Survivo
 }
 
 var jsonToColumn = map[string]string{
-	"huntxp":           "hunt_xp",
-	"survival":         "survival",
-	"movement":         "movement",
-	"accuracy":         "accuracy",
-	"strength":         "strength",
-	"evasion":          "evasion",
-	"luck":             "luck",
-	"speed":            "speed",
-	"insanity":         "insanity",
-	"systemicPressure": "systemic_pressure",
-	"torment":          "torment",
-	"lumi":             "lumi",
-	"courage":          "courage",
-	"understanding":    "understanding",
-	"status":           "status",
+	"huntxp":            "hunt_xp",
+	"survival":          "survival",
+	"movement":          "movement",
+	"accuracy":          "accuracy",
+	"strength":          "strength",
+	"evasion":           "evasion",
+	"luck":              "luck",
+	"speed":             "speed",
+	"insanity":          "insanity",
+	"systemicPressure":  "systemic_pressure",
+	"torment":           "torment",
+	"lumi":              "lumi",
+	"courage":           "courage",
+	"understanding":     "understanding",
+	"status":            "status",
+	"disorders":         "disorders",
+	"fightingArt":       "fighting_art",
+	"secretFightingArt": "secret_fighting_art",
 }
 
 func (r Postgres) Update(ctx context.Context, settlementID, survivorID uuid.UUID, updates domain.SurvivorUpdate) (domain.Survivor, error) {
-	if len(updates.StatUpdates) == 0 && updates.StatusUpdate == nil {
-		return domain.Survivor{}, fmt.Errorf("no fields to update")
-	}
-
 	var setClauses []string
 	args := []any{settlementID, survivorID}
 	paramIdx := 3
@@ -124,9 +126,17 @@ func (r Postgres) Update(ctx context.Context, settlementID, survivorID uuid.UUID
 		paramIdx++
 	}
 
-	if len(setClauses) == 0 {
-		return domain.Survivor{}, fmt.Errorf("no valid fields to update")
-	}
+	setClauses = append(setClauses, fmt.Sprintf("disorders = $%d", paramIdx))
+	args = append(args, updates.Disorders)
+	paramIdx++
+
+	setClauses = append(setClauses, fmt.Sprintf("fighting_art = $%d", paramIdx))
+	args = append(args, updates.FightingArt)
+	paramIdx++
+
+	setClauses = append(setClauses, fmt.Sprintf("secret_fighting_art = $%d", paramIdx))
+	args = append(args, updates.SecretFightingArt)
+	paramIdx++
 
 	query := fmt.Sprintf("UPDATE survivor SET %s WHERE settlement_id = $1 AND external_id = $2 RETURNING *", strings.Join(setClauses, ", "))
 
@@ -189,52 +199,57 @@ func IsDuplicateKeyError(err error) bool {
 }
 
 type survivor struct {
-	ID               int         `db:"id"`
-	ExternalID       uuid.UUID   `db:"external_id"`
-	SettlementID     uuid.UUID   `db:"settlement_id"`
-	Name             string      `db:"name"`
-	Birth            int         `db:"birth"`
-	Gender           string      `db:"gender"`
-	Status           string      `db:"status"`
-	HuntXP           int         `db:"hunt_xp"`
-	Survival         int         `db:"survival"`
-	Movement         int         `db:"movement"`
-	Accuracy         int         `db:"accuracy"`
-	Strength         int         `db:"strength"`
-	Evasion          int         `db:"evasion"`
-	Luck             int         `db:"luck"`
-	Speed            int         `db:"speed"`
-	Insanity         int         `db:"insanity"`
-	SystemicPressure int         `db:"systemic_pressure"`
-	Torment          int         `db:"torment"`
-	Lumi             int         `db:"lumi"`
-	Courage          int         `db:"courage"`
-	Understanding    int         `db:"understanding"`
-	Disorders        []uuid.UUID `db:"disorders"`
+	ID                int         `db:"id"`
+	ExternalID        uuid.UUID   `db:"external_id"`
+	SettlementID      uuid.UUID   `db:"settlement_id"`
+	Name              string      `db:"name"`
+	Birth             int         `db:"birth"`
+	Gender            string      `db:"gender"`
+	Status            string      `db:"status"`
+	HuntXP            int         `db:"hunt_xp"`
+	Survival          int         `db:"survival"`
+	Movement          int         `db:"movement"`
+	Accuracy          int         `db:"accuracy"`
+	Strength          int         `db:"strength"`
+	Evasion           int         `db:"evasion"`
+	Luck              int         `db:"luck"`
+	Speed             int         `db:"speed"`
+	Insanity          int         `db:"insanity"`
+	SystemicPressure  int         `db:"systemic_pressure"`
+	Torment           int         `db:"torment"`
+	Lumi              int         `db:"lumi"`
+	Courage           int         `db:"courage"`
+	Understanding     int         `db:"understanding"`
+	Disorders         []uuid.UUID `db:"disorders"`
+	FightingArt       *uuid.UUID  `db:"fighting_art"`
+	SecretFightingArt *uuid.UUID  `db:"secret_fighting_art"`
 }
 
 func toDTO(s survivor) domain.Survivor {
 	return domain.Survivor{
-		ID:               s.ExternalID,
-		SettlementID:     s.SettlementID,
-		Name:             s.Name,
-		Birth:            s.Birth,
-		Gender:           s.Gender,
-		Status:           domain.SurvivorStatus(s.Status),
-		HuntXP:           s.HuntXP,
-		Survival:         s.Survival,
-		Movement:         s.Movement,
-		Accuracy:         s.Accuracy,
-		Strength:         s.Strength,
-		Evasion:          s.Evasion,
-		Luck:             s.Luck,
-		Speed:            s.Speed,
-		Insanity:         s.Insanity,
-		SystemicPressure: s.SystemicPressure,
-		Torment:          s.Torment,
-		Lumi:             s.Lumi,
-		Courage:          s.Courage,
-		Understanding:    s.Understanding,
+		ID:                s.ExternalID,
+		SettlementID:      s.SettlementID,
+		Name:              s.Name,
+		Birth:             s.Birth,
+		Gender:            s.Gender,
+		Status:            domain.SurvivorStatus(s.Status),
+		HuntXP:            s.HuntXP,
+		Survival:          s.Survival,
+		Movement:          s.Movement,
+		Accuracy:          s.Accuracy,
+		Strength:          s.Strength,
+		Evasion:           s.Evasion,
+		Luck:              s.Luck,
+		Speed:             s.Speed,
+		Insanity:          s.Insanity,
+		SystemicPressure:  s.SystemicPressure,
+		Torment:           s.Torment,
+		Lumi:              s.Lumi,
+		Courage:           s.Courage,
+		Understanding:     s.Understanding,
+		Disorders:         s.Disorders,
+		FightingArt:       s.FightingArt,
+		SecretFightingArt: s.SecretFightingArt,
 	}
 }
 
@@ -250,25 +265,28 @@ func toDTOList(survivors []survivor) []domain.Survivor {
 
 func fromDTO(s domain.Survivor) survivor {
 	return survivor{
-		ExternalID:       s.ID,
-		SettlementID:     s.SettlementID,
-		Name:             s.Name,
-		Birth:            s.Birth,
-		Gender:           s.Gender,
-		Status:           string(s.Status),
-		HuntXP:           s.HuntXP,
-		Survival:         s.Survival,
-		Movement:         s.Movement,
-		Accuracy:         s.Accuracy,
-		Strength:         s.Strength,
-		Evasion:          s.Evasion,
-		Luck:             s.Luck,
-		Speed:            s.Speed,
-		Insanity:         s.Insanity,
-		SystemicPressure: s.SystemicPressure,
-		Torment:          s.Torment,
-		Lumi:             s.Lumi,
-		Courage:          s.Courage,
-		Understanding:    s.Understanding,
+		ExternalID:        s.ID,
+		SettlementID:      s.SettlementID,
+		Name:              s.Name,
+		Birth:             s.Birth,
+		Gender:            s.Gender,
+		Status:            string(s.Status),
+		HuntXP:            s.HuntXP,
+		Survival:          s.Survival,
+		Movement:          s.Movement,
+		Accuracy:          s.Accuracy,
+		Strength:          s.Strength,
+		Evasion:           s.Evasion,
+		Luck:              s.Luck,
+		Speed:             s.Speed,
+		Insanity:          s.Insanity,
+		SystemicPressure:  s.SystemicPressure,
+		Torment:           s.Torment,
+		Lumi:              s.Lumi,
+		Courage:           s.Courage,
+		Understanding:     s.Understanding,
+		Disorders:         s.Disorders,
+		FightingArt:       s.FightingArt,
+		SecretFightingArt: s.SecretFightingArt,
 	}
 }
