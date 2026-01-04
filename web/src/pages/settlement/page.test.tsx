@@ -1,4 +1,4 @@
-import { screen } from "@testing-library/react";
+import { screen, waitFor } from "@testing-library/react";
 import { describe, it, expect } from "vitest";
 import { testApp } from "~test/builder";
 
@@ -8,7 +8,9 @@ describe("SettlementPage", () => {
       testApp().renderAt("/settlements/1");
 
       await screen.findByRole("button", { name: /timeline/i });
-      expect(document.getElementById("timeline")).toBeInTheDocument();
+      await waitFor(() => {
+        expect(document.getElementById("timeline")).toBeInTheDocument();
+      });
     });
 
     it("can navigate to the storage tab", async () => {
@@ -19,7 +21,9 @@ describe("SettlementPage", () => {
 
       await user.click(screen.getByRole("link", { name: /storage/i }));
 
-      expect(document.getElementById("storage")).toBeInTheDocument();
+      await waitFor(() => {
+        expect(document.getElementById("storage")).toBeInTheDocument();
+      });
     });
 
     it("can navigate to the population tab", async () => {
@@ -30,7 +34,9 @@ describe("SettlementPage", () => {
 
       await user.click(screen.getByRole("link", { name: /population/i }));
 
-      expect(document.getElementById("population")).toBeInTheDocument();
+      await waitFor(() => {
+        expect(document.getElementById("population")).toBeInTheDocument();
+      });
     });
 
     it("can navigate to settlement selection", async () => {
