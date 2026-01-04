@@ -1,0 +1,68 @@
+.container {
+  composes: dropdown from global;
+  width: 100%;
+}
+
+.inputWrapper {
+  position: relative;
+}
+
+.selectedDisplay {
+  border: var(--border) solid var(--color-base-300);
+  border-radius: var(--radius-field);
+  padding: 0.375rem 2rem 0.375rem 0.75rem;
+  font-size: 0.875rem;
+  width: 100%;
+  background-color: var(--color-base-100);
+}
+
+.selectedName {
+  font-weight: 500;
+}
+
+.selectedEffect {
+  font-weight: 500;
+  color: color-mix(in oklab, var(--color-base-content) 80%, transparent);
+}
+
+.input {
+  composes: input from global;
+  width: 100%;
+  outline: none;
+}
+
+.clearButton {
+  position: absolute;
+  right: 0.5rem;
+  top: 50%;
+  transform: translateY(-50%);
+  color: color-mix(in oklab, var(--color-base-content) 50%, transparent);
+  background: none;
+  border: none;
+  cursor: pointer;
+}
+
+.clearButton:hover {
+  color: var(--color-base-content);
+}
+
+.dropdownList {
+  composes: dropdown-content menu from global;
+  background-color: var(--color-base-100);
+  border-radius: var(--radius-box);
+  z-index: 10;
+  width: 100%;
+  padding: 0.5rem;
+  box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1),
+    0 2px 4px -1px rgba(0, 0, 0, 0.06);
+  max-height: 15rem;
+  overflow-y: auto;
+}
+
+.optionButton {
+  text-align: left;
+  width: 100%;
+  background: none;
+  border: none;
+  cursor: pointer;
+}

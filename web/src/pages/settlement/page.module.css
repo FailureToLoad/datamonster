@@ -18,7 +18,7 @@
 .navbar {
   composes: navbar from global;
   pointer-events: auto;
-  width: 20%;
+  width: fit-content;
   padding-left: 0.5rem;
   padding-right: 0.5rem;
   background-color: var(--color-primary);
@@ -29,6 +29,7 @@
 
 .navbarStart {
   composes: navbar-start from global;
+  width: auto;
 }
 
 .navbarCenter {
@@ -37,6 +38,7 @@
 
 .navbarEnd {
   composes: navbar-end from global;
+  width: auto;
 }
 
 .dropdown {
