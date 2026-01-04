@@ -14,11 +14,12 @@
         "ISSUER_URL": "https://127.0.0.1:9091",
         "REDIRECT_URL": "http://localhost:8080/auth/callback",
         "INTROSPECT_URL": "https://127.0.0.1:9091/api/oidc/introspection",
-        "TOKEN_URL":"https://127.0.0.1:9091/api/oidc/token",
+        "TOKEN_URL": "https://127.0.0.1:9091/api/oidc/token",
         "CLIENT_URL": "http://localhost:8000/",
         "DBSN": "postgres://datamonster:datamonster@localhost:5432/datamonster?sslmode=disable",
         "COOKIE_SECURE": "false",
-        "VALKEY_ADDR": "localhost:6379"
+        "VALKEY_ADDR": "localhost:6379",
+        "GLOSSARY_SERVER": "http://localhost:9080"
       }
     }
   ]
