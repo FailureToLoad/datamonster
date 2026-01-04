@@ -30,10 +30,12 @@ func Migrate(ctx context.Context, pool *pgxpool.Pool) error {
 	var lastApplied int
 	_ = tx.QueryRow(ctx, "SELECT COALESCE(MAX(id), 0) FROM migration").Scan(&lastApplied)
 
-	for id, apply := range migrations {
+	for id := 1; id <= len(migrations); id++ {
 		if id <= lastApplied {
 			continue
 		}
+
+		apply := migrations[id]
 
 		if err := apply(ctx, tx); err != nil {
 			if txErr := tx.Rollback(ctx); txErr != nil {

@@ -36,7 +36,7 @@ type Requester struct {
 
 func NewDBContainer(ctx context.Context) (*DBContainer, error) {
 	postgresContainer, err := postgres.Run(ctx,
-		"postgres:16-alpine",
+		"postgres:18-alpine",
 		postgres.WithDatabase("testdb"),
 		postgres.WithUsername("testuser"),
 		postgres.WithPassword("testpass"),
@@ -115,7 +115,6 @@ func (g *GlossaryContainer) Cleanup(ctx context.Context) {
 		log.Fatalf("failed to terminate glossary container: %s", err)
 	}
 }
-
 
 func NewRequester(controllers []server.Controller) (*Requester, error) {
 	authorizer := &AuthorizerFake{
