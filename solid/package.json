@@ -27,6 +27,7 @@
   "dependencies": {
     "@solidjs/router": "^0.15.4",
     "@tanstack/solid-form": "^1.27.7",
+    "@tanstack/solid-table": "^8.21.3",
     "arktype": "^2.1.29",
     "lucide-solid": "^0.562.0",
     "solid-js": "^1.9.5"
