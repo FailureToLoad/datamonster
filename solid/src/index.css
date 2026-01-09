@@ -1,0 +1,70 @@
+@import "./styles/daisyui.css";
+
+:root {
+  --spacing: 0.25rem;
+  --color-base-100: oklch(100% 0 0);
+  --color-base-200: oklch(97% 0 0);
+  --color-base-300: oklch(94% 0 0);
+  --color-base-content: oklch(0% 0 0);
+  --color-primary: oklch(15.906% 0 0);
+  --color-primary-content: oklch(100% 0 0);
+  --color-secondary: oklch(21.455% 0.001 17.278);
+  --color-secondary-content: oklch(100% 0 0);
+  --color-accent: hsl(66 90% 77.8%);
+  --color-accent-content: oklch(21.455% 0.001 17.278);
+  --color-neutral: oklch(0% 0 0);
+  --color-neutral-content: oklch(100% 0 0);
+  --color-info: oklch(79.54% 0.103 205.9);
+  --color-info-content: oklch(15.908% 0.02 205.9);
+  --color-success: oklch(90.13% 0.153 164.14);
+  --color-success-content: oklch(18.026% 0.03 164.14);
+  --color-warning: oklch(79.965% 0.13094 53.43);
+  --color-warning-content: oklch(17.674% 0.027 79.94);
+  --color-error: oklch(78.66% 0.15 28.47);
+  --color-error-content: oklch(15.732% 0.03 28.47);
+  --color-gender-male: hsl(210 70% 55%);
+  --color-gender-male-content: hsl(210 70% 95%);
+  --color-gender-female: hsl(145 55% 45%);
+  --color-gender-female-content: hsl(145 55% 95%);
+  --color-gender-transgender: hsl(66 90% 77.8%);
+  --color-gender-transgender-content: hsl(0 0% 12%);
+  --radius-selector: 2rem;
+  --radius-field: 0.5rem;
+  --radius-box: 0.5rem;
+  --size-selector: 0.25rem;
+  --size-field: 0.25rem;
+  --border: 2px;
+  --depth: 1;
+  --noise: 0;
+  --font-sans: "DM Mono", ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas,
+    "Liberation Mono", "Courier New", monospace;
+  font-family: var(--font-sans);
+
+  --bg-base: var(--color-base-200);
+  --bg-surface: var(--color-base-100);
+  --bg-muted: var(--color-base-300);
+  --text-primary: var(--color-base-content);
+  --text-muted: var(--color-neutral-content);
+  --border-default: var(--color-base-300);
+  --border-strong: var(--color-neutral);
+}
+
+input[type="number"]::-webkit-inner-spin-button,
+input[type="number"]::-webkit-outer-spin-button {
+  -webkit-appearance: none;
+  margin: 0;
+}
+
+input[type="number"] {
+  appearance: textfield;
+}
+
+.input:focus,
+.input:focus-within {
+  outline: none;
+}
+
+.select:focus,
+.select:focus-within {
+  outline: none;
+}

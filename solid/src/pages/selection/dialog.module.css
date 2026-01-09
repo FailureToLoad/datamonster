@@ -1,0 +1,22 @@
+.createButton {
+  width: 24rem;
+}
+
+.icon {
+  height: 1.5rem;
+  width: 1.5rem;
+}
+
+.dialogTitle {
+  font-weight: 700;
+  font-size: 1.125rem;
+  margin-bottom: 1rem;
+}
+
+.formInput {
+  width: 100%;
+}
+
+.formInput:focus {
+  outline: none;
+}

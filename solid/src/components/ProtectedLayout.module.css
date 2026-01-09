@@ -1,0 +1,7 @@
+.loadingLayout {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  background-color: var(--bg-base);
+  height: 100vh;
+}
