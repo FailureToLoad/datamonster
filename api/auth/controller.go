@@ -109,6 +109,15 @@ func (c Config) Controller() (*Controller, error) {
 
 	verifier := provider.Verifier(&oidc.Config{ClientID: c.ClientID})
 
+	httpClient := &http.Client{
+		Timeout: 10 * time.Second,
+		Transport: &http.Transport{
+			MaxIdleConns:        100,
+			MaxIdleConnsPerHost: 10,
+			IdleConnTimeout:     90 * time.Second,
+		},
+	}
+
 	return &Controller{
 		clientID:     c.ClientID,
 		clientSecret: c.ClientSecret,
@@ -117,6 +126,7 @@ func (c Config) Controller() (*Controller, error) {
 		oauth2Config: oauth2Config,
 		verifier:     verifier,
 		sessions:     c.Sessions,
+		httpClient:   httpClient,
 	}, nil
 }
 
