@@ -1,4 +1,4 @@
-.PHONY: certs clean-certs valkey authelia postgres glossary 
+.PHONY: certs clean-certs  deps-up deps-down glossary-build
 
 CERT_DIR := local/.certs
 LOCAL_DIR := $(shell pwd)/local
@@ -21,35 +21,11 @@ clean-certs:
 	sudo update-ca-trust
 	rm -rf $(CERT_DIR)
 
-valkey:
-	-podman rm -f valkey
-	podman run -d --name valkey -p 6379:6379 valkey/valkey:8.0-alpine
+deps-up: glossary-build
+	podman compose -f $(LOCAL_DIR)/compose.yaml up -d
 
-authelia:
-	mkdir -p $(LOCAL_DIR)/data
-	-podman rm -f authelia
-	podman run -d --name authelia \
-		-p 9091:9091 \
-		-v $(LOCAL_DIR)/configuration.yml:/config/configuration.yml:ro,Z \
-		-v $(LOCAL_DIR)/users_database.yml:/config/users_database.yml:ro,Z \
-		-v $(LOCAL_DIR)/data:/config/data:Z \
-		-v $(shell pwd)/$(CERT_DIR):/certs:ro,Z \
-		-e AUTHELIA_JWT_SECRET="insecure_jwt_secret_for_local_dev" \
-		-e AUTHELIA_SESSION_SECRET="insecure_session_secret_for_local_dev" \
-		-e AUTHELIA_STORAGE_ENCRYPTION_KEY="insecure_encryption_key_for_local_dev" \
-		-e AUTHELIA_SERVER_DISABLE_HEALTHCHECK=true \
-		docker.io/authelia/authelia:latest
+deps-down:
+	-podman compose -f $(LOCAL_DIR)/compose.yaml down
 
-postgres:
-	-podman rm -f postgres
-	podman run -d --name postgres \
-		-p 5432:5432 \
-		-e POSTGRES_USER=datamonster \
-		-e POSTGRES_PASSWORD=datamonster \
-		-e POSTGRES_DB=datamonster \
-		docker.io/postgres:18-alpine
-
-glossary:
+glossary-build:
 	podman build -t glossary -f ./local/glossary.Containerfile ./local
-	-podman rm -f glossary
-	podman run -d --name glossary -p 9080:80 glossary
