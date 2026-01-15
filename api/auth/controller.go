@@ -134,7 +134,6 @@ func (c Controller) RegisterAuthRoutes(r *chi.Mux) {
 	r.Get("/login", c.loginHandler())
 	r.Get("/callback", c.callbackHandler())
 	r.Get("/logout", c.logoutHandler())
-	r.Get("/check", c.checkHandler())
 }
 
 func (c *Controller) callbackHandler() http.HandlerFunc {
@@ -311,11 +310,5 @@ func (c *Controller) loginHandler() http.HandlerFunc {
 
 		authURL := c.oauth2Config.AuthCodeURL(state)
 		http.Redirect(w, r, authURL, http.StatusTemporaryRedirect)
-	}
-}
-
-func (c *Controller) checkHandler() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
 	}
 }
