@@ -25,3 +25,11 @@ afterEach(() => {
 afterAll(() => {
   server.close();
 });
+
+const originalWarn = console.warn;
+console.warn = (...args) => {
+  if (String(args[0]).includes("computations created outside")) {
+    console.trace("Solid warn trace");
+  }
+  originalWarn(...args);
+};

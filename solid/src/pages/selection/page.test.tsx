@@ -3,7 +3,7 @@ import { MemoryRouter, Route, createMemoryHistory, revalidate } from "@solidjs/r
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
 import { describe, it, expect, beforeEach } from "vitest";
-import { Suspense } from "solid-js";
+import { Suspense, createRoot } from "solid-js";
 import { server } from "~test/setup";
 import SelectSettlement, { getSettlements } from "./page";
 import type { SettlementId } from "~/lib/settlement";
@@ -15,22 +15,27 @@ const mockSettlements: SettlementId[] = [
 ];
 
 function renderPage() {
-  const history = createMemoryHistory();
-  render(() => (
-    <MemoryRouter history={history}>
-      <Route path="/" component={() => (
-        <Suspense fallback={<div>Loading...</div>}>
-          <SelectSettlement />
-        </Suspense>
-      )} />
-    </MemoryRouter>
-  ));
+  render(() => {
+    const history = createMemoryHistory();
+    return (
+      <MemoryRouter history={history}>
+        <Route path="/" component={() => (
+          <Suspense fallback={<div>Loading...</div>}>
+            <SelectSettlement />
+          </Suspense>
+        )} />
+      </MemoryRouter>
+    );
+  });
   return userEvent.setup();
 }
 
 describe("SelectSettlement", () => {
   beforeEach(() => {
-    revalidate(getSettlements.key, true);
+    createRoot((dispose) => {
+      revalidate(getSettlements.key, true);
+      dispose();
+    });
   });
   describe("viewing settlements", () => {
     it("shows an empty list when no settlements exist", async () => {

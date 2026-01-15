@@ -1,41 +1,65 @@
 import { render, screen, waitFor } from "@solidjs/testing-library";
-import { MemoryRouter, Route, createMemoryHistory } from "@solidjs/router";
+import { MemoryRouter, Route, createMemoryHistory, revalidate } from "@solidjs/router";
 import userEvent from "@testing-library/user-event";
 import { http, HttpResponse } from "msw";
-import { describe, it, expect } from "vitest";
-import { Suspense, lazy } from "solid-js";
+import { describe, it, expect, beforeEach } from "vitest";
+import { Suspense, lazy, createRoot } from "solid-js";
 import { server } from "~test/setup";
+import { GlossaryContext, type GlossaryData } from "~/hooks/glossary";
 import { SettlementPage } from "./page";
+import { getSurvivors } from "./population/tab";
+
+const mockGlossary: GlossaryData = {
+  disorders: [],
+  fightingArts: [],
+};
 
 const timeline = lazy(() => import("./timeline/tab"));
 const population = lazy(() => import("./population/tab"));
 const storage = lazy(() => import("./storage/tab"));
 
 function renderPage(initialPath = "/settlements/1") {
-  const history = createMemoryHistory();
-  history.set({ value: initialPath });
-  render(() => (
-    <MemoryRouter history={history}>
-      <Route path="/settlements" component={() => (
-        <div>
-          <button>Create Settlement</button>
-        </div>
-      )} />
-      <Route path="/settlements/:settlementId" component={(props) => (
-        <Suspense fallback={<div>Loading...</div>}>
-          <SettlementPage>{props.children}</SettlementPage>
-        </Suspense>
-      )}>
-        <Route path="/timeline" component={timeline} />
-        <Route path="/population" component={population} />
-        <Route path="/storage" component={storage} />
-      </Route>
-    </MemoryRouter>
-  ));
+  server.use(
+    http.get("/api/settlements/:settlementId/survivors", () => {
+      return HttpResponse.json([]);
+    })
+  );
+
+  render(() => {
+    const history = createMemoryHistory();
+    history.set({ value: initialPath });
+    return (
+      <GlossaryContext.Provider value={() => mockGlossary}>
+        <MemoryRouter history={history}>
+          <Route path="/settlements" component={() => (
+            <div>
+              <button>Create Settlement</button>
+            </div>
+          )} />
+          <Route path="/settlements/:settlementId" component={(props) => (
+            <Suspense fallback={<div>Loading...</div>}>
+              <SettlementPage>{props.children}</SettlementPage>
+            </Suspense>
+          )}>
+            <Route path="/timeline" component={timeline} />
+            <Route path="/population" component={population} />
+            <Route path="/storage" component={storage} />
+          </Route>
+        </MemoryRouter>
+      </GlossaryContext.Provider>
+    );
+  });
   return userEvent.setup();
 }
 
 describe("SettlementPage", () => {
+  beforeEach(() => {
+    createRoot((dispose) => {
+      revalidate(getSurvivors.key, true);
+      dispose();
+    });
+  });
+
   describe("navigation", () => {
     it("can navigate to the timeline tab", async () => {
       const user = renderPage("/settlements/1/storage");

@@ -1,3 +1,4 @@
+// vitest.config.ts
 import { defineConfig, mergeConfig } from "vitest/config";
 import viteConfig from "./vite.config";
 
@@ -8,6 +9,7 @@ export default mergeConfig(
       alias: {
         "~test": "/test",
       },
+      dedupe: ["solid-js", "solid-js/web"],
     },
     test: {
       watch: false,

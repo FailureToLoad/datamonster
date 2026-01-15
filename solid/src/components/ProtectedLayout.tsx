@@ -1,6 +1,7 @@
 import { Suspense, type ParentProps } from 'solid-js';
 import { query, createAsync } from '@solidjs/router';
 import { Get } from '~/lib/request';
+import { GlossaryProvider } from '~/context/glossary';
 import styles from './ProtectedLayout.module.css';
 
 export const checkAuth = query(async () => {
@@ -23,7 +24,7 @@ export default function ProtectedLayout(props: ParentProps) {
 
   return (
     <Suspense fallback={<LoadingScreen />}>
-      {props.children}
+      <GlossaryProvider>{props.children}</GlossaryProvider>
     </Suspense>
   );
 }

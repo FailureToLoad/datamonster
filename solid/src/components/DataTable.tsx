@@ -1,4 +1,4 @@
-import { createSignal, For, Show } from 'solid-js';
+import { createMemo, createSignal, For, Show } from 'solid-js';
 import {
   createSolidTable,
   flexRender,
@@ -48,6 +48,7 @@ interface DataTableProps<T extends { id: string }> {
 export function DataTable<T extends { id: string }>(props: DataTableProps<T>) {
   const [sorting, setSorting] = createSignal<SortingState>([]);
   const [columnMenuOpen, setColumnMenuOpen] = createSignal(false);
+  const contextActions = createMemo(() => props.contextActions ?? []);
   const [contextMenu, setContextMenu] = createSignal<ContextMenuState<T>>({
     visible: false,
     x: 0,
@@ -101,7 +102,7 @@ export function DataTable<T extends { id: string }>(props: DataTableProps<T>) {
   });
 
   function handleContextMenu(e: MouseEvent, row: T) {
-    if (!props.contextActions?.length) return;
+    if (!contextActions().length) return;
     e.preventDefault();
     setContextMenu({
       visible: true,
@@ -120,7 +121,7 @@ export function DataTable<T extends { id: string }>(props: DataTableProps<T>) {
   return (
     <div
       class={styles.container}
-      onContextMenu={(e) => props.contextActions?.length && e.preventDefault()}
+      onContextMenu={(e) => contextActions().length && e.preventDefault()}
     >
       <div class={styles.header}>
         <Show when={props.addRow}>
@@ -220,7 +221,7 @@ export function DataTable<T extends { id: string }>(props: DataTableProps<T>) {
           </For>
         </tbody>
       </table>
-      <Show when={contextMenu().visible && props.contextActions?.length}>
+      <Show when={contextMenu().visible && contextActions().length}>
         <div
           class={styles.overlay}
           onClick={closeContextMenu}
@@ -230,7 +231,7 @@ export function DataTable<T extends { id: string }>(props: DataTableProps<T>) {
           }}
         />
         <div class={styles.contextMenu} style={{ left: `${contextMenu().x}px`, top: `${contextMenu().y}px` }}>
-          <For each={props.contextActions!}>
+          <For each={contextActions()}>
             {(action) => (
               <button
                 class={styles.contextMenuItem}

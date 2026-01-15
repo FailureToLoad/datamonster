@@ -1,27 +1,19 @@
 {
   "compilerOptions": {
-    // General
     "jsx": "preserve",
     "jsxImportSource": "solid-js",
     "target": "ESNext",
     "ignoreDeprecations": "5.0",
-
-    // Modules
     "allowSyntheticDefaultImports": true,
     "esModuleInterop": true,
     "isolatedModules": true,
     "module": "ESNext",
     "moduleResolution": "bundler",
-
-    // Type Checking & Safety
     "strict": true,
     "types": ["vite/client", "@testing-library/jest-dom"],
-
-    // Path mappings
-    "baseUrl": ".",
     "paths": {
-      "~/*": ["src/*"],
-      "~test/*": ["test/*"]
+      "~/*": ["./src/*"],
+      "~test/*": ["./test/*"]
     }
   }
 }

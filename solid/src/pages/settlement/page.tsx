@@ -14,8 +14,13 @@ function useNavItems() {
   const storageKey = "storage";
 
   const handleLogout = async () => {
-    await fetch("/auth/logout", { credentials: "include" });
-    window.location.href = '/auth/login';
+    const response = await fetch("/auth/logout", { credentials: "include" });
+    const logoutUrl = response.headers.get("X-Logout-URL");
+    if (logoutUrl) {
+      window.location.href = logoutUrl;
+    } else {
+      window.location.href = "/auth/login";
+    }
   };
 
   return {
