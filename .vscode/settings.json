@@ -4,7 +4,7 @@
   },
   "explorer.fileNesting.enabled": true,
   "explorer.fileNesting.patterns": {
-    "package.json": "package-lock.json, pnpm*, .yarnrc*, yarn*, .eslint*, eslint*, .oxlint*, oxlint*, .prettier*, prettier*, .editorconfig, .gitignore, jsconfig*, vitest.config.*, cypress.config.*, playwright.config.*, tsconfig.*, env.d.ts, vite.config.ts",
+    "package.json": "package-lock.json, pnpm*, .yarnrc*, yarn*, .eslint*, eslint*, .oxlint*, oxlint*, .prettier*, prettier*, .editorconfig, .gitignore, jsconfig*, vitest.config.*, tsconfig.*, env.d.ts, vite.config.ts, .nvmrc",
     "Containerfile": "Caddyfile",
     "*.tsx": "$(capture).module.css, $(capture).test.tsx"
   },
