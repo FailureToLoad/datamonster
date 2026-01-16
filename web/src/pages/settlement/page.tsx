@@ -5,7 +5,7 @@ import Tent from "lucide-solid/icons/tent";
 import LogOut from "lucide-solid/icons/log-out";
 import { A, useLocation } from '@solidjs/router';
 import styles from "./page.module.css";
-import {type ParentProps } from 'solid-js';
+import { type ParentProps } from 'solid-js';
 
 function useNavItems() {
   const { pathname } = useLocation();
@@ -77,7 +77,7 @@ function NavBar() {
               )}
               {!pathname.includes(populationKey) && (
                 <li>
-                  <A href={populationKey}>
+                  <A href={populationKey} preload>
                     <PersonStanding size={24} />
                     Population
                   </A>

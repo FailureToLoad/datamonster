@@ -4,6 +4,7 @@ import { lazy } from 'solid-js';
 import ProtectedLayout, { checkAuth } from '~/components/ProtectedLayout';
 import SelectSettlement, { getSettlements } from '~/pages/selection/page';
 import { SettlementPage } from '~/pages/settlement/page';
+import { getSurvivors } from '~/pages/settlement/population/tab';
 
 const population = lazy(() => import("~/pages/settlement/population/tab"));
 const timeline = lazy(() => import("~/pages/settlement/timeline/tab"));
@@ -17,7 +18,11 @@ export function AppRouter() {
         <Route path="/settlements" component={SelectSettlement} preload={() => getSettlements()} />
         <Route path="/settlements/:settlementId" component={SettlementPage}>
           <Route path="/" component={() => <Navigate href="timeline" />} />
-          <Route path="/population" component={population} />
+          <Route
+            path="/population"
+            component={population}
+            preload={({ params }) => getSurvivors(String(params.settlementId))}
+          />
           <Route path="/storage" component={storage} />
           <Route path="/timeline" component={timeline} />
         </Route>
