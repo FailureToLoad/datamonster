@@ -1,18 +1,20 @@
 import { createMemo, createSignal, For, Show } from 'solid-js';
 import {
+  createColumnHelper,
   createSolidTable,
   flexRender,
   getCoreRowModel,
   getSortedRowModel,
-  type ColumnDef,
+  type DeepKeys,
   type SortingState,
   type VisibilityState,
 } from '@tanstack/solid-table';
-import { Settings, Plus } from 'lucide-solid';
+import Settings from 'lucide-solid/icons/settings';
+import Plus from 'lucide-solid/icons/plus';
 import styles from './DataTable.module.css';
 
 export type ColumnConfig<T> = {
-  field: keyof T;
+  field: DeepKeys<T>;
   headerName: string;
   headerTooltip?: string;
   default?: boolean;
@@ -49,6 +51,7 @@ export function DataTable<T extends { id: string }>(props: DataTableProps<T>) {
   const [sorting, setSorting] = createSignal<SortingState>([]);
   const [columnMenuOpen, setColumnMenuOpen] = createSignal(false);
   const contextActions = createMemo(() => props.contextActions ?? []);
+  const columnHelper = createColumnHelper<T>();
   const [contextMenu, setContextMenu] = createSignal<ContextMenuState<T>>({
     visible: false,
     x: 0,
@@ -68,17 +71,20 @@ export function DataTable<T extends { id: string }>(props: DataTableProps<T>) {
 
   const [columnVisibility, setColumnVisibility] = createSignal<VisibilityState>(initialVisibility());
 
-  const tanstackColumns = (): ColumnDef<T>[] =>
-    props.columns.map((col) => ({
-      id: String(col.field),
-      accessorKey: col.field as string,
-      header: () => col.headerName,
-      enableSorting: col.sortable ?? false,
-      meta: {
-        headerTooltip: col.headerTooltip,
-        locked: col.locked,
-      },
-    }));
+  const tanstackColumns = createMemo(() =>
+    props.columns.map((col) =>
+      columnHelper.accessor(col.field, {
+        id: String(col.field),
+        header: () => col.headerName,
+        cell: (info) => info.getValue(),
+        enableSorting: col.sortable ?? false,
+        meta: {
+          headerTooltip: col.headerTooltip,
+          locked: col.locked,
+        },
+      }),
+    ),
+  );
 
   const table = createSolidTable({
     get data() {
@@ -87,6 +93,7 @@ export function DataTable<T extends { id: string }>(props: DataTableProps<T>) {
     get columns() {
       return tanstackColumns();
     },
+    getRowId: (row) => row.id,
     state: {
       get sorting() {
         return sorting();
