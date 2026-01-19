@@ -1,8 +1,7 @@
 import { type } from "arktype";
-import { useForm } from "@tanstack/react-form";
-import { useRef } from "react";
-import {PlusIcon} from "@phosphor-icons/react";
-import { PostJSON } from "~/lib/request.ts";
+import { createForm } from "@tanstack/solid-form";
+import Plus from "lucide-solid/icons/plus";
+import { PostJSON } from "~/lib/request";
 import styles from "./dialog.module.css";
 
 const settlementNameValidator = type("5 <= string <= 25");
@@ -13,10 +12,10 @@ const AddSettlementSchema = type({
 
 type AddSettlementFields = typeof AddSettlementSchema.infer;
 
-export function CreateSettlementDialog({ refresh }: { refresh: () => void }) {
-  const dialogRef = useRef<HTMLDialogElement>(null);
+export function CreateSettlementDialog(props: { refresh: () => void }) {
+  let dialogRef: HTMLDialogElement | undefined;
 
-  const form = useForm({
+  const form = createForm(() => ({
     defaultValues: {
       settlementName: "",
     } as AddSettlementFields,
@@ -26,28 +25,28 @@ export function CreateSettlementDialog({ refresh }: { refresh: () => void }) {
         return;
       }
 
-      const response = await PostJSON("/api/settlements", { name: parsed.settlementName })
+      const response = await PostJSON("/api/settlements", { name: parsed.settlementName });
 
       if (response.ok) {
-        refresh();
-        dialogRef.current?.close();
+        props.refresh();
+        dialogRef?.close();
         form.reset();
       }
     },
-  });
+  }));
 
   return (
     <>
       <button
-        className={`btn btn-neutral ${styles.createButton}`}
+        class={`btn btn-neutral ${styles.createButton}`}
         aria-label="Create Settlement"
-        onClick={() => dialogRef.current?.showModal()}
+        onClick={() => dialogRef?.showModal()}
       >
-        <PlusIcon className={styles.icon} />
+        <Plus class={styles.icon} />
       </button>
-      <dialog ref={dialogRef} className="modal">
-        <div className="modal-box">
-          <h3 className={styles.dialogTitle}>Add Settlement</h3>
+      <dialog ref={dialogRef} class="modal">
+        <div class="modal-box">
+          <h3 class={styles.dialogTitle}>Add Settlement</h3>
           <form
             onSubmit={(e) => {
               e.preventDefault();
@@ -68,23 +67,23 @@ export function CreateSettlementDialog({ refresh }: { refresh: () => void }) {
                 <input
                   type="text"
                   placeholder="Enter settlement name"
-                  className={`input ${styles.formInput}`}
-                  value={field.state.value}
-                  onChange={(e) => field.handleChange(e.target.value)}
+                  class={`input ${styles.formInput}`}
+                  value={field().state.value}
+                  onInput={(e) => field().handleChange(e.currentTarget.value)}
                 />
               )}
             </form.Field>
-            <div className="modal-action">
+            <div class="modal-action">
               <button
                 type="button"
-                className="btn"
-                onClick={() => dialogRef.current?.close()}
+                class="btn"
+                onClick={() => dialogRef?.close()}
               >
                 Cancel
               </button>
               <form.Subscribe selector={(state) => state.canSubmit}>
                 {(canSubmit) => (
-                  <button type="submit" className="btn btn-primary" disabled={!canSubmit}>
+                  <button type="submit" class="btn btn-primary" disabled={!canSubmit()}>
                     Create
                   </button>
                 )}
@@ -92,7 +91,7 @@ export function CreateSettlementDialog({ refresh }: { refresh: () => void }) {
             </div>
           </form>
         </div>
-        <form method="dialog" className="modal-backdrop">
+        <form method="dialog" class="modal-backdrop">
           <button>close</button>
         </form>
       </dialog>

@@ -1,6 +1,0 @@
-.layout {
-  display: flex;
-  height: 100vh;
-  flex-direction: column;
-  background-color: var(--bg-base);
-}

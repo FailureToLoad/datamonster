@@ -1,43 +1,36 @@
 import styles from './BoxTrack.module.css';
 
-export function BoxTrack({
-  value,
-  onChange,
-  label,
-  totalBoxes,
-  accentedBoxes,
-  labelPosition = 'top',
-  className = '',
-}: {
+interface BoxTrackProps {
   value: number;
   onChange: (val: number) => void;
   label: string;
   totalBoxes: number;
   accentedBoxes: number[];
   labelPosition?: 'top' | 'bottom' | 'left';
-  className?: string;
-}) {
+  class?: string;
+}
+
+export function BoxTrack(props: BoxTrackProps) {
   const handleBoxClick = (index: number) => {
     const boxNumber = index + 1;
-    if (value === boxNumber) {
-      onChange(boxNumber - 1);
+    if (props.value === boxNumber) {
+      props.onChange(boxNumber - 1);
     } else {
-      onChange(boxNumber);
+      props.onChange(boxNumber);
     }
   };
 
   const boxes = (
-    <div className={styles.boxes}>
-      {Array.from({length: totalBoxes}, (_, i) => {
+    <div class={styles.boxes}>
+      {Array.from({length: props.totalBoxes}, (_, i) => {
         const boxNumber = i + 1;
-        const isFilled = boxNumber <= value;
-        const isAccented = accentedBoxes.includes(boxNumber);
+        const isFilled = boxNumber <= props.value;
+        const isAccented = props.accentedBoxes.includes(boxNumber);
         return (
           <button
-            key={i}
             type="button"
             onClick={() => handleBoxClick(i)}
-            className={`${styles.box} ${isAccented ? styles.boxAccented : ''} ${isFilled ? styles.boxFilled : ''}`}
+            class={`${styles.box} ${isAccented ? styles.boxAccented : ''} ${isFilled ? styles.boxFilled : ''}`}
           />
         );
       })}
@@ -45,14 +38,17 @@ export function BoxTrack({
   );
 
   const labelElement = (
-    <div className={styles.labelWrapper} data-tip={value}>
-      <p className={styles.label}>{label}</p>
+    <div class={styles.labelWrapper} data-tip={props.value}>
+      <p class={styles.label}>{props.label}</p>
     </div>
   );
 
+  const labelPosition = props.labelPosition ?? 'top';
+  const containerClass = props.class ?? '';
+
   if (labelPosition === 'left') {
     return (
-      <div className={`${styles.container} ${styles.containerRow} ${className}`}>
+      <div class={`${styles.container} ${styles.containerRow} ${containerClass}`}>
         {labelElement}
         {boxes}
       </div>
@@ -61,7 +57,7 @@ export function BoxTrack({
 
   if (labelPosition === 'bottom') {
     return (
-      <div className={`${styles.container} ${styles.containerColumn} ${className}`}>
+      <div class={`${styles.container} ${styles.containerColumn} ${containerClass}`}>
         {boxes}
         {labelElement}
       </div>
@@ -69,7 +65,7 @@ export function BoxTrack({
   }
 
   return (
-    <div className={`${styles.container} ${styles.containerColumn} ${className}`}>
+    <div class={`${styles.container} ${styles.containerColumn} ${containerClass}`}>
       {labelElement}
       {boxes}
     </div>

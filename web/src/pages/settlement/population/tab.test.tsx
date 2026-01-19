@@ -1,7 +1,24 @@
-import { screen, within, waitFor } from "@testing-library/react";
-import { describe, it, expect } from "vitest";
-import { testApp } from "~test/builder";
+import { render, screen, within, waitFor } from "@solidjs/testing-library";
+import { MemoryRouter, Route, createMemoryHistory, revalidate } from "@solidjs/router";
+import userEvent from "@testing-library/user-event";
+import { http, HttpResponse } from "msw";
+import { describe, it, expect, beforeEach, afterEach } from "vitest";
+import { Suspense, createRoot } from "solid-js";
+import { server } from "~test/setup";
 import type { Survivor } from "~/lib/survivor";
+import { GlossaryContext, type GlossaryData } from "~/hooks/glossary";
+import PopulationTab, { getSurvivors } from "./tab";
+
+const mockGlossary: GlossaryData = {
+  disorders: [
+    { id: "d1", name: "Anxiety", source: "Core", effect: "Cannot use fighting arts" },
+    { id: "d2", name: "Fear of the Dark", source: "Core", effect: "-1 accuracy in darkness" },
+  ],
+  fightingArts: [
+    { id: "fa1", name: "Sword Mastery", secret: false, source: "Core", text: ["Gain +1 accuracy with swords"] },
+    { id: "fa2", name: "Red Fist", secret: true, source: "Core", text: ["Secret fighting art effect"] },
+  ],
+};
 
 const mockSurvivor: Survivor = {
   id: "1",
@@ -35,26 +52,85 @@ const mockSurvivors: Survivor[] = [
   { ...mockSurvivor, id: "3", name: "Charlie", huntxp: 8 },
 ];
 
+function renderPopulationTab(survivors: Survivor[] = []) {
+  server.use(
+    http.get("/api/settlements/:settlementId/survivors", () => {
+      return HttpResponse.json(survivors);
+    }),
+    http.post("/api/settlements/:settlementId/survivors", async ({ request }) => {
+      const body = (await request.json()) as Survivor;
+      const newSurvivor = { ...body, id: "new-id" };
+      survivors.push(newSurvivor);
+      return HttpResponse.json(newSurvivor);
+    }),
+    http.patch("/api/settlements/:settlementId/survivors/:id", async ({ request, params }) => {
+      const body = (await request.json()) as { statUpdates?: Record<string, number> };
+      const survivor = survivors.find((s) => s.id === params.id);
+      if (!survivor) return HttpResponse.json({ error: "Not found" }, { status: 404 });
+
+      if (body.statUpdates) Object.assign(survivor, body.statUpdates);
+      return HttpResponse.json(survivor);
+    })
+  );
+
+  function Wrapper() {
+    const history = createMemoryHistory();
+    history.set({ value: "/settlements/1/population" });
+
+    return (
+      <GlossaryContext.Provider value={() => mockGlossary}>
+        <MemoryRouter
+          history={history}
+          root={(props) => (
+            <Suspense fallback={<div>Loading...</div>}>{props.children}</Suspense>
+          )}
+        >
+          <Route
+            path="/settlements/:settlementId/population"
+            component={PopulationTab}
+          />
+        </MemoryRouter>
+      </GlossaryContext.Provider>
+    );
+  }
+
+  const renderResult = render(() => <Wrapper />);
+
+  return {
+    user: userEvent.setup(),
+    ...renderResult
+  };
+}
+
 describe("PopulationTab", () => {
+  beforeEach(() => {
+    createRoot((dispose) => {
+      revalidate(getSurvivors.key, true);
+      dispose();
+    });
+    
+    server.resetHandlers();
+  });
+
+  afterEach(() => {
+    server.resetHandlers();
+  });
+
   describe("viewing survivors", () => {
     it("shows an empty table when no survivors exist", async () => {
-      testApp().renderAt("/settlements/1/population");
+      renderPopulationTab([]);
 
       expect(await screen.findByText("No Survivors")).toBeInTheDocument();
     });
 
     it("shows survivors in the table", async () => {
-      testApp()
-        .withSurvivors("1", [mockSurvivor])
-        .renderAt("/settlements/1/population");
+      renderPopulationTab([mockSurvivor]);
 
       expect(await screen.findByText("Test Survivor")).toBeInTheDocument();
     });
 
     it("displays a row for each survivor", async () => {
-      testApp()
-        .withSurvivors("1", mockSurvivors)
-        .renderAt("/settlements/1/population");
+      renderPopulationTab(mockSurvivors);
 
       await screen.findByText("Alice");
 
@@ -66,9 +142,7 @@ describe("PopulationTab", () => {
 
   describe("sorting", () => {
     it("sorts by column ascending on first click", async () => {
-      const user = testApp()
-        .withSurvivors("1", mockSurvivors)
-        .renderAt("/settlements/1/population");
+      const { user } = renderPopulationTab(mockSurvivors);
 
       await screen.findByText("Alice");
 
@@ -81,9 +155,7 @@ describe("PopulationTab", () => {
     });
 
     it("sorts by column descending on second click", async () => {
-      const user = testApp()
-        .withSurvivors("1", mockSurvivors)
-        .renderAt("/settlements/1/population");
+      const { user } = renderPopulationTab(mockSurvivors);
 
       await screen.findByText("Alice");
 
@@ -99,9 +171,7 @@ describe("PopulationTab", () => {
 
   describe("configuring columns", () => {
     it("can add a column to the table", async () => {
-      const user = testApp()
-        .withSurvivors("1", [mockSurvivor])
-        .renderAt("/settlements/1/population");
+      const { user } = renderPopulationTab([mockSurvivor]);
 
       await screen.findByText("Test Survivor");
 
@@ -114,9 +184,7 @@ describe("PopulationTab", () => {
     });
 
     it("can remove a column from the table", async () => {
-      const user = testApp()
-        .withSurvivors("1", [mockSurvivor])
-        .renderAt("/settlements/1/population");
+      const { user } = renderPopulationTab([mockSurvivor]);
 
       await screen.findByText("Test Survivor");
 
@@ -129,9 +197,7 @@ describe("PopulationTab", () => {
     });
 
     it("cannot remove the name column", async () => {
-      const user = testApp()
-        .withSurvivors("1", [mockSurvivor])
-        .renderAt("/settlements/1/population");
+      const { user } = renderPopulationTab([mockSurvivor]);
 
       await screen.findByText("Test Survivor");
 
@@ -143,7 +209,7 @@ describe("PopulationTab", () => {
 
   describe("creating a survivor", () => {
     it("disables save when name is invalid", async () => {
-      const user = testApp().renderAt("/settlements/1/population");
+      const { user } = renderPopulationTab([]);
 
       await screen.findByText("No Survivors");
 
@@ -158,7 +224,7 @@ describe("PopulationTab", () => {
     });
 
     it("updates table after creation", async () => {
-      const user = testApp().renderAt("/settlements/1/population");
+      const { user } = renderPopulationTab([]);
 
       await screen.findByText("No Survivors");
 
@@ -181,9 +247,7 @@ describe("PopulationTab", () => {
 
   describe("editing a survivor", () => {
     it("opens edit dialog on right-click and updates row after save", async () => {
-      const user = testApp()
-        .withSurvivors("1", [{ ...mockSurvivor, survival: 1 }])
-        .renderAt("/settlements/1/population");
+      const { user } = renderPopulationTab([{ ...mockSurvivor, survival: 1 }]);
 
       const survivorRow = await screen.findByText("Test Survivor");
 
@@ -210,9 +274,7 @@ describe("PopulationTab", () => {
     });
 
     it("closes dialog when clicking cancel", async () => {
-      const user = testApp()
-        .withSurvivors("1", [mockSurvivor])
-        .renderAt("/settlements/1/population");
+      const { user } = renderPopulationTab([mockSurvivor]);
 
       const survivorRow = await screen.findByText("Test Survivor");
 
@@ -228,9 +290,7 @@ describe("PopulationTab", () => {
     });
 
     it("does not allow editing the name", async () => {
-      const user = testApp()
-        .withSurvivors("1", [mockSurvivor])
-        .renderAt("/settlements/1/population");
+      const { user } = renderPopulationTab([mockSurvivor]);
 
       const survivorRow = await screen.findByText("Test Survivor");
 
@@ -244,9 +304,7 @@ describe("PopulationTab", () => {
     });
 
     it("does not allow editing the gender", async () => {
-      const user = testApp()
-        .withSurvivors("1", [mockSurvivor])
-        .renderAt("/settlements/1/population");
+      const { user } = renderPopulationTab([mockSurvivor]);
 
       const survivorRow = await screen.findByText("Test Survivor");
 
@@ -258,7 +316,7 @@ describe("PopulationTab", () => {
       const genderButtons = within(dialog).queryAllByRole("button").filter(
         btn => btn.querySelector("svg")
       );
-      const clickableGenderButton = genderButtons.find(btn => 
+      const clickableGenderButton = genderButtons.find(btn =>
         btn.classList.contains("genderBadgeMale") || btn.classList.contains("genderBadgeFemale")
       );
       expect(clickableGenderButton).toBeUndefined();

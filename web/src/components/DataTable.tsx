@@ -1,226 +1,259 @@
-import { useMemo, useState } from "react";
-import { GearIcon, PlusIcon } from "@phosphor-icons/react";
-import styles from "./DataTable.module.css";
+import { createMemo, createSignal, For, Show } from 'solid-js';
+import {
+  createColumnHelper,
+  createSolidTable,
+  flexRender,
+  getCoreRowModel,
+  getSortedRowModel,
+  type DeepKeys,
+  type SortingState,
+  type VisibilityState,
+} from '@tanstack/solid-table';
+import Settings from 'lucide-solid/icons/settings';
+import Plus from 'lucide-solid/icons/plus';
+import styles from './DataTable.module.css';
 
 export type ColumnConfig<T> = {
-    field: keyof T;
-    headerName: string;
-    headerTooltip?: string;
-    default?: boolean;
-    sortable?: boolean;
-    locked: boolean;
-};
-
-type SortState<T> = {
-    field: keyof T;
-    direction: "asc" | "desc";
-} | null;
-
-type ContextMenuState<T> = {
-    visible: boolean;
-    x: number;
-    y: number;
-    row: T | null;
+  field: DeepKeys<T>;
+  headerName: string;
+  headerTooltip?: string;
+  default?: boolean;
+  sortable?: boolean;
+  locked: boolean;
 };
 
 export type ContextAction<T> = {
-    label: string;
-    onClick: (row: T) => void;
+  label: string;
+  onClick: (row: T) => void;
 };
 
 export type AddRowAction = {
-    label: string;
-    onClick: () => void;
+  label: string;
+  onClick: () => void;
 };
 
-type DataTableProps<T extends { id: string }> = {
-    columns: ColumnConfig<T>[];
-    rows: T[];
-    contextActions?: ContextAction<T>[] | null;
-    addRow?: AddRowAction | null;
-    emptyMessage?: string;
+type ContextMenuState<T> = {
+  visible: boolean;
+  x: number;
+  y: number;
+  row: T | null;
 };
 
-export function DataTable<T extends { id: string }>({ columns, rows, contextActions, addRow, emptyMessage }: DataTableProps<T>) {
-    const [sort, setSort] = useState<SortState<T>>(null);
-    const [columnMenuOpen, setColumnMenuOpen] = useState(false);
-    const [contextMenu, setContextMenu] = useState<ContextMenuState<T>>({
-        visible: false,
-        x: 0,
-        y: 0,
-        row: null,
+interface DataTableProps<T extends { id: string }> {
+  columns: ColumnConfig<T>[];
+  rows: T[];
+  contextActions?: ContextAction<T>[] | null;
+  addRow?: AddRowAction | null;
+  emptyMessage?: string;
+}
+
+export function DataTable<T extends { id: string }>(props: DataTableProps<T>) {
+  const [sorting, setSorting] = createSignal<SortingState>([]);
+  const [columnMenuOpen, setColumnMenuOpen] = createSignal(false);
+  const contextActions = createMemo(() => props.contextActions ?? []);
+  const columnHelper = createColumnHelper<T>();
+  const [contextMenu, setContextMenu] = createSignal<ContextMenuState<T>>({
+    visible: false,
+    x: 0,
+    y: 0,
+    row: null,
+  });
+
+  const initialVisibility = () => {
+    const vis: VisibilityState = {};
+    for (const col of props.columns) {
+      if (!col.locked && !col.default) {
+        vis[String(col.field)] = false;
+      }
+    }
+    return vis;
+  };
+
+  const [columnVisibility, setColumnVisibility] = createSignal<VisibilityState>(initialVisibility());
+
+  const tanstackColumns = createMemo(() =>
+    props.columns.map((col) =>
+      columnHelper.accessor(col.field, {
+        id: String(col.field),
+        header: () => col.headerName,
+        cell: (info) => info.getValue(),
+        enableSorting: col.sortable ?? false,
+        meta: {
+          headerTooltip: col.headerTooltip,
+          locked: col.locked,
+        },
+      }),
+    ),
+  );
+
+  const table = createSolidTable({
+    get data() {
+      return props.rows;
+    },
+    get columns() {
+      return tanstackColumns();
+    },
+    getRowId: (row) => row.id,
+    state: {
+      get sorting() {
+        return sorting();
+      },
+      get columnVisibility() {
+        return columnVisibility();
+      },
+    },
+    onSortingChange: setSorting,
+    onColumnVisibilityChange: setColumnVisibility,
+    getCoreRowModel: getCoreRowModel(),
+    getSortedRowModel: getSortedRowModel(),
+  });
+
+  function handleContextMenu(e: MouseEvent, row: T) {
+    if (!contextActions().length) return;
+    e.preventDefault();
+    setContextMenu({
+      visible: true,
+      x: e.clientX,
+      y: e.clientY,
+      row,
     });
-    const [visibleFields, setVisibleFields] = useState<Set<keyof T>>(() =>
-        new Set(columns.filter(c => c.default).map(c => c.field))
-    );
+  }
 
-    const visibleColumns = useMemo(() =>
-        columns.filter(c => c.locked || visibleFields.has(c.field)),
-        [columns, visibleFields]
-    );
+  function closeContextMenu() {
+    setContextMenu((prev) => ({ ...prev, visible: false }));
+  }
 
-    function toggleColumn(field: keyof T) {
-        setVisibleFields(prev => {
-            const next = new Set(prev);
-            if (next.has(field)) {
-                next.delete(field);
-            } else {
-                next.add(field);
-            }
-            return next;
-        });
-    }
+  const toggleableColumns = () => props.columns.filter((c) => !c.locked);
 
-    const sortedRows = useMemo(() => {
-        if (!sort) return rows;
-        return [...rows].sort((a, b) => {
-            const aVal = a[sort.field];
-            const bVal = b[sort.field];
-            if (aVal < bVal) return sort.direction === "asc" ? -1 : 1;
-            if (aVal > bVal) return sort.direction === "asc" ? 1 : -1;
-            return 0;
-        });
-    }, [rows, sort]);
-
-    function handleSort(field: keyof T) {
-        setSort((prev: SortState<T>) => {
-            if (prev?.field !== field) return { field, direction: "asc" };
-            if (prev.direction === "asc") return { field, direction: "desc" };
-            return null;
-        });
-    }
-
-    function handleContextMenu(e: React.MouseEvent, row: T) {
-        if (!contextActions?.length) return;
-        e.preventDefault();
-        setContextMenu({
-            visible: true,
-            x: e.clientX,
-            y: e.clientY,
-            row,
-        });
-    }
-
-    function closeContextMenu() {
-        setContextMenu((prev: ContextMenuState<T>) => ({ ...prev, visible: false }));
-    }
-
-    return (
-        <div className={styles.container} onContextMenu={(e) => contextActions?.length && e.preventDefault()}>
-            <div className={styles.header}>
-                {addRow && (
-                    <button
-                        className={styles.btnGhost}
-                        aria-label={addRow.label}
-                        title={addRow.label}
-                        onClick={addRow.onClick}
-                    >
-                        <PlusIcon size={18} weight="bold" />
-                    </button>
-                )}
-                <div className={styles.columnMenuWrapper}>
-                    <button
-                        className={styles.btnGhost}
-                        onClick={() => setColumnMenuOpen(!columnMenuOpen)}
-                        title="Configure columns"
-                    >
-                        <GearIcon size={18} weight="bold" />
-                    </button>
-                    {columnMenuOpen && (
-                        <>
-                            <div
-                                className={styles.overlay}
-                                onClick={() => setColumnMenuOpen(false)}
-                            />
-                            <div className={styles.columnMenu}>
-                                <p className={styles.columnMenuTitle}>Columns</p>
-                                {columns.filter(c => !c.locked).map((column) => (
-                                    <label
-                                        key={String(column.field)}
-                                        className={styles.columnOption}
-                                    >
-                                        <input
-                                            type="checkbox"
-                                            className="checkbox checkbox-sm"
-                                            checked={visibleFields.has(column.field)}
-                                            onChange={() => toggleColumn(column.field)}
-                                        />
-                                        <span className={styles.columnOptionLabel}>{column.headerName}</span>
-                                    </label>
-                                ))}
-                            </div>
-                        </>
-                    )}
-                </div>
-            </div>
-            <table className={styles.dataTable}>
-                <thead>
-                    <tr>
-                        {visibleColumns.map((column) => (
-                            <th
-                                key={String(column.field)}
-                                title={column.headerTooltip}
-                                onClick={column.sortable ? () => handleSort(column.field) : undefined}
-                                style={column.sortable ? { cursor: "pointer" } : undefined}
-                            >
-                                {column.headerName}
-                                {column.sortable && (
-                                    <span style={{ opacity: sort?.field === column.field ? 1 : 0 }}>
-                                        {" "}{sort?.field === column.field && sort.direction === "desc" ? "▼" : "▲"}
-                                    </span>
-                                )}
-                            </th>
-                        ))}
-                    </tr>
-                </thead>
-                <tbody>
-                    {sortedRows.length === 0 && emptyMessage && (
-                        <tr>
-                            <td colSpan={visibleColumns.length} className={styles.emptyMessage}>
-                                {emptyMessage}
-                            </td>
-                        </tr>
-                    )}
-                    {sortedRows.map((row) => (
-                        <tr
-                            key={row.id}
-                            onContextMenu={(e) => handleContextMenu(e, row)}
-                        >
-                            {visibleColumns.map((column) => (
-                                <td key={String(column.field)}>
-                                    {String(row[column.field])}
-                                </td>
-                            ))}
-                        </tr>
-                    ))}
-                </tbody>
-            </table>
-            {contextMenu.visible && contextActions?.length && (
-                <>
-                    <div
-                        className={styles.overlay}
-                        onClick={closeContextMenu}
-                        onContextMenu={(e) => { e.preventDefault(); closeContextMenu(); }}
+  return (
+    <div
+      class={styles.container}
+      onContextMenu={(e) => contextActions().length && e.preventDefault()}
+    >
+      <div class={styles.header}>
+        <Show when={props.addRow}>
+          {(addRow) => (
+            <button
+              class={styles.btnGhost}
+              aria-label={addRow().label}
+              title={addRow().label}
+              onClick={addRow().onClick}
+            >
+              <Plus size={18} strokeWidth={3} />
+            </button>
+          )}
+        </Show>
+        <div class={styles.columnMenuWrapper}>
+          <button
+            class={styles.btnGhost}
+            onClick={() => setColumnMenuOpen(!columnMenuOpen())}
+            title="Configure columns"
+          >
+            <Settings size={18} strokeWidth={3} />
+          </button>
+          <Show when={columnMenuOpen()}>
+            <div class={styles.overlay} onClick={() => setColumnMenuOpen(false)} />
+            <div class={styles.columnMenu}>
+              <p class={styles.columnMenuTitle}>Columns</p>
+              <For each={toggleableColumns()}>
+                {(column) => (
+                  <label class={styles.columnOption}>
+                    <input
+                      type="checkbox"
+                      class="checkbox checkbox-sm"
+                      checked={columnVisibility()[String(column.field)] !== false}
+                      onChange={() => {
+                        const field = String(column.field);
+                        setColumnVisibility((prev) => ({
+                          ...prev,
+                          [field]: prev[field] === false,
+                        }));
+                      }}
                     />
-                    <div
-                        className={styles.contextMenu}
-                        style={{ left: contextMenu.x, top: contextMenu.y }}
-                    >
-                        {contextActions.map((action) => (
-                            <button
-                                key={action.label}
-                                className={styles.contextMenuItem}
-                                onClick={() => {
-                                    if (contextMenu.row) action.onClick(contextMenu.row);
-                                    closeContextMenu();
-                                }}
-                            >
-                                {action.label}
-                            </button>
-                        ))}
-                    </div>
-                </>
-            )}
+                    <span class={styles.columnOptionLabel}>{column.headerName}</span>
+                  </label>
+                )}
+              </For>
+            </div>
+          </Show>
         </div>
-    )
+      </div>
+      <table class={styles.dataTable}>
+        <thead>
+          <For each={table.getHeaderGroups()}>
+            {(headerGroup) => (
+              <tr>
+                <For each={headerGroup.headers}>
+                  {(header) => (
+                    <th
+                      title={(header.column.columnDef.meta as { headerTooltip?: string })?.headerTooltip}
+                      class={header.column.getCanSort() ? styles.sortableHeader : undefined}
+                      onClick={header.column.getToggleSortingHandler()}
+                    >
+                      {header.isPlaceholder
+                        ? null
+                        : flexRender(header.column.columnDef.header, header.getContext())}
+                      <Show when={header.column.getCanSort()}>
+                        <span
+                          style={{ opacity: header.column.getIsSorted() ? 1 : 0, 'margin-left': '0.25rem' }}
+                        >
+                          {header.column.getIsSorted() === 'desc' ? '▼' : '▲'}
+                        </span>
+                      </Show>
+                    </th>
+                  )}
+                </For>
+              </tr>
+            )}
+          </For>
+        </thead>
+        <tbody>
+          <Show when={table.getRowModel().rows.length === 0 && props.emptyMessage}>
+            <tr>
+              <td colSpan={table.getVisibleLeafColumns().length} class={styles.emptyMessage}>
+                {props.emptyMessage}
+              </td>
+            </tr>
+          </Show>
+          <For each={table.getRowModel().rows}>
+            {(row) => (
+              <tr onContextMenu={(e) => handleContextMenu(e, row.original)}>
+                <For each={row.getVisibleCells()}>
+                  {(cell) => (
+                    <td>{flexRender(cell.column.columnDef.cell, cell.getContext())}</td>
+                  )}
+                </For>
+              </tr>
+            )}
+          </For>
+        </tbody>
+      </table>
+      <Show when={contextMenu().visible && contextActions().length}>
+        <div
+          class={styles.overlay}
+          onClick={closeContextMenu}
+          onContextMenu={(e) => {
+            e.preventDefault();
+            closeContextMenu();
+          }}
+        />
+        <div class={styles.contextMenu} style={{ left: `${contextMenu().x}px`, top: `${contextMenu().y}px` }}>
+          <For each={contextActions()}>
+            {(action) => (
+              <button
+                class={styles.contextMenuItem}
+                onClick={() => {
+                  const row = contextMenu().row;
+                  if (row) action.onClick(row);
+                  closeContextMenu();
+                }}
+              >
+                {action.label}
+              </button>
+            )}
+          </For>
+        </div>
+      </Show>
+    </div>
+  );
 }

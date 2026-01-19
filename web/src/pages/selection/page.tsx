@@ -1,42 +1,52 @@
-import { useLoaderData, useRevalidator, Link } from "react-router";
+import { A, query, createAsync, revalidate } from "@solidjs/router";
+import { For } from "solid-js";
+import Play from "lucide-solid/icons/play";
 import type { SettlementId } from "~/lib/settlement";
-import {PlayIcon} from "@phosphor-icons/react";
 import { CreateSettlementDialog } from "./dialog";
+import { Get } from "~/lib/request";
 import styles from "./page.module.css";
 
-function SettlementCard({ settlement }: { settlement: SettlementId }) {
+export const getSettlements = query(async (): Promise<SettlementId[]> => {
+  const response = await Get("/api/settlements");
+  return response.json();
+}, "settlements");
+
+function SettlementCard(props: { settlement: SettlementId }) {
   return (
-    <div className={`card bg-base-100 shadow-sm ${styles.settlementCard}`}>
-      <div className={`card-body ${styles.cardBody}`}>
-        <div className={styles.cardInfo}>
-          <h2 className="card-title">{settlement.name}</h2>
+    <div class={styles.settlementCard}>
+      <div class={styles.cardBody}>
+        <div class={styles.cardInfo}>
+          <h2 class="card-title">{props.settlement.name}</h2>
         </div>
 
-        <Link
-          to={"/settlements/" + settlement.id}
-          className={`btn btn-ghost ${styles.playButton}`}
+        <A
+          href={"/settlements/" + props.settlement.id}
+          class={styles.playButton}
         >
-          <PlayIcon size={24} />
-        </Link>
+          <Play size={24} />
+        </A>
       </div>
     </div>
   );
 }
 
-export function SelectSettlement() {
-  const settlements = useLoaderData() as SettlementId[];
-  const revalidator = useRevalidator();
+export default function SelectSettlement() {
+  const settlements = createAsync(() => getSettlements());
+
+  const refresh = () => revalidate(getSettlements.key);
 
   return (
-    <div className={styles.container}>
-      <div className={styles.content}>
-        <CreateSettlementDialog refresh={() => revalidator.revalidate()} />
-        <ul className={styles.list}>
-          {settlements.map((settlement) => (
-            <li key={settlement.id}>
-              <SettlementCard settlement={settlement} />
-            </li>
-          ))}
+    <div class={styles.container}>
+      <div class={styles.content}>
+        <CreateSettlementDialog refresh={refresh} />
+        <ul class={styles.list}>
+          <For each={settlements() ?? []}>
+            {(settlement) => (
+              <li>
+                <SettlementCard settlement={settlement} />
+              </li>
+            )}
+          </For>
         </ul>
       </div>
     </div>

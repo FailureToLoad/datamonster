@@ -1,5 +1,8 @@
 .container {
-  display: grid;
+  display: flex;
+  flex-direction: column;
+  background-color: var(--bg-base);
+  height: 100vh;
   place-content: center;
   min-height: 100%;
   padding: 2rem;
@@ -22,11 +25,13 @@
 }
 
 .settlementCard {
+  composes: card bg-base-100 from global;
   width: 24rem;
   overflow: hidden;
 }
 
 .cardBody {
+  composes: card-body from global;
   display: flex;
   flex-direction: row;
   align-items: stretch;
@@ -42,6 +47,7 @@
 }
 
 .playButton {
+  composes: btn btn-ghost from global;
   height: auto;
   flex-basis: 33.333%;
   border-radius: 0;

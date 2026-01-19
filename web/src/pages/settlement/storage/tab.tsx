@@ -1,8 +1,8 @@
 import styles from './tab.module.css';
 
-export function StorageTab() {
+export default function StorageTab() {
   return (
-    <div id="storage" className={styles.tab}>
+    <div id="storage" class={styles.tab}>
       Storage
     </div>
   );

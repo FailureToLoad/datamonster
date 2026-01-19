@@ -109,6 +109,15 @@ func (c Config) Controller() (*Controller, error) {
 
 	verifier := provider.Verifier(&oidc.Config{ClientID: c.ClientID})
 
+	httpClient := &http.Client{
+		Timeout: 10 * time.Second,
+		Transport: &http.Transport{
+			MaxIdleConns:        100,
+			MaxIdleConnsPerHost: 10,
+			IdleConnTimeout:     90 * time.Second,
+		},
+	}
+
 	return &Controller{
 		clientID:     c.ClientID,
 		clientSecret: c.ClientSecret,
@@ -117,6 +126,7 @@ func (c Config) Controller() (*Controller, error) {
 		oauth2Config: oauth2Config,
 		verifier:     verifier,
 		sessions:     c.Sessions,
+		httpClient:   httpClient,
 	}, nil
 }
 
@@ -124,7 +134,6 @@ func (c Controller) RegisterAuthRoutes(r *chi.Mux) {
 	r.Get("/login", c.loginHandler())
 	r.Get("/callback", c.callbackHandler())
 	r.Get("/logout", c.logoutHandler())
-	r.Get("/check", c.checkHandler())
 }
 
 func (c *Controller) callbackHandler() http.HandlerFunc {
@@ -223,39 +232,41 @@ func (c *Controller) callbackHandler() http.HandlerFunc {
 func (c *Controller) logoutHandler() http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
 		ctx := r.Context()
-		cookie, err := r.Cookie(sessionCookieName)
-		if err != nil {
-			response.InternalServerError(ctx, w, err)
-		}
-		w.WriteHeader(http.StatusNoContent)
+		expireCookie(w)
+		w.Header().Set("X-Logout-URL", c.issuerURL+"/logout")
 
-		if cookie.Value == "" {
+		cookie, err := r.Cookie(sessionCookieName)
+		if err != nil || cookie.Value == "" {
+			response.NoContent(w)
 			return
 		}
-		expireCookie(w)
 
-		sessionBytes, err := c.sessions.Get(r.Context(), cookie.Value)
+		sessionBytes, err := c.sessions.Get(ctx, cookie.Value)
 		if err != nil {
 			logger.Warn(ctx, "fetching session for logout", logger.ErrorField(err))
+			response.NoContent(w)
 			return
 		}
 		if len(sessionBytes) == 0 {
 			logger.Warn(ctx, "logout: session is empty")
+			response.NoContent(w)
 			return
 		}
 
 		var sessionData SessionData
 		if err := json.Unmarshal(sessionBytes, &sessionData); err != nil {
 			logger.Warn(ctx, "unmarshaling session for logout", logger.ErrorField(err))
+			response.NoContent(w)
 			return
 		}
 		if sessionData.AccessToken != "" {
-			c.revokeToken(r.Context(), sessionData.AccessToken)
+			c.revokeToken(ctx, sessionData.AccessToken)
 		}
 
 		if err := c.sessions.Delete(ctx, cookie.Value); err != nil {
 			logger.Warn(ctx, "logout: failed to delete session", logger.ErrorField(err))
 		}
+		response.NoContent(w)
 	}
 }
 
@@ -299,11 +310,5 @@ func (c *Controller) loginHandler() http.HandlerFunc {
 
 		authURL := c.oauth2Config.AuthCodeURL(state)
 		http.Redirect(w, r, authURL, http.StatusTemporaryRedirect)
-	}
-}
-
-func (c *Controller) checkHandler() http.HandlerFunc {
-	return func(w http.ResponseWriter, r *http.Request) {
-		w.WriteHeader(http.StatusOK)
 	}
 }

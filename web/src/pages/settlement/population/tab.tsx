@@ -1,25 +1,27 @@
-import {useState} from 'react';
-import {SurvivorTable} from './survivorTable';
+import { createSignal, Show } from 'solid-js';
+import { createAsync, useParams, query, revalidate } from '@solidjs/router';
+import { SurvivorTable } from './survivorTable';
 import SurvivorDialog from './dialog/index';
-import {type Survivor, SurvivorTemplate} from '~/lib/survivor';
-import {useLoaderData, useParams, useRevalidator} from 'react-router';
+import { type Survivor, SurvivorTemplate } from '~/lib/survivor';
+import { Get } from '~/lib/request';
 import styles from './tab.module.css';
 
-type DialogState = Survivor | null;
-
-export function PopulationTab() {
-  const {settlementId} = useParams();
-  const survivors = (useLoaderData() as Survivor[]) ?? [];
-  const revalidator = useRevalidator();
-  const [dialogState, setDialogState] = useState<DialogState>(null);
-
-  if (!settlementId) {
-    throw Error('settlement id is required');
+export const getSurvivors = query(async (settlementId: string) => {
+  const response = await Get(`/api/settlements/${settlementId}/survivors`);
+  if (!response.ok) {
+    return [];
   }
+  return (await response.json()) as Survivor[];
+}, 'survivors');
+
+export default function PopulationTab() {
+  const params = useParams<{ settlementId: string }>();
+  const survivors = createAsync(() => getSurvivors(params.settlementId));
+  const [dialogState, setDialogState] = createSignal<Survivor | null>(null);
 
   const handleSuccess = () => {
     setDialogState(null);
-    revalidator.revalidate();
+    revalidate('survivors');
   };
 
   const handleClose = () => {
@@ -27,20 +29,22 @@ export function PopulationTab() {
   };
 
   return (
-    <div id="population" className={styles.tab}>
+    <div id="population" class={styles.tab}>
       <SurvivorTable
-        data={survivors}
+        data={survivors() ?? []}
         onEditSurvivor={(survivor) => setDialogState(survivor)}
-        onCreateSurvivor={() => setDialogState(SurvivorTemplate(settlementId))}
+        onCreateSurvivor={() => setDialogState(SurvivorTemplate(params.settlementId))}
       />
-      {dialogState && (
-        <SurvivorDialog
-          data={dialogState}
-          settlementId={settlementId}
-          onClose={handleClose}
-          onSuccess={handleSuccess}
-        />
-      )}
+      <Show when={dialogState()}>
+        {(survivor) => (
+          <SurvivorDialog
+            data={survivor()}
+            settlementId={params.settlementId}
+            onClose={handleClose}
+            onSuccess={handleSuccess}
+          />
+        )}
+      </Show>
     </div>
   );
 }

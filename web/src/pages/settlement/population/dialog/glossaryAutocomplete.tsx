@@ -1,4 +1,4 @@
-import {useState, useRef} from 'react';
+import { createSignal, For, Show, type JSX } from 'solid-js';
 import styles from './glossaryAutocomplete.module.css';
 
 type GlossaryItem = {
@@ -6,100 +6,98 @@ type GlossaryItem = {
   name: string;
 };
 
-type GlossaryAutocompleteProps<T extends GlossaryItem> = {
+interface GlossaryAutocompleteProps<T extends GlossaryItem> {
   items: T[];
   value: string | null;
   onChange: (value: string | null) => void;
   excludeIds?: (string | null)[];
   filter?: (item: T) => boolean;
-  renderSelected?: (item: T) => React.ReactNode;
+  renderSelected?: (item: T) => JSX.Element;
   placeholder?: string;
-};
+}
 
-export function GlossaryAutocomplete<T extends GlossaryItem>({
-  items,
-  value,
-  onChange,
-  excludeIds = [],
-  filter,
-  renderSelected,
-  placeholder = 'None',
-}: GlossaryAutocompleteProps<T>) {
-  const [query, setQuery] = useState('');
-  const [isOpen, setIsOpen] = useState(false);
-  const inputRef = useRef<HTMLInputElement>(null);
+export function GlossaryAutocomplete<T extends GlossaryItem>(props: GlossaryAutocompleteProps<T>) {
+  const [query, setQuery] = createSignal('');
+  const [isOpen, setIsOpen] = createSignal(false);
+  let inputRef: HTMLInputElement | undefined;
 
-  const filteredByType = filter ? items.filter(filter) : items;
-  const selectedItem = filteredByType.find((item) => item.id === value);
-  const excludeSet = new Set(excludeIds.filter((id): id is string => id !== null && id !== value));
+  const filteredByType = () => (props.filter ? props.items.filter(props.filter) : props.items);
+  const selectedItem = () => filteredByType().find((item) => item.id === props.value);
+  const excludeSet = () => {
+    const ids = props.excludeIds ?? [];
+    return new Set(ids.filter((id): id is string => id !== null && id !== props.value));
+  };
 
-  const available = filteredByType.filter((item) => !excludeSet.has(item.id));
-  const filtered = query
-    ? available.filter((item) => item.name.toLowerCase().includes(query.toLowerCase()))
-    : available;
+  const available = () => filteredByType().filter((item) => !excludeSet().has(item.id));
+  const filtered = () => {
+    const q = query();
+    return q ? available().filter((item) => item.name.toLowerCase().includes(q.toLowerCase())) : available();
+  };
 
   function handleSelect(item: T) {
-    onChange(item.id);
+    props.onChange(item.id);
     setQuery('');
     setIsOpen(false);
   }
 
   function handleClear() {
-    onChange(null);
+    props.onChange(null);
     setQuery('');
-    inputRef.current?.focus();
+    inputRef?.focus();
   }
 
-  function handleInputChange(e: React.ChangeEvent<HTMLInputElement>) {
-    setQuery(e.target.value);
-    if (value) onChange(null);
+  function handleInputChange(e: Event) {
+    const target = e.target as HTMLInputElement;
+    setQuery(target.value);
+    if (props.value) props.onChange(null);
     setIsOpen(true);
   }
 
+  const placeholder = () => props.placeholder ?? 'None';
+
   return (
-    <div className={styles.container} data-dropdown-open={isOpen || undefined}>
-      <div className={styles.inputWrapper}>
-        {selectedItem ? (
-          <div className={styles.selectedDisplay}>
-            {renderSelected ? renderSelected(selectedItem) : selectedItem.name}
-          </div>
-        ) : (
-          <input
-            ref={inputRef}
-            type="text"
-            className={styles.input}
-            value={query}
-            onChange={handleInputChange}
-            onFocus={() => setIsOpen(true)}
-            onBlur={() => setTimeout(() => setIsOpen(false), 150)}
-            placeholder={placeholder}
-          />
-        )}
-        {value && (
-          <button
-            type="button"
-            className={styles.clearButton}
-            onClick={handleClear}
-          >
+    <div class={styles.container} data-dropdown-open={isOpen() || undefined}>
+      <div class={styles.inputWrapper}>
+        <Show
+          when={selectedItem()}
+          fallback={
+            <input
+              ref={inputRef}
+              type="text"
+              class={styles.input}
+              value={query()}
+              onInput={handleInputChange}
+              onFocus={() => setIsOpen(true)}
+              onBlur={() => setTimeout(() => setIsOpen(false), 150)}
+              placeholder={placeholder()}
+            />
+          }
+        >
+          {(item) => (
+            <div class={styles.selectedDisplay}>
+              {props.renderSelected ? props.renderSelected(item()) : item().name}
+            </div>
+          )}
+        </Show>
+        <Show when={props.value}>
+          <button type="button" class={styles.clearButton} onClick={handleClear}>
             ×
           </button>
-        )}
+        </Show>
       </div>
-      {isOpen && filtered.length > 0 && (
-        <ul className={styles.dropdownList}>
-          {filtered.map((item) => (
-            <li key={item.id}>
-              <button
-                type="button"
-                className={styles.optionButton}
-                onMouseDown={() => handleSelect(item)}
-              >
-                {item.name}
-              </button>
-            </li>
-          ))}
+      <Show when={isOpen() && filtered().length > 0}>
+        <ul class={styles.dropdownList}>
+          <For each={filtered()}>
+            {(item) => (
+              <li>
+                <button type="button" class={styles.optionButton} onMouseDown={() => handleSelect(item)}>
+                  {item.name}
+                </button>
+              </li>
+            )}
+          </For>
         </ul>
-      )}
+      </Show>
     </div>
   );
 }

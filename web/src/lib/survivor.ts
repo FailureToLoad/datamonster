@@ -25,29 +25,27 @@ export type Survivor = {
 };
 
 export const SurvivorGender = {
-  F: "F",
-  M: "M",
+  F: 'F',
+  M: 'M',
 } as const;
 
-export type SurvivorGender =
-  (typeof SurvivorGender)[keyof typeof SurvivorGender];
+export type SurvivorGender = (typeof SurvivorGender)[keyof typeof SurvivorGender];
 
 export const SurvivorStatus = {
-  Alive: "Alive",
-  CeasedToExist: "Ceased to exist",
-  CannotDepart: "Cannot depart",
-  Dead: "Dead",
-  Retired: "Retired",
+  Alive: 'Alive',
+  CeasedToExist: 'Ceased to exist',
+  CannotDepart: 'Cannot depart',
+  Dead: 'Dead',
+  Retired: 'Retired',
 } as const;
 
-export type SurvivorStatus =
-  (typeof SurvivorStatus)[keyof typeof SurvivorStatus];
+export type SurvivorStatus = (typeof SurvivorStatus)[keyof typeof SurvivorStatus];
 
 export function SurvivorTemplate(settlementId: string): Survivor {
   return {
-    id: "",
+    id: '',
     settlementId: settlementId,
-    name: "Anon",
+    name: 'Anon',
     gender: SurvivorGender.F,
     birth: 1,
     status: SurvivorStatus.Alive,
@@ -70,24 +68,3 @@ export function SurvivorTemplate(settlementId: string): Survivor {
     secretFightingArt: null,
   };
 }
-
-export type CreateSurvivorRequest = {
-  settlementId: string;
-  name: string;
-  birth?: number;
-  gender?: SurvivorGender;
-  huntxp?: number;
-  survival?: number;
-  movement?: number;
-  accuracy?: number;
-  strength?: number;
-  evasion?: number;
-  luck?: number;
-  speed?: number;
-  insanity?: number;
-  systemicPressure?: number;
-  torment?: number;
-  lumi?: number;
-  courage?: number;
-  understanding?: number;
-};

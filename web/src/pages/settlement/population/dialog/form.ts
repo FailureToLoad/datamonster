@@ -1,13 +1,10 @@
-import { SurvivorGender, SurvivorStatus } from "~/lib/survivor";
-import { type } from "arktype";
+import { SurvivorGender, SurvivorStatus } from '~/lib/survivor';
+import { type } from 'arktype';
 
-const isInteger = type("number.integer");
-const isPositive = type("number.integer >= 0");
-export const nameValidator = type("1 <= string <= 50");
-export const genderValidator = type.enumerated(
-  SurvivorGender.M,
-  SurvivorGender.F
-);
+const isInteger = type('number.integer');
+const isPositive = type('number.integer >= 0');
+export const nameValidator = type('1 <= string <= 50');
+export const genderValidator = type.enumerated(SurvivorGender.M, SurvivorGender.F);
 export const statusValidator = type.enumerated(
   SurvivorStatus.Alive,
   SurvivorStatus.CannotDepart,
@@ -16,7 +13,7 @@ export const statusValidator = type.enumerated(
   SurvivorStatus.Retired
 );
 
-const optionalString = type("string | null");
+const optionalString = type('string | null');
 
 export const SurvivorFormSchema = type({
   name: nameValidator,

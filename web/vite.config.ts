@@ -1,20 +1,11 @@
+/// <reference types="vite/client" />
+
 import { defineConfig } from "vite";
-import react from "@vitejs/plugin-react";
+import solidPlugin from "vite-plugin-solid";
+import devtools from "solid-devtools/vite";
 
 export default defineConfig({
-  plugins: [react()],
-  resolve: {
-    alias: { "~": "/src" },
-  },
-  build: {
-    rollupOptions: {
-      output: {
-        manualChunks: {
-          vendor: ["react", "react-dom", "react-router"],
-        },
-      },
-    },
-  },
+  plugins: [devtools(), solidPlugin()],
   server: {
     port: 8000,
     proxy: {
@@ -27,5 +18,12 @@ export default defineConfig({
         changeOrigin: true,
       },
     },
+  },
+  build: {
+    target: "esnext",
+  },
+  resolve: {
+    conditions: ["development", "browser"],
+    alias: { "~": "/src" },
   },
 });

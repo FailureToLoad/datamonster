@@ -1,20 +1,24 @@
-import { use, type ReactNode } from "react";
+import { createAsync, query } from "@solidjs/router";
+import type { ParentProps } from "solid-js";
 import { GlossaryContext, type GlossaryData } from "~/hooks/glossary";
 import { Get } from "~/lib/request";
 
-async function fetchGlossary(): Promise<GlossaryData> {
+export const getGlossary = query(async () => {
   const res = await Get("/api/glossary");
-  if (!res.ok) throw new Error("Failed to load glossary");
-  return res.json() as Promise<GlossaryData>;
-}
+  if (!res.ok) {
+    throw new Error("Failed to load glossary");
+  }
+  return (await res.json()) as GlossaryData;
+}, "glossary");
 
-const glossaryPromise = fetchGlossary();
+export function GlossaryProvider(props: ParentProps) {
+  const glossary = createAsync(() => getGlossary(), {
+    initialValue: { disorders: [], fightingArts: [] },
+  });
 
-export function GlossaryProvider({ children }: { children: ReactNode }) {
-  const glossary = use(glossaryPromise);
   return (
     <GlossaryContext.Provider value={glossary}>
-      {children}
+      {props.children}
     </GlossaryContext.Provider>
   );
 }

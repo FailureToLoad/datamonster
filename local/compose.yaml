@@ -1,0 +1,35 @@
+services:
+  valkey:
+    image: docker.io/valkey/valkey:8.0-alpine
+    ports:
+      - "6379:6379"
+
+  postgres:
+    image: docker.io/postgres:18-alpine
+    ports:
+      - "5432:5432"
+    environment:
+      POSTGRES_USER: datamonster
+      POSTGRES_PASSWORD: datamonster
+      POSTGRES_DB: datamonster
+
+  authelia:
+    image: docker.io/authelia/authelia:latest
+    ports:
+      - "9091:9091"
+    environment:
+      AUTHELIA_JWT_SECRET: insecure_jwt_secret_for_local_dev
+      AUTHELIA_SESSION_SECRET: insecure_session_secret_for_local_dev
+      AUTHELIA_STORAGE_ENCRYPTION_KEY: insecure_encryption_key_for_local_dev
+      AUTHELIA_SERVER_DISABLE_HEALTHCHECK: "true"
+    volumes:
+      - ./configuration.yml:/config/configuration.yml:ro,Z
+      - ./users_database.yml:/config/users_database.yml:ro,Z
+      - ./data:/config/data:Z
+      - ./.certs:/certs:ro,Z
+      - ./assets:/config/assets:ro,Z
+
+  glossary:
+    image: localhost/glossary:latest
+    ports:
+      - "9080:80"

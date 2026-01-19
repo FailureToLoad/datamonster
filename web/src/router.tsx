@@ -1,71 +1,32 @@
-import { createBrowserRouter, redirect, type MiddlewareFunction } from "react-router";
-import App from "~/App";
-import Home from "~/pages/Home";
-import {SelectSettlement, loadSettlements } from "~/pages/selection/index";
-import { 
-  SettlementPage, 
-  TimelineTab, 
-  PopulationTab, 
-  StorageTab, 
-  loadSurvivors  
-} from '~/pages/settlement/index.ts';
-import Layout from '~/components/DefaultLayout';
-import { ErrorBoundary } from "~/components/ErrorBoundary";
 
-async function checkAuth(): Promise<boolean> {
-  const response = await fetch("/api/me", { credentials: "include" });
-  return response.ok;
+import { Router, Route, Navigate } from '@solidjs/router';
+import { lazy } from 'solid-js';
+import ProtectedLayout, { checkAuth } from '~/components/ProtectedLayout';
+import SelectSettlement, { getSettlements } from '~/pages/selection/page';
+import { SettlementPage } from '~/pages/settlement/page';
+import { getSurvivors } from '~/pages/settlement/population/tab';
+
+const population = lazy(() => import("~/pages/settlement/population/tab"));
+const timeline = lazy(() => import("~/pages/settlement/timeline/tab"));
+const storage = lazy(() => import("~/pages/settlement/storage/tab"));
+
+export function AppRouter() {
+  return (
+    <Router>
+      <Route path="/" component={ProtectedLayout} preload={() => checkAuth()}>
+        <Route path="/" component={() => <Navigate href="/settlements" />} />
+        <Route path="/settlements" component={SelectSettlement} preload={() => getSettlements()} />
+        <Route path="/settlements/:settlementId" component={SettlementPage}>
+          <Route path="/" component={() => <Navigate href="timeline" />} />
+          <Route
+            path="/population"
+            component={population}
+            preload={({ params }) => getSurvivors(String(params.settlementId))}
+          />
+          <Route path="/storage" component={storage} />
+          <Route path="/timeline" component={timeline} />
+        </Route>
+      </Route>
+    </Router>
+  );
 }
-
-const authMiddleware: MiddlewareFunction = async (_args, next) => {
-  if (!(await checkAuth())) {
-    throw redirect("/");
-  }
-  return next();
-};
-
-export const router = createBrowserRouter([
-  {
-    path: "/",
-    element: <App />,
-    errorElement: <ErrorBoundary />,
-    children: [
-      {
-        index: true,
-        element: <Home />,
-        loader: async () => {
-          if (await checkAuth()) return redirect("/settlements");
-          return null;
-        },
-      },
-      {
-        element: <Layout />,
-        middleware: [authMiddleware],
-        children: [
-          {
-            path: '/settlements',
-            element: <SelectSettlement />,
-            loader: loadSettlements,
-          },
-          {
-            path: '/settlements/:settlementId',
-            element: <SettlementPage />,
-            children: [
-              {
-                index: true,
-                loader: ({ params }) => redirect(`/settlements/${params.settlementId}/timeline`),
-              },
-              {
-                path: 'population',
-                element: <PopulationTab />,
-                loader: loadSurvivors,
-              },
-              {path: 'storage', element: <StorageTab />},
-              {path: 'timeline', element: <TimelineTab />},
-            ],
-          },
-        ],
-      },
-    ],
-  },
-]);

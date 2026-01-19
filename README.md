@@ -24,10 +24,7 @@ The project relies on standing up an authelia container, a valkey container, a p
 
 ```bash
 make certs
-make valkey
-make authelia
-make postgres
-make glossary
+make deps-up
 ```
 
 As part of setup for the frontend, make sure to also run the command to pull daisyui styles. I've complicated things a wee bit by using daisyui without tailwind, but I really enjoy the project more this way.
@@ -50,8 +47,6 @@ export TESTCONTAINERS_RYUK_DISABLED=true
 ```
 
 For any other platforms, the `make certs` step is going to need some manual attention. Feel free to raise an issue in the repo if you have problems but otherwise I'll be keeping this focused on linux (Fedora) as my dev environment.
-
-I don't use a compose for the containers because valkey and authelia are pretty hands off once they're stood up. I only really need to fuss with the postgres container every so often. The podman commands _should_ be interchangeable with docker so if you use docker you can edit the makefile locally.
 
 The `launch.json` has all the environment variables set for running the api. There may be discrepencies in how your container runtime assigns ip addresses. The web project does not rely on any environment variables and the vite dev server already has reverse proxy configured for hitting the api.
 

@@ -1,35 +1,26 @@
-import {
-  ArchiveIcon,
-  PersonIcon,
-  type IconProps,
-  HourglassMediumIcon,
-  TentIcon,
-  SignOutIcon,
-} from "@phosphor-icons/react";
-import { Link, Outlet, useLocation, useNavigate } from "react-router";
+import Archive from "lucide-solid/icons/archive";
+import PersonStanding from "lucide-solid/icons/person-standing";
+import Hourglass from "lucide-solid/icons/hourglass";
+import Tent from "lucide-solid/icons/tent";
+import LogOut from "lucide-solid/icons/log-out";
+import { A, useLocation } from '@solidjs/router';
 import styles from "./page.module.css";
+import { type ParentProps } from 'solid-js';
 
 function useNavItems() {
   const { pathname } = useLocation();
-  const navigate = useNavigate();
   const timelineKey = "timeline";
   const populationKey = "population";
   const storageKey = "storage";
 
-  const getProps = (active: boolean): IconProps => {
-    const props: IconProps = {
-      size: 32,
-    };
-    if (active) {
-      props.weight = "fill";
-      props.className = "text-primary";
-    }
-    return props;
-  };
-
   const handleLogout = async () => {
-    await fetch("/api/auth/logout", { credentials: "include" });
-    navigate("/");
+    const response = await fetch("/auth/logout", { credentials: "include" });
+    const logoutUrl = response.headers.get("X-Logout-URL");
+    if (logoutUrl) {
+      window.location.href = logoutUrl;
+    } else {
+      window.location.href = "/auth/login";
+    }
   };
 
   return {
@@ -37,7 +28,6 @@ function useNavItems() {
     populationKey,
     storageKey,
     pathname,
-    getProps,
     handleLogout,
   };
 }
@@ -46,14 +36,14 @@ function getPageTitle(pathname: string): string {
   if (pathname.includes("timeline")) return "Timeline";
   if (pathname.includes("population")) return "Population";
   if (pathname.includes("storage")) return "Storage";
-  return "Settlement";
+  return "Timeline";
 }
 
-function getActiveIcon(pathname: string): React.ReactNode {
-  if (pathname.includes("timeline")) return <HourglassMediumIcon size={24} weight="fill" />;
-  if (pathname.includes("population")) return <PersonIcon size={24} weight="fill" />;
-  if (pathname.includes("storage")) return <ArchiveIcon size={24} weight="fill" />;
-  return <HourglassMediumIcon size={24} />;
+function getActiveIcon(pathname: string) {
+  if (pathname.includes("timeline")) return <Hourglass />;
+  if (pathname.includes("population")) return <PersonStanding />;
+  if (pathname.includes("storage")) return <LogOut />;
+  return <Hourglass size={24} />;
 }
 
 function NavBar() {
@@ -61,53 +51,53 @@ function NavBar() {
   const pageTitle = getPageTitle(pathname);
 
   return (
-    <div className={styles.navWrapper}>
-      <div className={styles.navbar}>
-        <div className={styles.navbarStart}>
-          <div className={styles.tooltip} data-tip="Settlements">
-            <Link to="/settlements" className={styles.navLink} aria-label="Settlements">
-              <TentIcon size={24} />
-            </Link>
+    <div class={styles.navWrapper}>
+      <div class={styles.navbar}>
+        <div class={styles.navbarStart}>
+          <div class={styles.tooltip} data-tip="Settlements">
+            <A href="/settlements" class={styles.navLink} aria-label="Settlements">
+              <Tent size={24} />
+            </A>
           </div>
         </div>
-        <div className={styles.navbarCenter}>
-          <div className={styles.dropdown}>
-            <div tabIndex={0} role="button" className={styles.navButton}>
+        <div class={styles.navbarCenter}>
+          <div class={styles.dropdown}>
+            <div tabIndex={0} role="button" class={styles.navButton}>
               {getActiveIcon(pathname)}
               {pageTitle}
             </div>
-            <ul tabIndex={-1} className={styles.dropdownMenu}>
+            <ul tabIndex={-1} class={styles.dropdownMenu}>
               {!pathname.includes(timelineKey) && (
                 <li>
-                  <Link to={timelineKey}>
-                    <HourglassMediumIcon size={24} />
+                  <A href={timelineKey}>
+                    <Hourglass size={24} />
                     Timeline
-                  </Link>
+                  </A>
                 </li>
               )}
               {!pathname.includes(populationKey) && (
                 <li>
-                  <Link to={populationKey}>
-                    <PersonIcon size={24} />
+                  <A href={populationKey} preload>
+                    <PersonStanding size={24} />
                     Population
-                  </Link>
+                  </A>
                 </li>
               )}
               {!pathname.includes(storageKey) && (
                 <li>
-                  <Link to={storageKey}>
-                    <ArchiveIcon size={24} />
+                  <A href={storageKey}>
+                    <Archive size={24} />
                     Storage
-                  </Link>
+                  </A>
                 </li>
               )}
             </ul>
           </div>
         </div>
-        <div className={styles.navbarEnd}>
-          <div className={styles.tooltip} data-tip="Logout">
-            <button onClick={handleLogout} className={styles.navLink} aria-label="Logout">
-              <SignOutIcon size={24} />
+        <div class={styles.navbarEnd}>
+          <div class={styles.tooltip} data-tip="Logout">
+            <button onClick={handleLogout} class={styles.navLink} aria-label="Logout">
+              <LogOut size={24} />
             </button>
           </div>
         </div>
@@ -116,12 +106,12 @@ function NavBar() {
   );
 }
 
-export function SettlementPage() {
+export function SettlementPage(props: ParentProps) {
   return (
-    <div className={styles.page}>
+    <div class={styles.page}>
       <NavBar />
-      <div className={styles.content}>
-        <Outlet />
+      <div class={styles.content}>
+        {props.children}
       </div>
     </div>
   );

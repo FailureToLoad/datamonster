@@ -1,15 +1,9 @@
 import "@testing-library/jest-dom/vitest";
-import { cleanup } from "@testing-library/react";
-import { afterEach, beforeEach, vi } from "vitest";
-import {
-  createMockApiState,
-  createMockFetch,
-  type MockApiState,
-} from "./mockApi";
+import { cleanup } from "@solidjs/testing-library";
+import { afterAll, afterEach, beforeAll } from "vitest";
+import { setupServer } from "msw/node";
 
-vi.mock("~/context/glossary", () => ({
-  GlossaryProvider: ({ children }: { children: React.ReactNode }) => children,
-}));
+export const server = setupServer();
 
 HTMLDialogElement.prototype.showModal = function () {
   this.setAttribute("open", "");
@@ -19,18 +13,15 @@ HTMLDialogElement.prototype.close = function () {
   this.removeAttribute("open");
 };
 
-let mockApiState: MockApiState;
-
-beforeEach(() => {
-  mockApiState = createMockApiState();
-  vi.stubGlobal("fetch", createMockFetch(mockApiState));
+beforeAll(() => {
+  server.listen({ onUnhandledRequest: "error" });
 });
 
 afterEach(() => {
   cleanup();
-  vi.unstubAllGlobals();
+  server.resetHandlers();
 });
 
-export function getMockApiState(): MockApiState {
-  return mockApiState;
-}
+afterAll(() => {
+  server.close();
+});

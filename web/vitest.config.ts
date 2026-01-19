@@ -1,18 +1,32 @@
-import { defineConfig } from "vitest/config";
-import react from "@vitejs/plugin-react";
+// vitest.config.ts
+import { defineConfig, mergeConfig } from "vitest/config";
+import viteConfig from "./vite.config";
 
-export default defineConfig({
-  plugins: [react()],
-  resolve: {
-    alias: {
-      "~": "/src",
-      "~test": "/test",
+export default mergeConfig(
+  viteConfig,
+  defineConfig({
+    resolve: {
+      alias: {
+        "~test": "/test",
+      },
+      dedupe: ["solid-js", "solid-js/web"],
     },
-  },
-  test: {
-    globals: true,
-    environment: "jsdom",
-    setupFiles: "./test/setup.ts",
-    include: ["src/**/*.test.{ts,tsx}"],
-  },
-});
+    test: {
+      watch: false,
+      globals: false,
+      environment: "happy-dom",
+      setupFiles: ["./test/setup.ts"],
+      server: {
+        deps: {
+          inline: [
+            "@solidjs/testing-library",
+            "@solidjs/router",
+            "lucide-solid",
+            "@tanstack/solid-form",
+            "@tanstack/solid-store",
+          ],
+        },
+      },
+    },
+  })
+);

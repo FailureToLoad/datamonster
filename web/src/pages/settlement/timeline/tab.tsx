@@ -1,8 +1,8 @@
 import styles from './tab.module.css';
 
-export function TimelineTab() {
+export default function TimelineTab() {
   return (
-    <div id="timeline" className={styles.tab}>
+    <div id="timeline" class={styles.tab}>
       Timeline
     </div>
   );
